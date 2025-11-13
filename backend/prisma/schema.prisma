@@ -1,0 +1,435 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  // shadowDatabaseUrl tidak diperlukan untuk db push, hanya untuk migrate dev
+  // shadowDatabaseUrl = env("DATABASE_SHADOW_URL")
+}
+
+// ============================================================================
+// USER MANAGEMENT MODELS
+// ============================================================================
+
+model User {
+  id                  String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  email               String    @unique
+  passwordHash        String
+  fullName            String
+  dateOfBirth         DateTime?
+  gender              String?
+  phoneNumber         String?
+
+  // Physical Metrics
+  heightCm            Decimal   @db.Decimal(5, 2)
+  currentWeightKg     Decimal   @db.Decimal(5, 2)
+  targetWeightKg      Decimal?  @db.Decimal(5, 2)
+  activityLevel       String    @default("moderate") // sedentary, light, moderate, active, very_active
+
+  // Cultural & Preference
+  culture             String?   // Jawa, Sunda, Minang, Bugis, Batak, Bali, Betawi
+  religion            String?   // Islam, Kristen, Katolik, Hindu, Buddha
+
+  // Medical History
+  medicalConditions   String[]  @default([]) // ["Hipertensi", "Diabetes", "Obesitas"]
+  medications         String[]  @default([])
+  allergies           String[]  @default([])
+  dietaryRestrictions String[]  @default([]) // ["vegetarian", "halal"]
+  dislikes            String[]  @default([])
+
+  // Engagement
+  streakDays          Int       @default(0)
+  badges              String[]  @default([])
+
+  // Privacy & Consent
+  privacyConsent      Boolean   @default(false)
+  dataUsageConsent    Boolean   @default(false)
+
+  // Timestamps
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+  lastActiveAt        DateTime  @updatedAt
+
+  // Relations
+  biomarkers          BiomarkerRecord[]
+  mealPlans           MealPlan[]
+  conversations       Conversation[]
+  feedback            MealPlanFeedback[]
+
+  @@map("users")
+  @@index([email])
+  @@index([createdAt])
+}
+
+// ============================================================================
+// MEAL PLAN MODELS
+// ============================================================================
+
+model MealPlan {
+  id                    String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId                String    @db.Uuid
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Duration
+  startDate             DateTime
+  endDate               DateTime
+  duration              String    // 1_day, 3_days, 7_days, 14_days, 28_days
+
+  // Nutrition Summary
+  avgCalories           Decimal   @db.Decimal(10, 2)
+  avgProteinG           Decimal   @db.Decimal(10, 2)
+  avgCarbsG             Decimal   @db.Decimal(10, 2)
+  avgFatG               Decimal   @db.Decimal(10, 2)
+  avgSodiumMg           Decimal   @db.Decimal(10, 2)
+  avgSugarG             Decimal?  @db.Decimal(10, 2)
+
+  // Compliance Scores
+  akgCompliance         Decimal   @db.Decimal(5, 2) // 0-100%
+  localFoodPercentage   Decimal   @db.Decimal(5, 2) // 0-100%
+  medicalSafetyScore    Decimal   @db.Decimal(5, 2) // 0-100%
+
+  // User Feedback
+  userRating            Decimal?  @db.Decimal(3, 1)
+  adherenceScore        Decimal?  @db.Decimal(5, 2)
+  userFeedback          String?
+
+  // Metadata
+  generatedBy           String    @default("llm") // llm, manual
+  llmPromptUsed         String?
+
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  // Relations
+  days                  MealPlanDay[]
+  feedback              MealPlanFeedback[]
+  conversations         Conversation[]
+
+  @@map("meal_plans")
+  @@index([userId, createdAt(sort: Desc)])
+}
+
+model MealPlanDay {
+  id                    String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  mealPlanId            String    @db.Uuid
+  mealPlan              MealPlan  @relation(fields: [mealPlanId], references: [id], onDelete: Cascade)
+
+  mealDate              DateTime
+  dayNotes              String?
+
+  createdAt             DateTime  @default(now())
+
+  // Relations
+  meals                 MealPlanDayMeal[]
+
+  @@map("meal_plan_days")
+  @@index([mealPlanId])
+}
+
+model Meal {
+  id                    String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name                  String
+  description           String?
+  portion               String
+
+  // Nutrition
+  calories              Decimal   @db.Decimal(10, 2)
+  proteinG              Decimal   @db.Decimal(10, 2)
+  carbsG                Decimal   @db.Decimal(10, 2)
+  fiberG                Decimal?  @db.Decimal(10, 2)
+  fatG                  Decimal   @db.Decimal(10, 2)
+  saturatedFatG         Decimal?  @db.Decimal(10, 2)
+  sodiumMg              Decimal   @db.Decimal(10, 2)
+  sugarG                Decimal?  @db.Decimal(10, 2)
+  cholesterolMg         Decimal?  @db.Decimal(10, 2)
+
+  vitaminC              Decimal?  @db.Decimal(10, 2)
+  vitaminD              Decimal?  @db.Decimal(10, 2)
+  vitaminE              Decimal?  @db.Decimal(10, 2)
+  vitaminK              Decimal?  @db.Decimal(10, 2)
+  vitaminA              Decimal?  @db.Decimal(10, 2)
+  calcium               Decimal?  @db.Decimal(10, 2)
+  iron                  Decimal?  @db.Decimal(10, 2)
+  magnesium             Decimal?  @db.Decimal(10, 2)
+  phosphorus            Decimal?  @db.Decimal(10, 2)
+  potassium             Decimal?  @db.Decimal(10, 2)
+  zinc                  Decimal?  @db.Decimal(10, 2)
+
+  // Properties
+  isLocalFood           Boolean   @default(true)
+  isCultureApproved     Boolean   @default(false)
+  medicalSafetyNotes    String?
+
+  preparationTips       String?
+  culturalSignificance  String?
+
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  // Relations
+  ingredients           MealIngredient[]
+  dayMeals              MealPlanDayMeal[]
+  alternatives          FoodAlternative[]
+
+  @@map("meals")
+  @@index([isLocalFood])
+}
+
+model MealIngredient {
+  id                    String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  mealId                String    @db.Uuid
+  meal                  Meal      @relation(fields: [mealId], references: [id], onDelete: Cascade)
+
+  foodId                String    @db.Uuid
+  food                  LocalFood @relation(fields: [foodId], references: [id])
+
+  quantity              Decimal   @db.Decimal(10, 2)
+  unit                  String    // g, ml, pcs, cup, etc
+
+  createdAt             DateTime  @default(now())
+
+  @@map("meal_ingredients")
+  @@index([mealId])
+  @@index([foodId])
+}
+
+model MealPlanDayMeal {
+  id                    String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  mealPlanDayId         String    @db.Uuid
+  mealPlanDay           MealPlanDay @relation(fields: [mealPlanDayId], references: [id], onDelete: Cascade)
+
+  mealId                String    @db.Uuid
+  meal                  Meal      @relation(fields: [mealId], references: [id])
+
+  mealType              String    // breakfast, lunch, dinner, snack
+  createdAt             DateTime  @default(now())
+
+  @@map("meal_plan_day_meals")
+  @@index([mealPlanDayId])
+  @@index([mealId])
+}
+
+// ============================================================================
+// FOOD DATABASE MODELS
+// ============================================================================
+
+model LocalFood {
+  id                    String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name                  String
+  commonNames           String[]  @default([])
+
+  // Classification
+  category              String    // grains, proteins, vegetables, fruits, dairy, oils, herbs, spices
+  origin                String?
+
+  // Nutrition per 100g
+  calories              Decimal   @db.Decimal(10, 2)
+  proteinG              Decimal   @db.Decimal(10, 2)
+  carbsG                Decimal   @db.Decimal(10, 2)
+  fiberG                Decimal?  @db.Decimal(10, 2)
+  fatG                  Decimal   @db.Decimal(10, 2)
+  saturatedFatG         Decimal?  @db.Decimal(10, 2)
+  sodiumMg              Decimal   @db.Decimal(10, 2)
+  sugarG                Decimal?  @db.Decimal(10, 2)
+  cholesterolMg         Decimal?  @db.Decimal(10, 2)
+
+  vitaminC              Decimal?  @db.Decimal(10, 2)
+  vitaminD              Decimal?  @db.Decimal(10, 2)
+  vitaminE              Decimal?  @db.Decimal(10, 2)
+  vitaminK              Decimal?  @db.Decimal(10, 2)
+  vitaminA              Decimal?  @db.Decimal(10, 2)
+  calcium               Decimal?  @db.Decimal(10, 2)
+  iron                  Decimal?  @db.Decimal(10, 2)
+  magnesium             Decimal?  @db.Decimal(10, 2)
+  phosphorus            Decimal?  @db.Decimal(10, 2)
+  potassium             Decimal?  @db.Decimal(10, 2)
+  zinc                  Decimal?  @db.Decimal(10, 2)
+
+  // Availability & Cost
+  seasonsAvailable      String[]  @default([])
+  estimatedCostPerKgRp  Int?
+  storageLife           String?
+
+  // Dietary Properties
+  isVegetarian          Boolean   @default(false)
+  isVegan               Boolean   @default(false)
+  isHalal               Boolean   @default(true)
+  isKosher              Boolean?  @default(false)
+  commonAllergies       String[]  @default([])
+
+  // Medical Properties (JSONB)
+  contraindications     Json?     // [{condition, reason, severity}]
+  benefits              String[]  @default([])
+
+  // Cultural Significance (JSONB)
+  culturalSignificance  Json?     // [{culture, usages}]
+
+  // Preparation
+  commonPreparations    String[]  @default([])
+  cookingTips           String?
+
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  // Relations
+  ingredients           MealIngredient[]
+  alternatives          FoodAlternative[]
+
+  @@map("local_foods")
+  @@index([category])
+  @@index([origin])
+  @@index([name])
+}
+
+model FoodAlternative {
+  id                    String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  mealId                String    @db.Uuid
+  meal                  Meal      @relation(fields: [mealId], references: [id], onDelete: Cascade)
+
+  alternativeFoodId     String    @db.Uuid
+  alternativeFood       LocalFood @relation(fields: [alternativeFoodId], references: [id])
+
+  reason                String    // "higher in potassium", "local substitute", etc
+  substitutionRatio     String?   // "1:1", "2:3", etc
+
+  createdAt             DateTime  @default(now())
+
+  @@map("food_alternatives")
+  @@index([mealId])
+  @@index([alternativeFoodId])
+}
+
+// ============================================================================
+// BIOMARKER MODELS
+// ============================================================================
+
+model BiomarkerRecord {
+  id                    String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId                String    @db.Uuid
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  recordedAt            DateTime
+  
+  // Physical
+  weightKg              Decimal?  @db.Decimal(5, 2)
+  heightCm              Decimal?  @db.Decimal(5, 2)
+  bmi                   Decimal?  @db.Decimal(5, 2)
+
+  // Blood Pressure
+  systolicBp            Int?
+  diastolicBp           Int?
+  bpMeasurementTime     String?
+
+  // Blood Tests
+  bloodGlucose          Int?      // mg/dL
+  hba1c                 Decimal?  @db.Decimal(5, 2) // %
+
+  // Cholesterol
+  totalCholesterol      Int?
+  ldlCholesterol        Int?
+  hdlCholesterol        Int?
+  triglycerides         Int?
+
+  // Additional
+  notes                 String?
+  source                String    // user_input, wearable, lab_test, hospital
+
+  createdAt             DateTime  @default(now())
+
+  @@map("biomarker_records")
+  @@index([userId, recordedAt(sort: Desc)])
+}
+
+// ============================================================================
+// CHAT MODELS
+// ============================================================================
+
+model Conversation {
+  id                    String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId                String    @db.Uuid
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  sessionId             String?
+  
+  // Optional Context
+  currentMealPlanId     String?   @db.Uuid
+  currentMealPlan       MealPlan? @relation(fields: [currentMealPlanId], references: [id], onDelete: SetNull)
+
+  // Metadata
+  topic                 String?   // meal_planning, nutrition_education, health_tracking, general
+  isArchived            Boolean   @default(false)
+
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  // Relations
+  messages              ChatMessage[]
+
+  @@map("conversations")
+  @@index([userId, createdAt(sort: Desc)])
+}
+
+model ChatMessage {
+  id                    String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  conversationId        String    @db.Uuid
+  conversation          Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  role                  String    // user, assistant
+  content               String
+
+  // Structured Data
+  structuredData        Json?     // {type, data}
+
+  // LLM Metadata
+  llmModel              String?
+  tokensUsed            Int?
+
+  createdAt             DateTime  @default(now())
+
+  @@map("chat_messages")
+  @@index([conversationId, createdAt(sort: Desc)])
+}
+
+// ============================================================================
+// FEEDBACK & ANALYTICS MODELS
+// ============================================================================
+
+model MealPlanFeedback {
+  id                    String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  mealPlanId            String    @db.Uuid
+  mealPlan              MealPlan  @relation(fields: [mealPlanId], references: [id], onDelete: Cascade)
+
+  userId                String    @db.Uuid
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  rating                Decimal?  @db.Decimal(3, 1)
+  adherenceScore        Decimal?  @db.Decimal(5, 2)
+  feedback              String?
+
+  createdAt             DateTime  @default(now())
+
+  @@map("meal_plan_feedback")
+  @@index([mealPlanId])
+  @@index([userId])
+}
+
+model KPIMetric {
+  id                    String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId                String?   @db.Uuid
+
+  metricName            String    // adherence_rate, akg_compliance, local_food_usage, etc
+  metricValue           Decimal   @db.Decimal(10, 2)
+
+  periodStart           DateTime
+  periodEnd             DateTime
+
+  createdAt             DateTime  @default(now())
+
+  @@map("kpi_metrics")
+  @@index([metricName, periodStart, periodEnd])
+}
