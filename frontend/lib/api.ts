@@ -54,4 +54,9 @@ export const authApi = {
     const response = await api.get('/api/v1/auth/me')
     return response.data
   },
+
+  updateProfile: async (data: any) => {
+    const response = await api.put('/api/v1/auth/profile', data)
+    return response.data
+  },
 }

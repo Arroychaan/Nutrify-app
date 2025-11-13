@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { authApi } from '@/lib/api'
 import axios from 'axios'
+import Toast from '@/components/Toast'
+import ConfirmDialog from '@/components/ConfirmDialog'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
 
@@ -32,6 +34,16 @@ export default function MealPlanPage() {
     meals: 3,
     includeSnacks: true,
   })
+  const [toast, setToast] = useState({ isVisible: false, message: '', type: 'info' as 'success' | 'error' | 'info' | 'warning' })
+  const [confirmDialog, setConfirmDialog] = useState({ isOpen: false, mealPlanId: '' })
+
+  const showToast = (message: string, type: 'success' | 'error' | 'info' | 'warning' = 'info') => {
+    setToast({ isVisible: true, message, type })
+  }
+
+  const hideToast = () => {
+    setToast({ ...toast, isVisible: false })
+  }
 
   const fadeInUp = {
     initial: { opacity: 0, y: 20 },
@@ -81,29 +93,37 @@ export default function MealPlanPage() {
       if (response.data.success) {
         await loadMealPlans()
         setShowForm(false)
-        alert('Meal plan berhasil dibuat! 🎉')
+        showToast('Meal plan berhasil dibuat! 🎉', 'success')
       }
     } catch (error: any) {
       console.error('Failed to generate meal plan', error)
-      alert(error.response?.data?.error?.message || 'Gagal membuat meal plan')
+      showToast(error.response?.data?.error?.message || 'Gagal membuat meal plan', 'error')
     } finally {
       setGenerating(false)
     }
   }
 
   const deleteMealPlan = async (id: string) => {
-    if (!confirm('Hapus meal plan ini?')) return
-    
     try {
       const token = localStorage.getItem('token')
       await axios.delete(`${API_URL}/api/v1/meal-plans/${id}`, {
         headers: { Authorization: `Bearer ${token}` }
       })
       await loadMealPlans()
-      alert('Meal plan berhasil dihapus')
+      showToast('Meal plan berhasil dihapus', 'success')
     } catch (error) {
       console.error('Failed to delete meal plan', error)
-      alert('Gagal menghapus meal plan')
+      showToast('Gagal menghapus meal plan', 'error')
+    }
+  }
+
+  const handleDeleteClick = (id: string) => {
+    setConfirmDialog({ isOpen: true, mealPlanId: id })
+  }
+
+  const handleConfirmDelete = () => {
+    if (confirmDialog.mealPlanId) {
+      deleteMealPlan(confirmDialog.mealPlanId)
     }
   }
 
@@ -126,12 +146,31 @@ export default function MealPlanPage() {
   }
 
   return (
-    <motion.div
-      className="space-y-6"
-      initial="initial"
-      animate="animate"
-      variants={staggerContainer}
-    >
+    <>
+      <Toast 
+        message={toast.message}
+        type={toast.type}
+        isVisible={toast.isVisible}
+        onClose={hideToast}
+      />
+      
+      <ConfirmDialog
+        isOpen={confirmDialog.isOpen}
+        title="Hapus Meal Plan?"
+        message="Apakah Anda yakin ingin menghapus meal plan ini? Tindakan ini tidak dapat dibatalkan."
+        onConfirm={handleConfirmDelete}
+        onCancel={() => setConfirmDialog({ isOpen: false, mealPlanId: '' })}
+        confirmText="Ya, Hapus"
+        cancelText="Batal"
+        type="danger"
+      />
+      
+      <motion.div
+        className="space-y-6"
+        initial="initial"
+        animate="animate"
+        variants={staggerContainer}
+      >
       {/* Header */}
       <motion.div className="bg-white rounded-xl shadow-sm p-6" variants={fadeInUp}>
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -277,7 +316,7 @@ export default function MealPlanPage() {
                   </p>
                 </div>
                 <button
-                  onClick={() => deleteMealPlan(plan.id)}
+                  onClick={() => handleDeleteClick(plan.id)}
                   className="text-red-600 hover:text-red-700 font-medium text-sm"
                 >
                   🗑️ Hapus
@@ -336,6 +375,7 @@ export default function MealPlanPage() {
           ))}
         </div>
       )}
-    </motion.div>
+      </motion.div>
+    </>
   )
 }

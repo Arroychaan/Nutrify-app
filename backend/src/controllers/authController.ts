@@ -221,11 +221,14 @@ export const getMeController = asyncHandler(
         targetWeightKg: true,
         gender: true,
         dateOfBirth: true,
+        phoneNumber: true,
         activityLevel: true,
         culture: true,
         religion: true,
         medicalConditions: true,
+        medications: true,
         allergies: true,
+        dietaryRestrictions: true,
         dislikes: true,
         streakDays: true,
         badges: true,
@@ -247,6 +250,106 @@ export const getMeController = asyncHandler(
     res.json({
       success: true,
       data: user,
+    });
+  }
+);
+
+/**
+ * Update user profile
+ * PUT /api/v1/auth/profile
+ */
+export const updateProfileController = asyncHandler(
+  async (req: Request, res: Response) => {
+    const userId = req.userId!;
+    const {
+      fullName,
+      dateOfBirth,
+      gender,
+      phoneNumber,
+      heightCm,
+      currentWeightKg,
+      targetWeightKg,
+      activityLevel,
+      culture,
+      religion,
+      medicalConditions,
+      medications,
+      allergies,
+      dietaryRestrictions,
+      dislikes,
+    } = req.body;
+
+    logger.info('Update user profile', { userId });
+
+    // Validate user exists
+    const existingUser = await prisma.user.findUnique({
+      where: { id: userId },
+    });
+
+    if (!existingUser) {
+      res.status(404).json({
+        success: false,
+        error: {
+          code: 'USER_NOT_FOUND',
+          message: 'User not found',
+        },
+      });
+      return;
+    }
+
+    // Build update data object
+    const updateData: any = {};
+
+    if (fullName !== undefined) updateData.fullName = fullName;
+    if (dateOfBirth !== undefined) updateData.dateOfBirth = dateOfBirth ? new Date(dateOfBirth) : null;
+    if (gender !== undefined) updateData.gender = gender;
+    if (phoneNumber !== undefined) updateData.phoneNumber = phoneNumber;
+    if (heightCm !== undefined) updateData.heightCm = heightCm || null;
+    if (currentWeightKg !== undefined) updateData.currentWeightKg = currentWeightKg || null;
+    if (targetWeightKg !== undefined) updateData.targetWeightKg = targetWeightKg || null;
+    if (activityLevel !== undefined) updateData.activityLevel = activityLevel;
+    if (culture !== undefined) updateData.culture = culture || null;
+    if (religion !== undefined) updateData.religion = religion || null;
+    if (medicalConditions !== undefined) updateData.medicalConditions = medicalConditions;
+    if (medications !== undefined) updateData.medications = medications;
+    if (allergies !== undefined) updateData.allergies = allergies;
+    if (dietaryRestrictions !== undefined) updateData.dietaryRestrictions = dietaryRestrictions;
+    if (dislikes !== undefined) updateData.dislikes = dislikes;
+
+    // Update user
+    const updatedUser = await prisma.user.update({
+      where: { id: userId },
+      data: updateData,
+      select: {
+        id: true,
+        email: true,
+        fullName: true,
+        heightCm: true,
+        currentWeightKg: true,
+        targetWeightKg: true,
+        gender: true,
+        dateOfBirth: true,
+        phoneNumber: true,
+        activityLevel: true,
+        culture: true,
+        religion: true,
+        medicalConditions: true,
+        medications: true,
+        allergies: true,
+        dietaryRestrictions: true,
+        dislikes: true,
+        streakDays: true,
+        badges: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
+
+    logger.info('User profile updated successfully', { userId });
+
+    res.json({
+      success: true,
+      data: updatedUser,
     });
   }
 );

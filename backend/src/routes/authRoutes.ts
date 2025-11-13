@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { registerController, loginController, refreshTokenController, logoutController, getMeController } from '@controllers/authController.js';
+import { registerController, loginController, refreshTokenController, logoutController, getMeController, updateProfileController } from '@controllers/authController.js';
 import { authenticateToken } from '@middlewares/auth.js';
 
 const router = Router();
@@ -12,5 +12,6 @@ router.post('/refresh', refreshTokenController);
 // Protected routes
 router.post('/logout', authenticateToken, logoutController);
 router.get('/me', authenticateToken, getMeController);
+router.put('/profile', authenticateToken, updateProfileController);
 
 export default router;
