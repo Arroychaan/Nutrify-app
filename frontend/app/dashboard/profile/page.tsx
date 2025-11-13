@@ -2,10 +2,25 @@
 
 import { useState, useEffect } from 'react'
 import { authApi } from '@/lib/api'
+import { motion } from 'framer-motion'
 
 export default function ProfilePage() {
   const [user, setUser] = useState<any>(null)
   const [loading, setLoading] = useState(true)
+
+  const fadeInUp = {
+    initial: { opacity: 0, y: 20 },
+    animate: { opacity: 1, y: 0 },
+    transition: { duration: 0.5 }
+  }
+
+  const staggerContainer = {
+    animate: {
+      transition: {
+        staggerChildren: 0.1
+      }
+    }
+  }
 
   useEffect(() => {
     loadUserData()
@@ -13,8 +28,8 @@ export default function ProfilePage() {
 
   const loadUserData = async () => {
     try {
-      const userData = await authApi.me()
-      setUser(userData)
+      const response = await authApi.me()
+      setUser(response.data || response)
     } catch (error) {
       console.error('Failed to load user data', error)
     } finally {
@@ -31,19 +46,24 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
+    <motion.div 
+      className="max-w-4xl mx-auto space-y-6"
+      initial="initial"
+      animate="animate"
+      variants={staggerContainer}
+    >
       {/* Header */}
-      <div className="bg-white rounded-xl shadow-sm p-6">
+      <motion.div className="bg-white rounded-xl shadow-sm p-6" variants={fadeInUp}>
         <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">
           Profil Saya
         </h1>
         <p className="text-gray-600">
           Kelola informasi pribadi dan preferensi kesehatan Anda
         </p>
-      </div>
+      </motion.div>
 
       {/* Personal Info */}
-      <div className="bg-white rounded-xl shadow-sm p-6">
+      <motion.div className="bg-white rounded-xl shadow-sm p-6" variants={fadeInUp}>
         <h2 className="text-xl font-bold text-gray-900 mb-6">Informasi Pribadi</h2>
         <div className="grid sm:grid-cols-2 gap-6">
           <div>
@@ -73,10 +93,10 @@ export default function ProfilePage() {
             <p className="text-base text-gray-900 capitalize">{user?.activityLevel || 'moderate'}</p>
           </div>
         </div>
-      </div>
+      </motion.div>
 
       {/* Physical Metrics */}
-      <div className="bg-white rounded-xl shadow-sm p-6">
+      <motion.div className="bg-white rounded-xl shadow-sm p-6" variants={fadeInUp}>
         <h2 className="text-xl font-bold text-gray-900 mb-6">Metrik Fisik</h2>
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
           <div>
@@ -94,10 +114,10 @@ export default function ProfilePage() {
             </p>
           </div>
         </div>
-      </div>
+      </motion.div>
 
       {/* Cultural & Religious */}
-      <div className="bg-white rounded-xl shadow-sm p-6">
+      <motion.div className="bg-white rounded-xl shadow-sm p-6" variants={fadeInUp}>
         <h2 className="text-xl font-bold text-gray-900 mb-6">Budaya & Agama</h2>
         <div className="grid sm:grid-cols-2 gap-6">
           <div>
@@ -109,10 +129,10 @@ export default function ProfilePage() {
             <p className="text-base text-gray-900">{user?.religion || 'Belum diatur'}</p>
           </div>
         </div>
-      </div>
+      </motion.div>
 
       {/* Medical Info */}
-      <div className="bg-white rounded-xl shadow-sm p-6">
+      <motion.div className="bg-white rounded-xl shadow-sm p-6" variants={fadeInUp}>
         <h2 className="text-xl font-bold text-gray-900 mb-6">Informasi Medis</h2>
         <div className="space-y-6">
           <div>
@@ -190,10 +210,10 @@ export default function ProfilePage() {
             </div>
           </div>
         </div>
-      </div>
+      </motion.div>
 
       {/* Badges & Achievements */}
-      <div className="bg-white rounded-xl shadow-sm p-6">
+      <motion.div className="bg-white rounded-xl shadow-sm p-6" variants={fadeInUp}>
         <h2 className="text-xl font-bold text-gray-900 mb-6">Badge & Pencapaian</h2>
         <div className="flex flex-wrap gap-4">
           {user?.badges?.length > 0 ? (
@@ -209,17 +229,17 @@ export default function ProfilePage() {
             <p className="text-gray-500">Belum ada badge. Mulai gunakan Nutrify untuk mendapatkan badge!</p>
           )}
         </div>
-      </div>
+      </motion.div>
 
       {/* Edit Button */}
-      <div className="bg-white rounded-xl shadow-sm p-6">
+      <motion.div className="bg-white rounded-xl shadow-sm p-6" variants={fadeInUp}>
         <button className="w-full sm:w-auto bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-8 rounded-lg transition">
           Edit Profil
         </button>
         <p className="text-sm text-gray-500 mt-4">
           Fitur edit profil akan segera tersedia. Untuk saat ini, profil hanya dapat dilihat.
         </p>
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   )
 }

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { authApi } from '@/lib/api'
+import { motion } from 'framer-motion'
 
 export default function DashboardPage() {
   const [user, setUser] = useState<any>(null)
@@ -17,7 +18,8 @@ export default function DashboardPage() {
 
   const loadUserData = async () => {
     try {
-      const userData = await authApi.me()
+      const response = await authApi.me()
+      const userData = response.data || response
       setUser(userData)
       
       // Calculate BMI
@@ -44,20 +46,38 @@ export default function DashboardPage() {
 
   const bmiCategory = getBMICategory(stats.bmi)
 
+  const fadeInUp = {
+    initial: { opacity: 0, y: 20 },
+    animate: { opacity: 1, y: 0 }
+  }
+
+  const staggerContainer = {
+    animate: {
+      transition: {
+        staggerChildren: 0.1
+      }
+    }
+  }
+
   return (
-    <div className="space-y-6">
+    <motion.div 
+      className="space-y-6"
+      initial="initial"
+      animate="animate"
+      variants={staggerContainer}
+    >
       {/* Header */}
-      <div className="bg-white rounded-xl shadow-sm p-6">
+      <motion.div className="bg-white rounded-xl shadow-sm p-6" variants={fadeInUp}>
         <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">
           Selamat Datang, {user?.fullName || 'User'}! 👋
         </h1>
         <p className="text-gray-600">
           Ini adalah ringkasan kesehatan dan aktivitas nutrisi Anda hari ini
         </p>
-      </div>
+      </motion.div>
 
       {/* Stats Grid */}
-      <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+      <motion.div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6" variants={fadeInUp}>
         {/* BMI Card */}
         <div className="bg-white rounded-xl shadow-sm p-6">
           <div className="flex items-center justify-between mb-4">
@@ -102,10 +122,10 @@ export default function DashboardPage() {
           <p className="text-3xl font-bold text-gray-900">{stats.streak}</p>
           <p className="text-xs text-gray-500 mt-2">Hari berturut-turut</p>
         </div>
-      </div>
+      </motion.div>
 
       {/* Quick Actions */}
-      <div className="bg-white rounded-xl shadow-sm p-6">
+      <motion.div className="bg-white rounded-xl shadow-sm p-6" variants={fadeInUp}>
         <h2 className="text-xl font-bold text-gray-900 mb-4">Aksi Cepat</h2>
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
           <a
@@ -141,10 +161,10 @@ export default function DashboardPage() {
             </div>
           </a>
         </div>
-      </div>
+      </motion.div>
 
       {/* Health Tips */}
-      <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl shadow-sm p-6">
+      <motion.div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl shadow-sm p-6" variants={fadeInUp}>
         <div className="flex items-start space-x-4">
           <span className="text-4xl">💡</span>
           <div>
@@ -155,10 +175,10 @@ export default function DashboardPage() {
             </p>
           </div>
         </div>
-      </div>
+      </motion.div>
 
       {/* Recent Activity */}
-      <div className="bg-white rounded-xl shadow-sm p-6">
+      <motion.div className="bg-white rounded-xl shadow-sm p-6" variants={fadeInUp}>
         <h2 className="text-xl font-bold text-gray-900 mb-4">Aktivitas Terkini</h2>
         <div className="space-y-4">
           <div className="flex items-center space-x-4 p-4 bg-gray-50 rounded-lg">
@@ -175,7 +195,7 @@ export default function DashboardPage() {
             <p className="text-sm mt-2">Mulai dengan membuat meal plan pertama Anda!</p>
           </div>
         </div>
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   )
 }

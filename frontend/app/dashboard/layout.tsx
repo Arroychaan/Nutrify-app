@@ -22,9 +22,17 @@ export default function DashboardLayout({
 
   const checkAuth = async () => {
     try {
-      const userData = await authApi.me()
-      setUser(userData)
+      const token = localStorage.getItem('token')
+      if (!token) {
+        router.push('/auth/login')
+        return
+      }
+      
+      const response = await authApi.me()
+      setUser(response.data || response)
     } catch (error) {
+      console.error('Auth check failed:', error)
+      localStorage.removeItem('token')
       router.push('/auth/login')
     } finally {
       setLoading(false)

@@ -27,14 +27,21 @@ export const authApi = {
     heightCm: number
     currentWeightKg: number
   }) => {
-    const response = await api.post('/api/auth/register', data)
+    const response = await api.post('/api/v1/auth/register', data)
+    // Backend returns { success: true, data: { accessToken, ... } }
+    const token = response.data.data?.accessToken || response.data.accessToken || response.data.token
+    if (token) {
+      localStorage.setItem('token', token)
+    }
     return response.data
   },
 
   login: async (data: { email: string; password: string }) => {
-    const response = await api.post('/api/auth/login', data)
-    if (response.data.token) {
-      localStorage.setItem('token', response.data.token)
+    const response = await api.post('/api/v1/auth/login', data)
+    // Backend returns { success: true, data: { accessToken, ... } }
+    const token = response.data.data?.accessToken || response.data.accessToken || response.data.token
+    if (token) {
+      localStorage.setItem('token', token)
     }
     return response.data
   },
@@ -44,7 +51,7 @@ export const authApi = {
   },
 
   me: async () => {
-    const response = await api.get('/api/auth/me')
+    const response = await api.get('/api/v1/auth/me')
     return response.data
   },
 }
