@@ -3,25 +3,710 @@
 @tailwind utilities;
 
 :root {
-  --foreground-rgb: 0, 0, 0;
-  --background-start-rgb: 214, 219, 220;
-  --background-end-rgb: 255, 255, 255;
+  --primary: 36, 180, 126; /* #24B47E - More vivid green */
+  --primary-dark: 29, 144, 101;
+  --secondary: 99, 102, 241; /* Indigo for Chat AI */
+  --accent: 168, 85, 247; /* Purple for Profile */
+  --background: 248, 249, 251; /* #F8F9FB - Neutral base */
+  --surface: 255, 255, 255;
+  --text-primary: 17, 24, 39;
+  --text-secondary: 75, 85, 99; /* #4B5563 - Darker gray for better contrast */
+  --border: 229, 234, 242; /* #E5EAF2 - Subtle border */
+  --success: 36, 180, 126;
+  --error: 239, 68, 68;
+  --warning: 251, 146, 60;
+  --info: 59, 130, 246;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --foreground-rgb: 255, 255, 255;
-    --background-start-rgb: 0, 0, 0;
-    --background-end-rgb: 0, 0, 0;
-  }
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
 body {
-  color: rgb(var(--foreground-rgb));
-  background: linear-gradient(
-      to bottom,
-      transparent,
-      rgb(var(--background-end-rgb))
-    )
-    rgb(var(--background-start-rgb));
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: rgb(var(--background));
+  color: rgb(var(--text-primary));
+  overflow-x: hidden;
 }
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+@media (min-width: 768px) {
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+}
+
+::-webkit-scrollbar-track {
+  background: rgb(var(--background));
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgb(var(--text-secondary));
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgb(var(--text-primary));
+}
+
+/* Custom scrollbar for sidebar */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(var(--text-secondary), 0.3);
+  border-radius: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(var(--text-secondary), 0.5);
+}
+
+/* Smooth transitions */
+* {
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+
+/* Card hover effect */
+.card-hover {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card-hover:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 24px -10px rgba(0, 0, 0, 0.1);
+}
+
+/* Gradient backgrounds */
+.gradient-primary {
+  background: linear-gradient(135deg, rgb(var(--primary)) 0%, rgb(var(--primary-dark)) 100%);
+}
+
+.gradient-secondary {
+  background: linear-gradient(135deg, rgb(var(--secondary)) 0%, rgb(var(--accent)) 100%);
+}
+
+.gradient-mesh {
+  background: linear-gradient(135deg, rgba(var(--primary), 0.05) 0%, rgba(var(--secondary), 0.05) 100%);
+}
+
+/* Glass morphism */
+.glass {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+/* Focus styles */
+input:focus,
+textarea:focus,
+select:focus {
+  outline: none;
+  border-color: rgb(var(--primary));
+  box-shadow: 0 0 0 3px rgba(var(--primary), 0.1);
+}
+
+/* Button styles */
+.btn-primary {
+  background: linear-gradient(135deg, rgb(var(--primary)) 0%, rgb(var(--primary-dark)) 100%);
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.75rem;
+  font-weight: 600;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  border: none;
+  cursor: pointer;
+}
+
+.btn-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 16px -4px rgba(var(--primary), 0.4);
+}
+
+.btn-primary:active {
+  transform: translateY(0);
+}
+
+.btn-secondary {
+  background: white;
+  color: rgb(var(--text));
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.75rem;
+  font-weight: 600;
+  border: 2px solid rgb(var(--border));
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-secondary:hover {
+  background: rgb(var(--background));
+  border-color: rgb(var(--primary));
+}
+
+/* Input field styles */
+.input-field {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 2px solid rgb(var(--border));
+  border-radius: 0.75rem;
+  font-size: 0.875rem;
+  transition: all 0.2s ease;
+  background: white;
+}
+
+.input-field:focus {
+  outline: none;
+  border-color: rgb(var(--primary));
+  box-shadow: 0 0 0 3px rgba(var(--primary), 0.1);
+}
+
+/* Prevent zoom on iOS devices when focusing on input */
+@media screen and (max-width: 768px) {
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  input[type="number"],
+  input[type="tel"],
+  input[type="date"],
+  textarea,
+  select {
+    font-size: 16px;
+  }
+}
+
+/* Loading animation */
+@keyframes pulse-slow {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.animate-pulse-slow {
+  animation: pulse-slow 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Skeleton loading */
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    rgb(var(--border)) 0%,
+    rgba(var(--border), 0.5) 50%,
+    rgb(var(--border)) 100%
+  );
+  background-size: 200% 100%;
+  animation: loading 1.5s ease-in-out infinite;
+}
+
+@keyframes loading {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* Responsive utilities */
+.safe-area-top {
+  padding-top: env(safe-area-inset-top);
+}
+
+.safe-area-bottom {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* Touch-friendly button sizes on mobile */
+@media (max-width: 768px) {
+  button,
+  a.btn,
+  .btn-primary,
+  .btn-secondary {
+    min-height: 44px;
+    min-width: 44px;
+  }
+}
+
+/* Prevent horizontal scroll */
+html, body {
+  overflow-x: hidden;
+  width: 100%;
+}
+
+/* Smooth scroll behavior */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Line clamp utilities */
+.line-clamp-1 {
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.line-clamp-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* ============================================
+   RESPONSIVE LAYOUT - 3 BREAKPOINTS SYSTEM
+   ============================================ */
+
+/* ============================================
+   1. DESKTOP (Default: > 1024px)
+   ============================================ */
+.sidebar {
+  width: 280px;
+}
+
+.sidebar-text {
+  display: block;
+}
+
+.mobile-only {
+  display: none;
+}
+
+.mobile-overlay {
+  display: none;
+}
+
+.main-content {
+  margin-left: 280px;
+}
+
+.content-wrapper {
+  padding: 2rem;
+}
+
+/* Hero Grid - 3 COLUMNS */
+.hero-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
+}
+
+/* Action Grid - 3 COLUMNS */
+.action-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+}
+
+/* ============================================
+   2. TABLET (<= 1024px)
+   ============================================ */
+@media (max-width: 1024px) {
+  /* Sidebar: COLLAPSE - Icon Only, Clean & Centered */
+  .sidebar {
+    width: 90px; /* Narrow sidebar */
+    padding: 16px; /* Uniform padding */
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* Center all children horizontally */
+  }
+  
+  /* Hide ALL text elements */
+  .sidebar-text {
+    display: none !important;
+  }
+  /* Hide all text inside navigation links (keep icons) */
+  .sidebar a span,
+  .nav-item .nav-label,
+  .nav-item .nav-text,
+  .nav-item .label,
+  .nav-item .sidebar-text {
+    display: none !important;
+  }
+  
+  /* Logo Section - Center the icon */
+  .sidebar-logo {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+    margin-bottom: 1.5rem;
+  }
+  
+  .sidebar-logo a {
+    justify-content: center;
+  }
+  
+  /* User Info - Center the avatar only */
+  .sidebar-user {
+    width: 100%;
+    padding: 0.75rem 0 !important;
+    display: flex;
+    justify-content: center;
+    margin-bottom: 1.5rem;
+  }
+  
+  .sidebar-user > div {
+    justify-content: center;
+  }
+  
+  /* Navigation Items - Clean Icon-Only Style */
+  .nav-item {
+    width: 56px !important;
+    height: 56px !important;
+    padding: 0 !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 16px 0 !important; /* vertical spacing between icons */
+    border-radius: 12px;
+    background: transparent;
+    position: relative;
+  }
+  
+  /* Remove default active state styling */
+  .nav-item {
+    box-shadow: none !important;
+  }
+  
+  /* Active State - Colored background only on icon container */
+  .nav-item .nav-icon {
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 10px;
+    transition: all 0.3s ease;
+  }
+  
+  /* Active item - green background on icon */
+  .nav-item.bg-\[#24B47E\] {
+    background: transparent !important;
+  }
+  
+  .nav-item.bg-\[#24B47E\] .nav-icon {
+    background: #24B47E;
+  }
+  
+  .nav-item.bg-\[#24B47E\] .nav-icon svg {
+    color: white !important;
+  }
+  
+  /* Inactive items - subtle hover */
+  .nav-item:not(.bg-\[#24B47E\]):hover .nav-icon {
+    background: #f3f4f6;
+  }
+  
+  /* Hide active bar and glow effect in tablet */
+  .tablet-hide,
+  .nav-item > div:first-child[class*="absolute"],
+  .nav-item > div:last-child[class*="absolute"] {
+    display: none !important;
+  }
+  
+  /* Navigation container - centered layout */
+  nav.custom-scrollbar {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0 1rem;
+  }
+  
+  nav.custom-scrollbar .space-y-2 {
+    gap: 0.5rem;
+  }
+  
+  /* Logout Button - Icon Only at Bottom */
+  .sidebar > div:last-child {
+    margin-top: auto;
+    width: 100%;
+    padding: 1rem 0;
+    border-top: 1px solid #e5e7eb;
+    display: flex;
+    justify-content: center;
+  }
+  
+  .logout-btn,
+  .sidebar > div:last-child button {
+    width: 56px !important;
+    height: 56px !important;
+    padding: 0 !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 12px;
+    font-size: 0; /* hide any text like 'Keluar' while keeping icon visible */
+  }
+
+  /* Ensure any text node inside logout button is hidden while svg/icon remains */
+  .sidebar > div:last-child button span,
+  .logout-btn span {
+    display: none !important;
+  }
+  .sidebar > div:last-child button svg,
+  .logout-btn svg {
+    width: 24px;
+    height: 24px;
+  }
+  
+  .logout-btn:hover,
+  .sidebar > div:last-child button:hover {
+    background: #fef2f2 !important;
+  }
+  
+  /* Adjust main content margin */
+  .main-content {
+    margin-left: 90px; /* match new sidebar width */
+  }
+  
+  .content-wrapper {
+    padding: 1.5rem;
+  }
+  
+  /* Hero Grid: BMI Full Width, Target & Streak 2 Columns */
+  .hero-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  
+  .hero-grid > :first-child {
+    grid-column: 1 / -1;
+  }
+  
+  .hero-grid-bottom {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+  }
+  
+  /* Action Grid - 2 COLUMNS */
+  .action-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  /* Hide hamburger / mobile menu triggers on tablet size */
+  .hamburger,
+  .hamburger-btn,
+  .hamburger-button,
+  .mobile-menu-btn {
+    display: none !important;
+  }
+
+  /* User info: show only avatar circle 'A', hide name & email */
+  .sidebar-user .user-name,
+  .sidebar-user .user-email,
+  .sidebar-user .sidebar-text {
+    display: none !important;
+  }
+  .sidebar-user {
+    width: 100%;
+    padding: 0.75rem 0 !important;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  .sidebar-user > div {
+    justify-content: center;
+    align-items: center;
+  }
+}
+
+/* ============================================
+   3. MOBILE (<= 768px)
+   ============================================ */
+@media (max-width: 768px) {
+  /* Sidebar: SEMBUNYIKAN TOTAL di mobile */
+  .sidebar {
+    display: none !important;
+  }
+  
+  /* Saat tombol hamburger ditekan: tampilkan drawer sidebar sebagai overlay */
+  .sidebar.sidebar-mobile-open {
+    display: block !important;
+    width: 280px !important; /* reset lebar sidebar ke ukuran desktop */
+    align-items: flex-start !important; /* reset alignment ke kiri */
+  }
+  .sidebar-mobile-open {
+    transform: none !important;
+  }
+  
+  /* TAMPILKAN KEMBALI SEMUA TEKS YANG DIHILANGKAN DI TABLET */
+  .sidebar-text { /* elemen pembungkus teks (div) */
+    display: block !important;
+  }
+  /* khusus container teks pada user info di sidebar (lebih spesifik agar menang dari aturan tablet) */
+  .sidebar-user .sidebar-text {
+    display: block !important;
+  }
+  /* span/label di dalam link nav & user info - paksa tampilkan lagi */
+  .sidebar a span,
+  .nav-item .nav-label,
+  .nav-item .nav-text,
+  .nav-item .label,
+  .nav-item .sidebar-text,
+  .sidebar-user .user-name,
+  .sidebar-user .user-email {
+    display: inline !important;
+  }
+  
+  .mobile-only {
+    display: block;
+  }
+
+  /* Tampilkan tombol hamburger dan posisikan di kiri atas */
+  .hamburger,
+  .hamburger-btn,
+  .hamburger-button,
+  .mobile-menu-btn {
+    display: flex !important;
+    position: fixed;
+    top: 12px;
+    left: 12px;
+    z-index: 50;
+    width: 44px;
+    height: 44px;
+    align-items: center;
+    justify-content: center;
+    border-radius: 12px;
+    background: rgb(var(--surface));
+    border: 1px solid rgb(var(--border));
+  }
+  
+  .mobile-overlay {
+    display: block;
+  }
+
+  /* RESET LAYOUT ITEM NAV KEMBALI NORMAL */
+  .nav-item {
+    width: auto !important;
+    height: auto !important;
+    padding: 0.875rem 1rem !important; /* ~py-3.5 px-4 */
+    margin: 0.25rem 0 !important; /* rapatkan jarak antar item */
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    background: initial !important; /* biarkan class utility yang atur */
+  }
+  .nav-item .nav-icon {
+    width: 24px !important;
+    height: 24px !important;
+    background: transparent !important;
+    border-radius: 0 !important;
+  }
+  /* Active state di mobile: JANGAN ubah teks jadi putih, gunakan bar hijau di kiri */
+  .nav-item.bg-\[#24B47E\] {
+    background: transparent !important; /* biarkan background putih */
+    color: rgb(var(--text-primary)) !important; /* teks tetap gelap */
+    box-shadow: none !important;
+  }
+  .nav-item.bg-\[#24B47E\] .nav-icon {
+    background: transparent !important;
+  }
+  .nav-item.bg-\[#24B47E\] .nav-icon svg {
+    color: rgb(var(--text-primary)) !important; /* ikon ikut warna teks */
+  }
+  /* ubah warna active bar (elemen absolute) jadi hijau juga */
+  .nav-item .tablet-hide { 
+    background: rgb(var(--primary)) !important; 
+  }
+
+  /* pastikan label teks logout terlihat jelas di mobile */
+  .logout-btn span,
+  .sidebar > div:last-child button span {
+    display: inline !important;
+  }
+  /* tampilan elemen absolute (bar/glow) aktifkan lagi di mobile */
+  .tablet-hide,
+  .nav-item > div:first-child[class*="absolute"],
+  .nav-item > div:last-child[class*="absolute"] {
+    display: block !important;
+  }
+
+  /* nav container kembali align kiri/penuh */
+  nav.custom-scrollbar {
+    align-items: stretch !important;
+  }
+
+  /* user info kembali align kiri */
+  .sidebar-user {
+    justify-content: flex-start !important;
+    align-items: center !important;
+    width: 100% !important; /* header block solid */
+    margin-bottom: 0.75rem !important; /* sedikit lebih rapat agar kohesif */
+  }
+  .sidebar-user > div {
+    justify-content: flex-start !important;
+    align-items: center !important;
+  }
+
+  /* tampilkan teks logout kembali */
+  .logout-btn,
+  .sidebar > div:last-child button {
+    font-size: 16px !important; /* paksa teks "Keluar" tampil */
+  }
+  
+  .main-content {
+    margin-left: 0;
+  }
+  
+  .content-wrapper {
+    padding: 1rem;
+    padding-top: 4rem;
+  }
+  
+  /* Hero Grid: ALL 1 COLUMN */
+  .hero-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  
+  .hero-grid > :first-child {
+    grid-column: 1;
+  }
+  
+  .hero-grid-bottom {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  
+  /* Action Grid: ALL 1 COLUMN */
+  .action-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  /* ALL Cards: Full Width */
+  .card-full-mobile {
+    width: 100%;
+  }
+}
+

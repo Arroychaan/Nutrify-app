@@ -60,3 +60,28 @@ export const authApi = {
     return response.data
   },
 }
+
+// Meal Plan API
+export const mealPlanApi = {
+  list: async () => {
+    const response = await api.get('/api/v1/meal-plans')
+    // Backend typically returns { success, data: [...] }
+    return response.data?.data ?? response.data
+  },
+}
+
+// Chat API
+export const chatApi = {
+  sendMessage: async (payload: { conversationId?: string; message: string }) => {
+    const response = await api.post('/api/v1/chat/messages', payload)
+    return response.data?.data ?? response.data
+  },
+  listConversations: async (params?: { page?: number; pageSize?: number }) => {
+    const response = await api.get('/api/v1/chat/conversations', { params })
+    return response.data?.data ?? response.data
+  },
+  getConversation: async (conversationId: string) => {
+    const response = await api.get(`/api/v1/chat/conversations/${conversationId}`)
+    return response.data?.data ?? response.data
+  },
+}

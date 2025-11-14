@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { useState, useEffect } from 'react'
 import { authApi } from '@/lib/api'
+import { motion, AnimatePresence } from 'framer-motion'
 
 export default function DashboardLayout({
   children,
@@ -56,104 +57,181 @@ export default function DashboardLayout({
   }
 
   const navigation = [
-    { name: 'Dashboard', href: '/dashboard', icon: '📊' },
-    { name: 'Meal Plan', href: '/dashboard/meal-plan', icon: '🍽️' },
-    { name: 'Chat AI', href: '/dashboard/chat', icon: '💬' },
-    { name: 'Profil', href: '/dashboard/profile', icon: '👤' },
+    { 
+      name: 'Dashboard', 
+      href: '/dashboard', 
+      icon: (
+        <svg className="w-full h-full" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+        </svg>
+      )
+    },
+    { 
+      name: 'Meal Plan', 
+      href: '/dashboard/meal-plan', 
+      icon: (
+        <svg className="w-full h-full" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+        </svg>
+      )
+    },
+    { 
+      name: 'Chat AI', 
+      href: '/dashboard/chat', 
+      icon: (
+        <svg className="w-full h-full" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+        </svg>
+      )
+    },
+    { 
+      name: 'Profil', 
+      href: '/dashboard/profile', 
+      icon: (
+        <svg className="w-full h-full" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+        </svg>
+      )
+    },
   ]
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Mobile menu button */}
-      <div className="lg:hidden fixed top-4 left-4 z-50">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-green-50/30 to-gray-50">
+      {/* MOBILE ONLY: Hamburger button (<=768px) */}
+      <div className="mobile-only fixed top-4 left-4 z-50">
         <button
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          className="bg-white p-2 rounded-lg shadow-lg"
+          className="glass p-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 active:scale-95"
         >
-          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+          <svg className="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            {mobileMenuOpen ? (
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            ) : (
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+            )}
           </svg>
         </button>
       </div>
 
-      {/* Sidebar */}
-      <aside
-        className={`${
-          mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
-        } lg:translate-x-0 fixed inset-y-0 left-0 z-40 w-64 bg-white shadow-lg transition-transform duration-300 ease-in-out`}
+      {/* Sidebar - ADAPTIVE */}
+      <motion.aside
+        initial={false}
+        animate={{ x: 0 }}
+        className={`sidebar ${
+          mobileMenuOpen ? 'sidebar-mobile-open' : ''
+        } fixed inset-y-0 left-0 z-40 bg-white border-r border-gray-200 transition-all duration-300 ease-in-out overflow-y-auto shadow-xl`}
       >
-        <div className="h-full flex flex-col">
-          {/* Logo */}
-          <div className="p-6 border-b">
-            <Link href="/dashboard" className="flex items-center space-x-2">
-              <span className="text-3xl">🥗</span>
-              <span className="text-xl font-bold text-green-600">Nutrify</span>
-            </Link>
-          </div>
-
-          {/* User Info */}
-          <div className="p-6 border-b">
-            <div className="flex items-center space-x-3">
-              <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center text-xl">
-                👤
+        <div className="h-full flex flex-col p-6">
+              {/* Logo */}
+              <div className="mb-6 sidebar-logo">
+                <Link href="/dashboard" className="flex items-center space-x-3 group" onClick={() => setMobileMenuOpen(false)}>
+                  <div className="relative flex-shrink-0">
+                    <div className="absolute inset-0 bg-[#24B47E] rounded-xl blur opacity-50 group-hover:opacity-75 transition"></div>
+                    <div className="relative w-12 h-12 bg-[#24B47E] rounded-xl flex items-center justify-center shadow-lg">
+                      <span className="text-2xl">🥗</span>
+                    </div>
+                  </div>
+                  <div className="sidebar-text">
+                    <h1 className="text-xl font-bold text-[#24B47E]">
+                      Nutrify
+                    </h1>
+                    <p className="text-xs text-gray-600">Your Health Partner</p>
+                  </div>
+                </Link>
               </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-gray-900 truncate">
-                  {user?.fullName || 'User'}
-                </p>
-                <p className="text-xs text-gray-500 truncate">
-                  {user?.email || 'user@email.com'}
-                </p>
+
+              {/* User Info */}
+              <div className="mb-5 p-4 rounded-xl bg-gradient-to-br from-green-50 to-emerald-50 border border-green-200 sidebar-user">
+                <div className="flex items-center space-x-3">
+                  <div className="relative flex-shrink-0">
+                    <div className="absolute inset-0 bg-[#24B47E] rounded-full blur opacity-50"></div>
+                    <div className="relative w-12 h-12 bg-[#24B47E] rounded-full flex items-center justify-center text-white font-bold shadow-lg text-lg">
+                      {user?.fullName?.charAt(0)?.toUpperCase() || 'U'}
+                    </div>
+                  </div>
+                  <div className="flex-1 min-w-0 sidebar-text">
+                    <p className="text-sm font-bold text-gray-900 truncate">
+                      {user?.fullName || 'User'}
+                    </p>
+                    <p className="text-xs text-gray-700 truncate">
+                      {user?.email || 'user@email.com'}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Navigation */}
+              <nav className="flex-1 space-y-2 overflow-y-auto custom-scrollbar">
+                {navigation.map((item) => {
+                  const isActive = pathname === item.href
+                  return (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      onClick={() => setMobileMenuOpen(false)}
+                      className={`nav-item group relative flex items-center space-x-3 px-4 py-3.5 rounded-xl transition-all duration-300 font-semibold ${
+                        isActive
+                          ? 'bg-[#24B47E] text-white shadow-lg shadow-green-500/30'
+                          : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900'
+                      }`}
+                    >
+                      {isActive && (
+                        <motion.div
+                          layoutId="activeBar"
+                          className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-white rounded-r-full tablet-hide"
+                          initial={{ opacity: 0, x: -10 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ duration: 0.3 }}
+                        />
+                      )}
+                      
+                      <div className={`flex-shrink-0 w-6 h-6 nav-icon ${isActive ? 'text-white' : 'text-gray-600 group-hover:text-gray-900'} transition-colors`}>
+                        {item.icon}
+                      </div>
+                      
+                      <span className="sidebar-text flex-1">{item.name}</span>
+                      
+                      {!isActive && (
+                        <div className="absolute inset-0 bg-[#24B47E] opacity-0 group-hover:opacity-5 rounded-xl transition-opacity duration-300"></div>
+                      )}
+                    </Link>
+                  )
+                })}
+              </nav>
+
+              {/* Logout Button */}
+              <div className="mt-5 pt-5 border-t border-gray-200">
+                <button
+                  onClick={handleLogout}
+                  className="logout-btn w-full flex items-center space-x-3 px-4 py-3.5 text-red-600 hover:bg-red-50 rounded-xl transition-all duration-300 group font-semibold"
+                  title="Keluar"
+                >
+                  <svg className="w-5 h-5 group-hover:scale-110 transition-transform flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                  </svg>
+                  <span className="sidebar-text">Keluar</span>
+                </button>
               </div>
             </div>
-          </div>
-
-          {/* Navigation */}
-          <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
-            {navigation.map((item) => {
-              const isActive = pathname === item.href
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  onClick={() => setMobileMenuOpen(false)}
-                  className={`flex items-center space-x-3 px-4 py-3 rounded-lg transition ${
-                    isActive
-                      ? 'bg-green-50 text-green-600 font-semibold'
-                      : 'text-gray-700 hover:bg-gray-100'
-                  }`}
-                >
-                  <span className="text-xl">{item.icon}</span>
-                  <span>{item.name}</span>
-                </Link>
-              )
-            })}
-          </nav>
-
-          {/* Logout Button */}
-          <div className="p-4 border-t">
-            <button
-              onClick={handleLogout}
-              className="w-full flex items-center space-x-3 px-4 py-3 text-red-600 hover:bg-red-50 rounded-lg transition"
-            >
-              <span className="text-xl">🚪</span>
-              <span>Keluar</span>
-            </button>
-          </div>
-        </div>
-      </aside>
+      </motion.aside>
 
       {/* Overlay for mobile */}
-      {mobileMenuOpen && (
-        <div
-          className="lg:hidden fixed inset-0 bg-black bg-opacity-50 z-30"
-          onClick={() => setMobileMenuOpen(false)}
-        />
-      )}
+      <AnimatePresence>
+        {mobileMenuOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="mobile-overlay fixed inset-0 bg-black/50 backdrop-blur-sm z-30"
+            onClick={() => setMobileMenuOpen(false)}
+          />
+        )}
+      </AnimatePresence>
 
       {/* Main Content */}
-      <main className="lg:pl-64">
-        <div className="p-4 sm:p-6 lg:p-8">
+      <main className="main-content transition-all duration-300 min-h-screen">
+        <div className="content-wrapper">
           {children}
         </div>
       </main>

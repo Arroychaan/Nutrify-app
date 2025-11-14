@@ -122,26 +122,26 @@ export default function ProfilePage() {
       />
       
       <motion.div 
-        className="max-w-4xl mx-auto space-y-6"
+        className="max-w-4xl mx-auto space-y-4 md:space-y-6"
         initial="initial"
         animate="animate"
         variants={staggerContainer}
       >
       {/* Header */}
-      <motion.div className="bg-white rounded-xl shadow-sm p-6" variants={fadeInUp}>
+      <motion.div className="bg-white rounded-xl shadow-sm p-4 md:p-6" variants={fadeInUp}>
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 mb-1 md:mb-2">
               Profil Saya
             </h1>
-            <p className="text-gray-600">
+            <p className="text-sm md:text-base text-gray-600">
               Kelola informasi pribadi dan preferensi kesehatan Anda
             </p>
           </div>
           {!editing && (
             <button
               onClick={() => setEditing(true)}
-              className="bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-6 rounded-lg transition"
+              className="w-full sm:w-auto bg-green-600 hover:bg-green-700 text-white font-semibold py-2.5 md:py-3 px-5 md:px-6 rounded-lg transition active:scale-95"
             >
               Edit Profil
             </button>
@@ -150,9 +150,9 @@ export default function ProfilePage() {
       </motion.div>
 
       {/* Personal Info */}
-      <motion.div className="bg-white rounded-xl shadow-sm p-6" variants={fadeInUp}>
-        <h2 className="text-xl font-bold text-gray-900 mb-6">Informasi Pribadi</h2>
-        <div className="grid sm:grid-cols-2 gap-6">
+      <motion.div className="bg-white rounded-xl shadow-sm p-4 md:p-6" variants={fadeInUp}>
+        <h2 className="text-lg md:text-xl font-bold text-gray-900 mb-4 md:mb-6">Informasi Pribadi</h2>
+        <div className="grid sm:grid-cols-2 gap-4 md:gap-6">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">Nama Lengkap</label>
             {editing ? (
@@ -160,7 +160,7 @@ export default function ProfilePage() {
                 type="text"
                 value={formData.fullName}
                 onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                className="w-full px-3 md:px-4 py-2 md:py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-base"
               />
             ) : (
               <p className="text-base text-gray-900">{user?.fullName || '-'}</p>
@@ -177,7 +177,7 @@ export default function ProfilePage() {
                 type="date"
                 value={formData.dateOfBirth}
                 onChange={(e) => setFormData({ ...formData, dateOfBirth: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                className="w-full px-3 md:px-4 py-2 md:py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-base"
               />
             ) : (
               <p className="text-base text-gray-900">
@@ -191,7 +191,7 @@ export default function ProfilePage() {
               <select
                 value={formData.gender}
                 onChange={(e) => setFormData({ ...formData, gender: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                className="w-full px-3 md:px-4 py-2 md:py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-base"
               >
                 <option value="">Pilih</option>
                 <option value="male">Laki-laki</option>
@@ -208,7 +208,7 @@ export default function ProfilePage() {
                 type="tel"
                 value={formData.phoneNumber}
                 onChange={(e) => setFormData({ ...formData, phoneNumber: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                className="w-full px-3 md:px-4 py-2 md:py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-base"
               />
             ) : (
               <p className="text-base text-gray-900">{user?.phoneNumber || 'Belum diatur'}</p>
@@ -220,7 +220,7 @@ export default function ProfilePage() {
               <select
                 value={formData.activityLevel}
                 onChange={(e) => setFormData({ ...formData, activityLevel: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                className="w-full px-3 md:px-4 py-2 md:py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-base"
               >
                 <option value="sedentary">Sedentary (Tidak aktif)</option>
                 <option value="light">Light (Ringan)</option>
@@ -236,9 +236,9 @@ export default function ProfilePage() {
       </motion.div>
 
       {/* Physical Metrics */}
-      <motion.div className="bg-white rounded-xl shadow-sm p-6" variants={fadeInUp}>
-        <h2 className="text-xl font-bold text-gray-900 mb-6">Metrik Fisik</h2>
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      <motion.div className="bg-white rounded-xl shadow-sm p-4 md:p-6" variants={fadeInUp}>
+        <h2 className="text-lg md:text-xl font-bold text-gray-900 mb-4 md:mb-6">Metrik Fisik</h2>
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">Tinggi Badan (cm)</label>
             {editing ? (
@@ -246,10 +246,10 @@ export default function ProfilePage() {
                 type="number"
                 value={formData.heightCm}
                 onChange={(e) => setFormData({ ...formData, heightCm: parseFloat(e.target.value) })}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                className="w-full px-3 md:px-4 py-2 md:py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-base"
               />
             ) : (
-              <p className="text-2xl font-bold text-gray-900">{user?.heightCm} <span className="text-base font-normal">cm</span></p>
+              <p className="text-xl md:text-2xl font-bold text-gray-900">{user?.heightCm} <span className="text-sm md:text-base font-normal">cm</span></p>
             )}
           </div>
           <div>
@@ -260,10 +260,10 @@ export default function ProfilePage() {
                 step="0.1"
                 value={formData.currentWeightKg}
                 onChange={(e) => setFormData({ ...formData, currentWeightKg: parseFloat(e.target.value) })}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                className="w-full px-3 md:px-4 py-2 md:py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-base"
               />
             ) : (
-              <p className="text-2xl font-bold text-gray-900">{user?.currentWeightKg} <span className="text-base font-normal">kg</span></p>
+              <p className="text-xl md:text-2xl font-bold text-gray-900">{user?.currentWeightKg} <span className="text-sm md:text-base font-normal">kg</span></p>
             )}
           </div>
           <div>
@@ -274,11 +274,11 @@ export default function ProfilePage() {
                 step="0.1"
                 value={formData.targetWeightKg}
                 onChange={(e) => setFormData({ ...formData, targetWeightKg: parseFloat(e.target.value) })}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                className="w-full px-3 md:px-4 py-2 md:py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-base"
               />
             ) : (
-              <p className="text-2xl font-bold text-gray-900">
-                {user?.targetWeightKg || '-'} <span className="text-base font-normal">{user?.targetWeightKg ? 'kg' : ''}</span>
+              <p className="text-xl md:text-2xl font-bold text-gray-900">
+                {user?.targetWeightKg || '-'} <span className="text-sm md:text-base font-normal">{user?.targetWeightKg ? 'kg' : ''}</span>
               </p>
             )}
           </div>
@@ -286,16 +286,16 @@ export default function ProfilePage() {
       </motion.div>
 
       {/* Cultural & Religious */}
-      <motion.div className="bg-white rounded-xl shadow-sm p-6" variants={fadeInUp}>
-        <h2 className="text-xl font-bold text-gray-900 mb-6">Budaya & Agama</h2>
-        <div className="grid sm:grid-cols-2 gap-6">
+      <motion.div className="bg-white rounded-xl shadow-sm p-4 md:p-6" variants={fadeInUp}>
+        <h2 className="text-lg md:text-xl font-bold text-gray-900 mb-4 md:mb-6">Budaya & Agama</h2>
+        <div className="grid sm:grid-cols-2 gap-4 md:gap-6">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">Budaya</label>
             {editing ? (
               <select
                 value={formData.culture}
                 onChange={(e) => setFormData({ ...formData, culture: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                className="w-full px-3 md:px-4 py-2 md:py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-base"
               >
                 <option value="">Pilih Budaya</option>
                 <option value="Jawa">Jawa</option>
@@ -316,7 +316,7 @@ export default function ProfilePage() {
               <select
                 value={formData.religion}
                 onChange={(e) => setFormData({ ...formData, religion: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                className="w-full px-3 md:px-4 py-2 md:py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-base"
               >
                 <option value="">Pilih Agama</option>
                 <option value="Islam">Islam</option>
@@ -334,38 +334,38 @@ export default function ProfilePage() {
       </motion.div>
 
       {/* Badges & Achievements */}
-      <motion.div className="bg-white rounded-xl shadow-sm p-6" variants={fadeInUp}>
-        <h2 className="text-xl font-bold text-gray-900 mb-6">Badge & Pencapaian</h2>
+      <motion.div className="bg-white rounded-xl shadow-sm p-4 md:p-6" variants={fadeInUp}>
+        <h2 className="text-lg md:text-xl font-bold text-gray-900 mb-4 md:mb-6">Badge & Pencapaian</h2>
         <div className="flex flex-wrap gap-4">
           {user?.badges?.length > 0 ? (
             user.badges.map((badge: string, index: number) => (
               <div key={index} className="flex flex-col items-center">
-                <div className="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center text-2xl mb-2">
+                <div className="w-14 h-14 md:w-16 md:h-16 bg-yellow-100 rounded-full flex items-center justify-center text-2xl mb-2">
                   🏆
                 </div>
-                <span className="text-sm text-gray-700">{badge}</span>
+                <span className="text-xs md:text-sm text-gray-700 text-center">{badge}</span>
               </div>
             ))
           ) : (
-            <p className="text-gray-500">Belum ada badge. Mulai gunakan Nutrify untuk mendapatkan badge!</p>
+            <p className="text-sm md:text-base text-gray-500">Belum ada badge. Mulai gunakan Nutrify untuk mendapatkan badge!</p>
           )}
         </div>
       </motion.div>
 
       {/* Action Buttons */}
       {editing && (
-        <motion.div className="bg-white rounded-xl shadow-sm p-6" variants={fadeInUp}>
-          <div className="flex gap-3">
+        <motion.div className="bg-white rounded-xl shadow-sm p-4 md:p-6" variants={fadeInUp}>
+          <div className="flex flex-col sm:flex-row gap-3">
             <button
               onClick={handleSave}
               disabled={saving}
-              className="flex-1 bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-8 rounded-lg transition disabled:bg-gray-400"
+              className="flex-1 bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-6 md:px-8 rounded-lg transition disabled:bg-gray-400 active:scale-95"
             >
               {saving ? 'Menyimpan...' : 'Simpan Perubahan'}
             </button>
             <button
               onClick={handleCancel}
-              className="px-8 py-3 border border-gray-300 text-gray-700 font-semibold rounded-lg hover:bg-gray-50 transition"
+              className="px-6 md:px-8 py-3 border border-gray-300 text-gray-700 font-semibold rounded-lg hover:bg-gray-50 transition active:scale-95"
             >
               Batal
             </button>

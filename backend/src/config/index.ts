@@ -29,7 +29,7 @@ export const config = {
   // Gemini AI LLM
   gemini: {
     apiKey: process.env.GEMINI_API_KEY,
-    model: process.env.GEMINI_MODEL || 'gemini-1.5-flash',
+    model: process.env.GEMINI_MODEL || 'gemini-1.5-flash-latest',
   },
 
   // CORS

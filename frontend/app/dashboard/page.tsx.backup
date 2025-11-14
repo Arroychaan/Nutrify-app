@@ -1,0 +1,529 @@
+'use client'
+
+import { useState, useEffect } from 'react'
+import { authApi } from '@/lib/api'
+import { motion } from 'framer-motion'
+
+export default function DashboardPage() {
+  const [user, setUser] = useState<any>(null)
+  const [stats, setStats] = useState({
+    bmi: 0,
+    mealPlans: 0,
+    streak: 0,
+  })
+
+  useEffect(() => {
+    loadUserData()
+  }, [])
+
+  const loadUserData = async () => {
+    try {
+      const response = await authApi.me()
+      const userData = response.data || response
+      setUser(userData)
+      
+      // Calculate BMI
+      if (userData.heightCm && userData.currentWeightKg) {
+        const heightInMeters = userData.heightCm / 100
+        const bmi = userData.currentWeightKg / (heightInMeters * heightInMeters)
+        setStats({
+          bmi: Math.round(bmi * 10) / 10,
+          mealPlans: 0, // TODO: Get from API
+          streak: userData.streakDays || 0,
+        })
+      }
+    } catch (error) {
+      console.error('Failed to load user data', error)
+    }
+  }
+
+  const getBMICategory = (bmi: number) => {
+    if (bmi < 18.5) return { label: 'Kurus', color: 'text-yellow-700 bg-yellow-100 border-yellow-300', status: '⚠️' }
+    if (bmi < 25) return { label: 'Normal', color: 'text-green-700 bg-green-100 border-green-300', status: '✅' }
+    if (bmi < 30) return { label: 'Gemuk', color: 'text-orange-700 bg-orange-100 border-orange-300', status: '⚠️' }
+    return { label: 'Obesitas', color: 'text-red-700 bg-red-100 border-red-300', status: '🚨' }
+  }
+
+  const bmiCategory = getBMICategory(stats.bmi)
+
+  const fadeInUp = {
+    initial: { opacity: 0, y: 20 },
+    animate: { opacity: 1, y: 0 }
+  }
+
+  return (
+    <motion.div 
+      className="space-y-5 max-w-[1200px] mx-auto"
+      initial="hidden"
+      animate="visible"
+      variants={{
+        hidden: { opacity: 0 },
+        visible: {
+          opacity: 1,
+          transition: {
+            staggerChildren: 0.08
+          }
+        }
+      }}
+    >
+      {/* Header BARU: Personal & Motivating */}
+      {/* Header dengan personality - HERO (TIGHTENED + RELEVANT CONTEXT) */}
+      <motion.div 
+        className="relative overflow-hidden rounded-2xl shadow-2xl p-6 sm:p-7 bg-gradient-to-br from-green-500 via-green-400 to-emerald-500"
+        variants={fadeInUp}
+      >
+        {/* Pattern Background (SUBTLE) */}
+        <div className="absolute inset-0 opacity-[0.08]">
+          <div className="absolute inset-0" style={{
+            backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.4'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
+          }}></div>
+        </div>
+
+        <div className="relative z-10 text-white">
+          <div className="flex items-start justify-between gap-4">
+            <div className="flex-1 min-w-0">
+              {/* Live Indicator + AI Active Badge */}
+              <div className="flex items-center gap-2 mb-2.5">
+                <div className="flex items-center gap-2 px-3 py-1 bg-white/20 backdrop-blur-sm rounded-full">
+                  <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
+                  <span className="text-white text-xs font-bold uppercase tracking-wider">Live</span>
+                </div>
+                <div className="flex items-center gap-1.5 px-3 py-1 bg-purple-500/90 backdrop-blur-sm rounded-full">
+                  <span className="text-xs">🤖</span>
+                  <span className="text-white text-xs font-bold">AI Active</span>
+                </div>
+              </div>
+              
+              {/* Greeting yang Personal */}
+              <h1 className="text-2xl sm:text-3xl font-black mb-1.5 leading-tight">
+                Hai {user?.fullName?.split(' ')[0] || 'Sobat'} 👋
+              </h1>
+              
+              {/* AI Bubble - Friendly Companion */}
+              <div className="inline-block mb-2 px-4 py-2 bg-white/95 backdrop-blur-sm rounded-2xl rounded-tl-none shadow-lg">
+                <p className="text-sm font-semibold text-gray-800">
+                  {user?.targetWeightKg ? (
+                    <>Kamu udah dekat banget sama target <span className="font-black text-[#24B47E]">{user.targetWeightKg}kg</span>! Mau bahas strategi nutrisi hari ini? 💪</>
+                  ) : (
+                    <>Halo! Yuk kita mulai journey sehat kamu. Mau aku bantu set target dulu? 🎯✨</>
+                  )}
+                </p>
+              </div>
+            </div>
+            
+            {/* Dynamic Progress Ring - RELEVANT CONTEXT */}
+            {stats.bmi && (
+              <div className="flex-shrink-0">
+                <div className="relative w-20 h-20 sm:w-24 sm:h-24">
+                  <svg className="transform -rotate-90 w-full h-full" viewBox="0 0 100 100">
+                    <circle cx="50" cy="50" r="40" stroke="rgba(255,255,255,0.2)" strokeWidth="6" fill="none" />
+                    <motion.circle
+                      cx="50" cy="50" r="40" stroke="white" strokeWidth="6" fill="none"
+                      strokeDasharray={`${Math.min((stats.bmi / 30) * 251, 251)} 251`}
+                      strokeLinecap="round"
+                      initial={{ strokeDasharray: "0 251" }}
+                      animate={{ strokeDasharray: `${Math.min((stats.bmi / 30) * 251, 251)} 251` }}
+                      transition={{ duration: 1.5, ease: "easeOut", delay: 0.3 }}
+                    />
+                  </svg>
+                  <div className="absolute inset-0 flex flex-col items-center justify-center">
+                    <span className="text-white text-lg sm:text-xl font-black leading-none">{Math.round((stats.bmi / 30) * 100)}</span>
+                    <span className="text-white/80 text-[10px] font-bold">BMI%</span>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </motion.div>
+
+      {/* Journey Map - Progress Navigation */}
+      <motion.div 
+        className="bg-gradient-to-r from-blue-50 via-purple-50 to-pink-50 rounded-2xl p-5 border-2 border-blue-200 shadow-md"
+        variants={fadeInUp}
+      >
+        <h3 className="text-sm font-black text-gray-700 mb-3 flex items-center gap-2">
+          <span className="text-lg">🎯</span>
+          Langkahmu Hari Ini
+        </h3>
+        <div className="flex items-center justify-between gap-2">
+          {/* Step 1 */}
+          <div className={`flex-1 flex items-center gap-2 px-3 py-2 rounded-lg transition-all ${user?.targetWeightKg ? 'bg-green-100 border border-green-300' : 'bg-white/80 border border-gray-300'}`}>
+            <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-black ${user?.targetWeightKg ? 'bg-green-500 text-white' : 'bg-gray-300 text-gray-600'}`}>
+              {user?.targetWeightKg ? '✓' : '1'}
+            </div>
+            <span className="text-xs font-bold text-gray-800 hidden sm:inline">Tentukan Target</span>
+          </div>
+          <div className="w-8 h-0.5 bg-gray-300"></div>
+          {/* Step 2 */}
+          <div className={`flex-1 flex items-center gap-2 px-3 py-2 rounded-lg transition-all ${stats.mealPlans > 0 ? 'bg-purple-100 border border-purple-300' : 'bg-white/80 border border-gray-300'}`}>
+            <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-black ${stats.mealPlans > 0 ? 'bg-purple-500 text-white' : 'bg-gray-300 text-gray-600'}`}>
+              {stats.mealPlans > 0 ? '✓' : '2'}
+            </div>
+            <span className="text-xs font-bold text-gray-800 hidden sm:inline">Buat Meal Plan</span>
+          </div>
+          <div className="w-8 h-0.5 bg-gray-300"></div>
+          {/* Step 3 */}
+          <div className="flex-1 flex items-center gap-2 px-3 py-2 rounded-lg bg-white/80 border border-gray-300">
+            <div className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-black bg-gray-300 text-gray-600">3</div>
+            <span className="text-xs font-bold text-gray-800 hidden sm:inline">Chat AI</span>
+          </div>
+        </div>
+      </motion.div>
+
+      {/* Section: Kesehatanmu Hari Ini */}
+      <div>
+        <h2 className="text-xl font-black text-gray-900 mb-4 flex items-center gap-2">
+          <span className="text-2xl">💚</span>
+          Kesehatanmu Hari Ini
+        </h2>
+        {/* BMI Card - HERO METRIC (STRONGER HIERARCHY - Gradient BG) */}
+        <div className="group relative sm:col-span-2 lg:col-span-1 lg:row-span-2">
+          <div className="absolute inset-0 bg-gradient-to-br from-emerald-300 to-green-400 rounded-2xl sm:rounded-3xl blur-xl opacity-15 group-hover:opacity-25 transition-opacity duration-500"></div>
+          <div className="relative bg-gradient-to-br from-green-50 via-emerald-50 to-white rounded-2xl sm:rounded-3xl shadow-xl hover:shadow-2xl transition-all duration-300 p-6 sm:p-8 border-2 border-emerald-200 h-full flex flex-col">
+            {/* Status Badge dengan Emoji */}
+            <div className="flex items-center justify-between mb-5">
+              <span className="text-xs font-black uppercase tracking-widest text-gray-500">BMI Score</span>
+              <span className={`text-xs font-black px-4 py-2 rounded-xl border-2 ${bmiCategory.color} flex items-center gap-1.5`}>
+                <span>{bmiCategory.status}</span>
+                <span>{bmiCategory.label}</span>
+              </span>
+            </div>
+            
+            {/* HUGE Number dengan Visual Weight */}
+            <div className="mb-5">
+              <div className="flex items-baseline gap-3">
+                <span className="text-7xl sm:text-8xl font-black bg-gradient-to-br from-emerald-600 via-green-500 to-emerald-400 bg-clip-text text-transparent leading-none">
+                  {stats.bmi.toFixed(1)}
+                </span>
+                <div className="flex flex-col">
+                  <span className="text-3xl font-black text-gray-300">/ 25</span>
+                  <span className="text-xs font-bold text-gray-400 uppercase">Normal</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Progress Bar dengan Gradient (REDUCED SATURATION) */}
+            <div className="mb-5">
+              <div className="flex items-center justify-between text-xs font-bold text-gray-500 mb-2">
+                <span>Progress BMI</span>
+                <span>{Math.min(Math.round((stats.bmi / 30) * 100), 100)}%</span>
+              </div>
+              <div className="h-3 bg-gray-100 rounded-full overflow-hidden shadow-inner">
+                <motion.div 
+                  className="h-full bg-gradient-to-r from-emerald-400 via-green-300 to-emerald-300 rounded-full shadow-lg"
+                  initial={{ width: 0 }}
+                  animate={{ width: `${Math.min((stats.bmi / 30) * 100, 100)}%` }}
+                  transition={{ duration: 1, ease: "easeOut", delay: 0.3 }}
+                ></motion.div>
+              </div>
+              {/* Micro-copy Context */}
+              <p className="text-[11px] text-gray-500 mt-2 font-medium">Rentang ideal: 18.5 – 25</p>
+            </div>
+
+            {/* Context dengan Icon */}
+            <div className="flex flex-wrap items-center gap-3 text-sm font-semibold text-gray-700">
+              <div className="flex items-center gap-2 px-3 py-1.5 bg-gray-50 rounded-lg">
+                <svg className="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3" />
+                </svg>
+                <span>{user?.currentWeightKg}kg</span>
+              </div>
+              <div className="flex items-center gap-2 px-3 py-1.5 bg-gray-50 rounded-lg">
+                <svg className="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 11l5-5m0 0l5 5m-5-5v12" />
+                </svg>
+                <span>{user?.heightCm}cm</span>
+              </div>
+            </div>
+
+            {/* Personal Nudge (NATURAL PERSONALITY - Updated Copy) */}
+            {bmiCategory.label === 'Normal' && (
+              <motion.div 
+                className="mt-auto pt-4"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.6 }}
+              >
+                <div className="p-3 bg-gradient-to-r from-emerald-50 to-green-50 rounded-lg border border-emerald-200">
+                  <p className="text-xs font-bold text-emerald-700 leading-relaxed">
+                    � Hebat! BMI kamu udah stabil — pertahankan ya!
+                  </p>
+                </div>
+              </motion.div>
+            )}
+          </div>
+        </div>
+
+        {/* Target Weight - FILLED dengan Mini Chart + CTA (FLAT WHITE) */}
+        <div className="group relative">
+          <div className="absolute inset-0 bg-gradient-to-br from-blue-300 to-blue-500 rounded-2xl blur-lg opacity-15 group-hover:opacity-25 transition-opacity duration-300"></div>
+          <div className="relative bg-white rounded-2xl shadow-md hover:shadow-lg transition-all duration-300 p-5 sm:p-6 border-2 border-gray-200">
+            <div className="flex items-start justify-between mb-4">
+              <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center shadow-lg">
+                <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
+                </svg>
+              </div>
+            </div>
+            <p className="text-xs font-black uppercase tracking-widest text-gray-500 mb-2">Target Berat</p>
+            <div className="flex items-baseline gap-2 mb-3">
+              <span className="text-5xl sm:text-6xl font-black bg-gradient-to-br from-blue-600 to-blue-400 bg-clip-text text-transparent">
+                {user?.targetWeightKg || '-'}
+              </span>
+              <span className="text-2xl font-bold text-gray-400">kg</span>
+            </div>
+            
+            {/* Mini Progress Bars */}
+            {user?.targetWeightKg && (
+              <>
+                <div className="mb-3">
+                  <div className="flex items-center justify-between text-[10px] font-bold text-gray-500 mb-1.5">
+                    <span>Current</span>
+                    <span>{user.currentWeightKg}kg</span>
+                  </div>
+                  <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                    <motion.div 
+                      className="h-full bg-gradient-to-r from-blue-500 to-blue-400 rounded-full"
+                      initial={{ width: 0 }}
+                      animate={{ width: `${Math.min((user.currentWeightKg / user.targetWeightKg) * 100, 100)}%` }}
+                      transition={{ duration: 0.8, delay: 0.4 }}
+                    />
+                  </div>
+                </div>
+                <div className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-blue-50 to-blue-100 rounded-lg border border-blue-200">
+                  <span className="text-lg">🔥</span>
+                  <span className="text-xs font-black text-blue-700">
+                    Tinggal {Math.abs(user.currentWeightKg - user.targetWeightKg).toFixed(1)}kg!
+                  </span>
+                </div>
+              </>
+            )}
+            
+            {/* CTA untuk Set Target - PROMINENT */}
+            {!user?.targetWeightKg && (
+              <a href="/dashboard/profile" className="group/cta mt-2 block">
+                <div className="flex items-center justify-between px-4 py-3 bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg shadow-lg hover:shadow-xl hover:scale-[1.02] transition-all">
+                  <span className="text-xs font-black text-white">Yuk, tentuin target berat kamu 💪</span>
+                  <svg className="w-4 h-4 text-white group-hover/cta:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                  </svg>
+                </div>
+              </a>
+            )}
+          </div>
+        </div>
+
+        {/* Meal Plans - FILLED dengan Visual Count + CTA (FLAT WHITE) */}
+        <div className="group relative">
+          <div className="absolute inset-0 bg-gradient-to-br from-purple-300 to-purple-500 rounded-2xl blur-lg opacity-15 group-hover:opacity-25 transition-opacity duration-300"></div>
+          <div className="relative bg-white rounded-2xl shadow-md hover:shadow-lg transition-all duration-300 p-5 sm:p-6 border-2 border-gray-200">
+            <div className="flex items-start justify-between mb-4">
+              <div className="w-14 h-14 bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg">
+                <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                </svg>
+              </div>
+            </div>
+            <p className="text-xs font-black uppercase tracking-widest text-gray-500 mb-2">Meal Plans</p>
+            <div className="flex items-baseline gap-2 mb-3">
+              <span className="text-5xl sm:text-6xl font-black bg-gradient-to-br from-purple-600 to-purple-400 bg-clip-text text-transparent">
+                {stats.mealPlans}
+              </span>
+              <span className="text-xl font-bold text-gray-400">plan</span>
+            </div>
+            
+            {/* Visual Indicator */}
+            <div className="flex items-center gap-2 mb-3">
+              {[...Array(3)].map((_, i) => (
+                <div 
+                  key={i} 
+                  className={`h-2 flex-1 rounded-full ${i < stats.mealPlans ? 'bg-gradient-to-r from-purple-500 to-purple-400' : 'bg-gray-100'}`}
+                />
+              ))}
+            </div>
+
+            {stats.mealPlans > 0 ? (
+              <div className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-purple-50 rounded-lg">
+                <span className="text-lg">🍽️</span>
+                <span className="text-xs font-bold text-purple-700">Aktif</span>
+              </div>
+            ) : (
+              <a href="/dashboard/meal-plan" className="group/cta block">
+                <div className="flex items-center justify-between px-4 py-3 bg-gradient-to-r from-purple-500 to-purple-600 rounded-lg shadow-lg hover:shadow-xl hover:scale-[1.02] transition-all">
+                  <span className="text-xs font-black text-white">Bikin meal plan yuk 🍽️</span>
+                  <svg className="w-4 h-4 text-white group-hover/cta:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                  </svg>
+                </div>
+              </a>
+            )}
+          </div>
+        </div>
+
+        {/* Streak - Gamification STRONG (FLAT WHITE) */}
+        <div className="group relative">
+          <div className="absolute inset-0 bg-gradient-to-br from-orange-400 to-red-500 rounded-2xl blur-lg opacity-15 group-hover:opacity-25 transition-opacity duration-300"></div>
+          <div className="relative bg-white rounded-2xl shadow-md hover:shadow-lg transition-all duration-300 p-5 sm:p-6 border-2 border-gray-200">
+            <div className="flex items-start justify-between mb-4">
+              <div className="w-14 h-14 bg-gradient-to-br from-orange-500 to-red-500 rounded-2xl flex items-center justify-center shadow-lg">
+                <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0120 13a7.975 7.975 0 01-2.343 5.657z" />
+                </svg>
+              </div>
+            </div>
+            <p className="text-xs font-black uppercase tracking-widest text-gray-500 mb-2">Streak Harian</p>
+            <div className="flex items-baseline gap-2 mb-3">
+              <span className="text-5xl sm:text-6xl font-black bg-gradient-to-br from-orange-500 to-red-500 bg-clip-text text-transparent">
+                {stats.streak}
+              </span>
+              <span className="text-xl font-bold text-gray-400">hari</span>
+            </div>
+            <div className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-orange-50 to-red-50 rounded-lg border border-orange-200">
+              <span className="text-lg">{stats.streak > 0 ? '🔥' : '💪'}</span>
+              <span className="text-xs font-black text-orange-700">
+                {stats.streak > 0 ? 'Mantap!' : 'Mulai hari ini!'}
+              </span>
+            </div>
+          </div>
+        </div>
+      </motion.div>
+
+      {/* Quick Actions - Prominent CTAs dengan Icons & Card Elevation (REDUCED SPACING) */}
+      <motion.div className="bg-white rounded-2xl shadow-lg p-5 sm:p-6 border border-gray-100" variants={fadeInUp}>
+        <h2 className="text-xl sm:text-2xl font-black text-gray-900 mb-4 flex items-center gap-2">
+          <span className="text-2xl">⚡</span>
+          Aksi Cepat
+        </h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          {/* Buat Meal Plan - PRIMARY CTA (Green #24B47E) */}
+          <a
+            href="/dashboard/meal-plan"
+            className="group relative overflow-hidden bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-4 border-2 border-green-200 hover:border-[#24B47E] hover:shadow-lg hover:-translate-y-1 transition-all duration-300"
+          >
+            <div className="flex items-center gap-3 mb-2">
+              <div className="w-12 h-12 flex-shrink-0 rounded-xl flex items-center justify-center shadow-md group-hover:scale-110 transition-transform duration-300" style={{background: 'linear-gradient(135deg, #24B47E 0%, #1d9065 100%)'}}>
+                <span className="text-xl">🍽️</span>
+              </div>
+              <div className="flex-1">
+                <h3 className="font-black text-sm text-gray-900 mb-0.5 group-hover:text-[#24B47E] transition-colors">Buat Meal Plan</h3>
+                <p className="text-xs text-gray-600 font-semibold">Rencana makan baru</p>
+              </div>
+            </div>
+            <div className="flex items-center justify-end">
+              <svg className="w-4 h-4 text-[#24B47E] group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+              </svg>
+            </div>
+          </a>
+
+          {/* Chat AI - SECONDARY (Indigo #6366F1) */}
+          <a
+            href="/dashboard/chat"
+            className="group relative overflow-hidden bg-gradient-to-br from-indigo-50 to-blue-50 rounded-xl p-4 border-2 border-indigo-200 hover:border-indigo-400 hover:shadow-lg hover:-translate-y-1 transition-all duration-300"
+          >
+            <div className="flex items-center gap-3 mb-2">
+              <div className="w-12 h-12 flex-shrink-0 rounded-xl flex items-center justify-center shadow-md group-hover:scale-110 transition-transform duration-300" style={{background: 'linear-gradient(135deg, #6366F1 0%, #4F46E5 100%)'}}>
+                <span className="text-xl">🤖</span>
+              </div>
+              <div className="flex-1">
+                <h3 className="font-black text-sm text-gray-900 mb-0.5 group-hover:text-indigo-600 transition-colors">Chat dengan AI</h3>
+                <p className="text-xs text-gray-600 font-semibold">Konsultasi nutrisi</p>
+              </div>
+            </div>
+            <div className="flex items-center justify-end">
+              <svg className="w-4 h-4 text-indigo-600 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+              </svg>
+            </div>
+          </a>
+
+          {/* Update Profile - ACCENT (Purple #A855F7) */}
+          <a
+            href="/dashboard/profile"
+            className="group relative overflow-hidden bg-gradient-to-br from-purple-50 to-fuchsia-50 rounded-xl p-4 border-2 border-purple-200 hover:border-purple-400 hover:shadow-lg hover:-translate-y-1 transition-all duration-300"
+          >
+            <div className="flex items-center gap-3 mb-2">
+              <div className="w-12 h-12 flex-shrink-0 rounded-xl flex items-center justify-center shadow-md group-hover:scale-110 transition-transform duration-300" style={{background: 'linear-gradient(135deg, #A855F7 0%, #9333EA 100%)'}}>
+                <span className="text-xl">⚙️</span>
+              </div>
+              <div className="flex-1">
+                <h3 className="font-black text-sm text-gray-900 mb-0.5 group-hover:text-purple-600 transition-colors">Update Profil</h3>
+                <p className="text-xs text-gray-600 font-semibold">Edit informasi Anda</p>
+              </div>
+            </div>
+            <div className="flex items-center justify-end">
+              <svg className="w-4 h-4 text-purple-600 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+              </svg>
+            </div>
+          </a>
+        </div>
+      </motion.div>
+
+      {/* Tips & Activity FEED - Consolidated & Engaging (REDUCED SPACING) */}
+      <motion.div 
+        className="relative overflow-hidden bg-white rounded-2xl shadow-lg p-5 sm:p-6 border border-gray-100" 
+        variants={fadeInUp}
+      >
+        <div className="flex items-center gap-2 mb-4">
+          <span className="text-2xl">💡</span>
+          <h2 className="text-xl sm:text-2xl font-black text-gray-900">Tips & Aktivitas</h2>
+        </div>
+
+        {/* Tips Hari Ini (COMPACT) */}
+        <div className="mb-5 p-3 bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl border border-green-200">
+          <div className="flex items-start gap-3">
+            <div className="w-10 h-10 flex-shrink-0 bg-gradient-primary rounded-lg flex items-center justify-center">
+              <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+              </svg>
+            </div>
+            <div className="flex-1">
+              <h3 className="text-sm font-black text-gray-900 mb-1">Tip Hari Ini</h3>
+              <p className="text-xs text-gray-700 leading-relaxed">
+                Minum air putih minimal 8 gelas sehari untuk menjaga hidrasi tubuh dan mendukung metabolisme yang optimal. 
+                Mulai hari Anda dengan segelas air hangat! 💧
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Aktivitas Terkini */}
+        <div>
+          <h3 className="text-sm font-black text-gray-500 uppercase tracking-wider mb-3 flex items-center gap-2">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            Aktivitas Terakhir
+          </h3>
+          <div className="space-y-2">
+            <div className="flex items-center gap-3 px-4 py-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+              <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+              <div className="flex-1">
+                <p className="text-sm font-bold text-gray-900">Meal plan dibuat</p>
+                <p className="text-xs text-gray-500">2 jam yang lalu</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-3 px-4 py-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+              <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+              <div className="flex-1">
+                <p className="text-sm font-bold text-gray-900">Chat dengan AI</p>
+                <p className="text-xs text-gray-500">5 jam yang lalu</p>
+              </div>
+            </div>
+          </div>
+          
+          {/* Friendly Placeholder jika kosong (Updated Copy) */}
+          {stats.mealPlans === 0 && (
+            <div className="mt-4 p-4 bg-gradient-to-r from-orange-50 to-amber-50 rounded-lg border-2 border-dashed border-orange-200 text-center">
+              <p className="text-sm font-bold text-gray-700">
+                💪 Belum ada aktivitas hari ini, yuk mulai dari buat meal plan!
+              </p>
+            </div>
+          )}
+        </div>
+      </motion.div>
+    </motion.div>
+  )
+}
