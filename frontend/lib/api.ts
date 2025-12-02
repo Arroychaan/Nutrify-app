@@ -1,6 +1,18 @@
 import axios from 'axios'
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
+// Auto-detect API URL based on environment
+const getApiUrl = () => {
+  if (typeof window !== 'undefined') {
+    const hostname = window.location.hostname
+    // If accessing via dev tunnel, use the backend dev tunnel URL
+    if (hostname.includes('devtunnels.ms')) {
+      return 'https://g5dtqcbn-3001.asse.devtunnels.ms'
+    }
+  }
+  return process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
+}
+
+const API_URL = getApiUrl()
 
 export const api = axios.create({
   baseURL: API_URL,

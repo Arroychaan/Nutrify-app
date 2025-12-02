@@ -15,31 +15,6 @@ export function getGeminiInstance(): GoogleGenerativeAI {
   return geminiClient;
 }
 
-function getModelCandidates(): string[] {
-  const preferred = config.gemini.model || 'gemini-1.5-flash-latest';
-  // Robust fallback order
-  const fallbacks = [
-    'gemini-1.5-flash-latest',
-    'gemini-1.5-pro-latest',
-    'gemini-1.0-pro',
-  ];
-  return [preferred, ...fallbacks.filter((m) => m !== preferred)];
-}
-
-async function getWorkingModel(client: GoogleGenerativeAI): Promise<{ modelName: string }> {
-  const candidates = getModelCandidates();
-  for (const name of candidates) {
-    try {
-      // Probe by creating the model handle; SDK defers calls until request.
-      // We'll optimistically return the first candidate; downstream will catch and retry if needed.
-      return { modelName: name };
-    } catch {
-      // continue
-    }
-  }
-  throw new Error('No supported Gemini model found');
-}
-
 export interface MealPlanGenerationRequest {
   userId: string;
   culture: string;
@@ -59,9 +34,11 @@ export async function generateMealPlan(
   request: MealPlanGenerationRequest
 ): Promise<any> {
   try {
-  const client = getGeminiInstance();
-  const { modelName } = await getWorkingModel(client);
-  let model = client.getGenerativeModel({ model: modelName });
+    const client = getGeminiInstance();
+    
+    // Using the free-tier friendly model directly.
+    const modelName = 'gemini-1.5-flash';
+    const model = client.getGenerativeModel({ model: modelName });
 
     const prompt = buildMealPlanPrompt(request);
     
@@ -89,26 +66,11 @@ ${prompt}`;
     logger.info('Calling Gemini AI for meal plan generation', {
       userId: request.userId,
       duration: request.duration,
+      model: modelName,
     });
 
-  let result: any;
-    try {
-      result = await model.generateContent(systemPrompt);
-    } catch (e: any) {
-      // Retry with next fallback if 404/not supported
-      const candidates = getModelCandidates().filter((m) => m !== modelName);
-      let success = false;
-      for (const alt of candidates) {
-        try {
-          model = client.getGenerativeModel({ model: alt });
-          result = await model.generateContent(systemPrompt);
-          success = true;
-          break;
-        } catch {}
-      }
-      if (!success) throw e;
-    }
-  const response = result.response;
+    const result = await model.generateContent(systemPrompt);
+    const response = result.response;
     const text = response.text();
 
     // Remove markdown code blocks if present
@@ -119,12 +81,12 @@ ${prompt}`;
 
     logger.info('Meal plan generated successfully', {
       userId: request.userId,
-      model: 'gemini-1.5-flash',
+      model: modelName,
     });
 
     return {
       mealPlan: mealPlanData,
-      model: (model as any)?.model || modelName,
+      model: modelName,
     };
   } catch (error) {
     logger.error('Error generating meal plan:', error);
@@ -140,50 +102,33 @@ export async function chatWithGemini(
   systemContext?: Record<string, any>
 ): Promise<any> {
   try {
-  const client = getGeminiInstance();
-  const { modelName } = await getWorkingModel(client);
-  let model = client.getGenerativeModel({ model: modelName });
-
-    const systemPrompt = buildSystemPrompt(systemContext);
+    const client = getGeminiInstance();
     
-    // Gemini uses a different format - combine system prompt with conversation
+    // Using the free-tier friendly model directly.
+    const modelName = 'gemini-1.5-flash';
+    const model = client.getGenerativeModel({
+      model: modelName,
+      systemInstruction: buildSystemPrompt(systemContext),
+    });
+
     const conversationHistory = messages.map((msg) => ({
       role: msg.role === 'assistant' ? 'model' : 'user',
       parts: [{ text: msg.content }],
     }));
 
-    // Start chat with history
     const chat = model.startChat({
-      history: conversationHistory.slice(0, -1), // All except last message
+      history: conversationHistory.slice(0, -1),
     });
 
-    const lastMessage = messages[messages.length - 1];
-    const fullPrompt = `${systemPrompt}\n\nUser: ${lastMessage.content}`;
+    const lastMessage = messages[messages.length - 1].content;
 
-  let result: any;
-    try {
-      result = await chat.sendMessage(fullPrompt);
-    } catch (e: any) {
-      // Recreate chat with a fallback model if needed
-      const candidates = getModelCandidates().filter((m) => m !== modelName);
-      let success = false;
-      for (const alt of candidates) {
-        try {
-          model = client.getGenerativeModel({ model: alt });
-          const chatAlt = model.startChat({ history: conversationHistory.slice(0, -1) });
-          result = await chatAlt.sendMessage(fullPrompt);
-          success = true;
-          break;
-        } catch {}
-      }
-      if (!success) throw e;
-    }
-  const response = result.response;
+    const result = await chat.sendMessage(lastMessage);
+    const response = result.response;
     const text = response.text();
 
     return {
       message: text,
-      model: (model as any)?.model || modelName,
+      model: modelName,
     };
   } catch (error) {
     logger.error('Error in Gemini chat:', error);

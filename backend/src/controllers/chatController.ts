@@ -39,7 +39,6 @@ export const sendChatMessageController = asyncHandler(
     const latestMealPlan = await prisma.mealPlan.findFirst({
       where: { userId },
       orderBy: { createdAt: 'desc' },
-      select: { id: true },
     });
 
     if (!conversation) {

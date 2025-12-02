@@ -374,15 +374,19 @@ async function seedLocalFoods() {
 
   // Create local foods
   for (const food of localFoods) {
-    await prisma.localFood.upsert({
+    const existing = await prisma.localFood.findFirst({
       where: { name: food.name },
-      update: {},
-      create: {
-        ...food,
-        contraindications: food.contraindications as any,
-        culturalSignificance: food.culturalSignificance as any,
-      } as any,
     });
+
+    if (!existing) {
+      await prisma.localFood.create({
+        data: {
+          ...food,
+          contraindications: food.contraindications as any,
+          culturalSignificance: food.culturalSignificance as any,
+        } as any,
+      });
+    }
   }
 
   logger.info(`Seeded ${localFoods.length} local foods`);
@@ -433,11 +437,15 @@ async function seedMeals() {
   ];
 
   for (const meal of meals) {
-    await prisma.meal.upsert({
+    const existing = await prisma.meal.findFirst({
       where: { name: meal.name },
-      update: {},
-      create: meal,
     });
+
+    if (!existing) {
+      await prisma.meal.create({
+        data: meal,
+      });
+    }
   }
 
   logger.info(`Seeded ${meals.length} meals`);
