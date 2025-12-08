@@ -36,8 +36,8 @@ export async function generateMealPlan(
   try {
     const client = getGeminiInstance();
     
-    // Using the free-tier friendly model directly.
-    const modelName = 'gemini-1.5-flash';
+    // Using the model from config (default: gemini-2.0-flash)
+    const modelName = config.gemini.model;
     const model = client.getGenerativeModel({ model: modelName });
 
     const prompt = buildMealPlanPrompt(request);
@@ -104,8 +104,8 @@ export async function chatWithGemini(
   try {
     const client = getGeminiInstance();
     
-    // Using the free-tier friendly model directly.
-    const modelName = 'gemini-1.5-flash';
+    // Using the model from config (default: gemini-2.0-flash)
+    const modelName = config.gemini.model;
     const model = client.getGenerativeModel({
       model: modelName,
       systemInstruction: buildSystemPrompt(systemContext),

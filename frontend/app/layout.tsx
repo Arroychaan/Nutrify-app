@@ -5,11 +5,6 @@ export const metadata: Metadata = {
   title: 'Nutrify - Indonesian Personalized Nutrition',
   description: 'Aplikasi perencanaan nutrisi personal berbasis budaya Indonesia',
   manifest: '/manifest.json',
-  appleWebApp: {
-    capable: true,
-    statusBarStyle: 'default',
-    title: 'Nutrify',
-  },
 }
 
 export const viewport: Viewport = {
@@ -26,7 +21,7 @@ export default function RootLayout({
       <head>
         <link rel="manifest" href="/manifest.json" />
         <meta name="theme-color" content="#10b981" />
-        <link rel="apple-touch-icon" href="/icons/icon-192x192.png" />
+        <meta name="mobile-web-app-capable" content="yes" />
       </head>
       <body>
         {children}

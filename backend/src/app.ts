@@ -57,6 +57,15 @@ export async function createApp(): Promise<Application> {
   // ============================================================================
   // Health Check
   // ============================================================================
+  app.get('/health', (req: Request, res: Response) => {
+    res.json({
+      status: 'OK',
+      timestamp: new Date(),
+      uptime: process.uptime(),
+      environment: config.nodeEnv,
+    });
+  });
+
   app.get('/api/v1/health', (req: Request, res: Response) => {
     res.json({
       status: 'OK',

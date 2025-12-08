@@ -1,4 +1,4 @@
-const CACHE_NAME = 'nutrify-v1';
+const CACHE_NAME = 'nutrify-v2';
 const urlsToCache = [
   '/',
   '/dashboard',
