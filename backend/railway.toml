@@ -1,7 +1,6 @@
-# railway.toml - Railway deployment configuration
+# Railway deployment configuration
 [build]
 builder = "nixpacks"
-buildCommand = "npm run build"
 
 [deploy]
 startCommand = "npm start"
@@ -9,6 +8,3 @@ healthcheckPath = "/health"
 healthcheckTimeout = 300
 restartPolicyType = "on_failure"
 restartPolicyMaxRetries = 3
-
-[nixpacks]
-providers = ["node"]
