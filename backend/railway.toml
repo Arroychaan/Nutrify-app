@@ -1,7 +1,6 @@
 # Railway deployment configuration
 [build]
-builder = "dockerfile"
-dockerfilePath = "Dockerfile"
+builder = "nixpacks"
 
 [deploy]
 startCommand = "npm start"
