@@ -5,16 +5,17 @@ RUN apk add --no-cache openssl openssl-dev libc6-compat
 
 WORKDIR /app
 
-# Copy backend package files
+# Copy backend package files and prisma schema first
 COPY backend/package*.json ./
+COPY backend/prisma ./prisma/
 
-# Install ALL dependencies (including devDependencies for build)
-RUN npm ci
+# Install ALL dependencies (skip postinstall to avoid prisma generate error)
+RUN npm ci --ignore-scripts
 
 # Copy all backend source code
 COPY backend/ ./
 
-# Generate Prisma client
+# Generate Prisma client manually
 RUN npx prisma generate
 
 # Build TypeScript
