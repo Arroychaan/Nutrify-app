@@ -5,20 +5,17 @@ RUN apk add --no-cache openssl openssl-dev libc6-compat
 
 WORKDIR /app
 
-# Copy package files
+# Copy package files and prisma schema (needed for postinstall)
 COPY package*.json ./
+COPY prisma ./prisma/
 
-# Install ALL dependencies (including devDependencies for build)
-RUN npm ci
+# Install ALL dependencies (skip postinstall script)
+RUN npm ci --ignore-scripts
 
-# Copy all source code including prisma
+# Copy all source code
 COPY . .
 
-# Debug: List files to verify copy
-RUN ls -la
-RUN ls -la prisma/ || echo "Prisma folder not found"
-
-# Generate Prisma client
+# Generate Prisma client manually
 RUN npx prisma generate
 
 # Build TypeScript
