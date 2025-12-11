@@ -77,7 +77,7 @@ export default function RegisterPage() {
 
   return (
     <motion.div 
-      className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 via-white to-green-50 px-4 sm:px-6 lg:px-8 py-12"
+      className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 via-white to-green-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 px-4 sm:px-6 lg:px-8 py-12"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
@@ -91,17 +91,30 @@ export default function RegisterPage() {
       >
         {/* Header */}
         <div className="text-center">
-          <Link href="/" className="inline-block">
+          <Link href="/" className="inline-flex items-center justify-center space-x-3">
+            <div className="w-14 h-14 sm:w-16 sm:h-16">
+              <svg viewBox="0 0 100 100" className="w-full h-full">
+                <defs>
+                  <linearGradient id="registerLogoGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stopColor="#24B47E"/>
+                    <stop offset="100%" stopColor="#1a8f63"/>
+                  </linearGradient>
+                </defs>
+                <circle cx="50" cy="50" r="50" fill="url(#registerLogoGradient)"/>
+                <path d="M30 70 L30 30 L40 30 L60 55 L60 30 L70 30 L70 70 L60 70 L40 45 L40 70 Z" fill="white"/>
+                <ellipse cx="72" cy="28" rx="6" ry="10" fill="#86efac" transform="rotate(45, 72, 28)"/>
+              </svg>
+            </div>
             <h1 className="text-4xl sm:text-5xl font-bold text-green-600 mb-2">
-              🥗 Nutrify
+              Nutrify
             </h1>
           </Link>
-          <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">
+          <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-2">
             Buat Akun Baru
           </h2>
-          <p className="text-sm sm:text-base text-gray-600">
+          <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400">
             Sudah punya akun?{' '}
-            <Link href="/auth/login" className="text-green-600 hover:text-green-700 font-semibold">
+            <Link href="/auth/login" className="text-green-600 dark:text-green-400 hover:text-green-700 dark:hover:text-green-300 font-semibold">
               Masuk di sini
             </Link>
           </p>
@@ -109,15 +122,15 @@ export default function RegisterPage() {
 
         {/* Progress Bar */}
         <div className="flex items-center justify-center space-x-2 sm:space-x-4">
-          <div className={`h-2 w-20 sm:w-32 rounded-full ${step >= 1 ? 'bg-green-600' : 'bg-gray-300'}`}></div>
-          <div className={`h-2 w-20 sm:w-32 rounded-full ${step >= 2 ? 'bg-green-600' : 'bg-gray-300'}`}></div>
+          <div className={`h-2 w-20 sm:w-32 rounded-full ${step >= 1 ? 'bg-green-600' : 'bg-gray-300 dark:bg-gray-600'}`}></div>
+          <div className={`h-2 w-20 sm:w-32 rounded-full ${step >= 2 ? 'bg-green-600' : 'bg-gray-300 dark:bg-gray-600'}`}></div>
         </div>
 
         {/* Form */}
-        <div className="bg-white rounded-xl shadow-lg p-6 sm:p-8">
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 sm:p-8">
           {error && (
-            <div className="mb-4 p-3 sm:p-4 bg-red-50 border border-red-200 rounded-lg">
-              <p className="text-sm text-red-600">{error}</p>
+            <div className="mb-4 p-3 sm:p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+              <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
             </div>
           )}
 
@@ -125,7 +138,7 @@ export default function RegisterPage() {
             {step === 1 && (
               <>
                 <div>
-                  <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+                  <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Email
                   </label>
                   <input
@@ -134,13 +147,13 @@ export default function RegisterPage() {
                     required
                     value={formData.email}
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    className="w-full px-3 sm:px-4 py-2 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm sm:text-base"
+                    className="w-full px-3 sm:px-4 py-2 sm:py-3 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm sm:text-base"
                     placeholder="nama@email.com"
                   />
                 </div>
 
                 <div>
-                  <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
+                  <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Password
                   </label>
                   <div className="relative">
@@ -150,13 +163,13 @@ export default function RegisterPage() {
                       required
                       value={formData.password}
                       onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                      className="w-full px-3 sm:px-4 py-2 sm:py-3 pr-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm sm:text-base"
+                      className="w-full px-3 sm:px-4 py-2 sm:py-3 pr-12 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm sm:text-base"
                       placeholder="Minimal 6 karakter"
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
                     >
                       {showPassword ? (
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -173,7 +186,7 @@ export default function RegisterPage() {
                 </div>
 
                 <div>
-                  <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-2">
+                  <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Konfirmasi Password
                   </label>
                   <div className="relative">
@@ -183,13 +196,13 @@ export default function RegisterPage() {
                       required
                       value={formData.confirmPassword}
                       onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
-                      className="w-full px-3 sm:px-4 py-2 sm:py-3 pr-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm sm:text-base"
+                      className="w-full px-3 sm:px-4 py-2 sm:py-3 pr-12 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm sm:text-base"
                       placeholder="Ulangi password"
                     />
                     <button
                       type="button"
                       onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
                     >
                       {showConfirmPassword ? (
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -218,7 +231,7 @@ export default function RegisterPage() {
             {step === 2 && (
               <>
                 <div>
-                  <label htmlFor="fullName" className="block text-sm font-medium text-gray-700 mb-2">
+                  <label htmlFor="fullName" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Nama Lengkap
                   </label>
                   <input
@@ -227,14 +240,14 @@ export default function RegisterPage() {
                     required
                     value={formData.fullName}
                     onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
-                    className="w-full px-3 sm:px-4 py-2 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm sm:text-base"
+                    className="w-full px-3 sm:px-4 py-2 sm:py-3 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm sm:text-base"
                     placeholder="Nama lengkap Anda"
                   />
                 </div>
 
                 <div className="grid grid-cols-2 gap-3 sm:gap-4">
                   <div>
-                    <label htmlFor="heightCm" className="block text-sm font-medium text-gray-700 mb-2">
+                    <label htmlFor="heightCm" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                       Tinggi (cm)
                     </label>
                     <input
@@ -244,13 +257,13 @@ export default function RegisterPage() {
                       required
                       value={formData.heightCm}
                       onChange={(e) => setFormData({ ...formData, heightCm: e.target.value })}
-                      className="w-full px-3 sm:px-4 py-2 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm sm:text-base"
+                      className="w-full px-3 sm:px-4 py-2 sm:py-3 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm sm:text-base"
                       placeholder="170"
                     />
                   </div>
 
                   <div>
-                    <label htmlFor="currentWeightKg" className="block text-sm font-medium text-gray-700 mb-2">
+                    <label htmlFor="currentWeightKg" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                       Berat (kg)
                     </label>
                     <input
@@ -260,7 +273,7 @@ export default function RegisterPage() {
                       required
                       value={formData.currentWeightKg}
                       onChange={(e) => setFormData({ ...formData, currentWeightKg: e.target.value })}
-                      className="w-full px-3 sm:px-4 py-2 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm sm:text-base"
+                      className="w-full px-3 sm:px-4 py-2 sm:py-3 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm sm:text-base"
                       placeholder="65"
                     />
                   </div>
@@ -270,7 +283,7 @@ export default function RegisterPage() {
                   <button
                     type="button"
                     onClick={() => setStep(1)}
-                    className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold py-2 sm:py-3 px-4 rounded-lg transition text-sm sm:text-base"
+                    className="flex-1 bg-gray-200 dark:bg-gray-600 hover:bg-gray-300 dark:hover:bg-gray-500 text-gray-700 dark:text-gray-200 font-semibold py-2 sm:py-3 px-4 rounded-lg transition text-sm sm:text-base"
                   >
                     Kembali
                   </button>
@@ -289,7 +302,7 @@ export default function RegisterPage() {
           <div className="mt-6">
             <Link
               href="/"
-              className="w-full inline-flex justify-center items-center py-2 sm:py-3 px-4 border border-gray-300 rounded-lg bg-white text-sm sm:text-base font-medium text-gray-700 hover:bg-gray-50 transition"
+              className="w-full inline-flex justify-center items-center py-2 sm:py-3 px-4 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-sm sm:text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600 transition"
             >
               Kembali ke Beranda
             </Link>

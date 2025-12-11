@@ -69,3 +69,7 @@ export function optionalAuth(
     next();
   }
 }
+
+// Aliases for backward compatibility
+export const authMiddleware = authenticateToken;
+export const optionalAuthMiddleware = optionalAuth;

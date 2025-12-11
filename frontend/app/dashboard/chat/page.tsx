@@ -86,13 +86,13 @@ export default function ChatPage() {
   return (
     <div className="h-full w-full flex flex-col">
       {/* Header */}
-      <div className="sticky top-0 z-10 bg-white/80 backdrop-blur border-b border-gray-200 px-4 py-3">
+      <div className="sticky top-0 z-10 bg-white/80 dark:bg-gray-800/80 backdrop-blur border-b border-gray-200 dark:border-gray-700 px-4 py-3">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-lg flex items-center justify-center gradient-primary text-white font-bold">N</div>
           <div className="flex flex-col">
-            <span className="font-semibold text-gray-900">Nutrify — Ahli Gizi Profesional</span>
-            <span className="text-xs text-gray-500">Berbasis AKG Indonesia • Mengutamakan makanan lokal • Kontekstual sesuai profil Anda</span>
-            {userSummary && <span className="text-xs text-gray-500">Konteks: {userSummary}</span>}
+            <span className="font-semibold text-gray-900 dark:text-white">Nutrify — Ahli Gizi Profesional</span>
+            <span className="text-xs text-gray-500 dark:text-gray-400">Berbasis AKG Indonesia • Mengutamakan makanan lokal • Kontekstual sesuai profil Anda</span>
+            {userSummary && <span className="text-xs text-gray-500 dark:text-gray-400">Konteks: {userSummary}</span>}
           </div>
         </div>
       </div>
@@ -104,7 +104,7 @@ export default function ChatPage() {
             <div className={`max-w-[85%] rounded-2xl px-4 py-3 shadow-sm ${
               m.role === "user"
                 ? "bg-[rgb(var(--primary))] text-white"
-                : "bg-white border border-gray-200 text-gray-900"
+                : "bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white"
             }`}>
               <div className="whitespace-pre-wrap leading-relaxed text-sm">{m.content}</div>
             </div>
@@ -114,9 +114,9 @@ export default function ChatPage() {
       </div>
 
       {/* Composer */}
-      <div className="border-t border-gray-200 p-3 bg-white">
+      <div className="border-t border-gray-200 dark:border-gray-700 p-3 bg-white dark:bg-gray-800">
         {error && (
-          <div className="mb-2 text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
+          <div className="mb-2 text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg px-3 py-2">
             {error}
           </div>
         )}
@@ -124,7 +124,7 @@ export default function ChatPage() {
           <input
             type="text"
             placeholder="Tanya apa saja seputar gizi, AKG, atau sesuaikan meal plan Anda..."
-            className="flex-1 input-field !border-gray-200"
+            className="flex-1 input-field !border-gray-200 dark:!border-gray-600"
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={onKeyDown}
@@ -138,7 +138,7 @@ export default function ChatPage() {
             {sending ? "Mengirim..." : "Kirim"}
           </button>
         </div>
-        <div className="mt-2 text-[11px] text-gray-500">
+        <div className="mt-2 text-[11px] text-gray-500 dark:text-gray-400">
           Tips: Anda bisa minta penyesuaian budget, alergi, budaya (mis. Jawa), atau kondisi medis (mis. hipertensi).
         </div>
       </div>

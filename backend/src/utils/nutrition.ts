@@ -25,23 +25,26 @@ export function getBMICategory(
 
 /**
  * Calculate daily calorie requirement using Mifflin-St Jeor formula
- * @param ageDays Age in years
+ * WITH adjustment for weight goals (deficit for overweight/obese, surplus for underweight)
+ * @param ageYears Age in years
  * @param genderChar Gender ('M' or 'F')
  * @param weightKg Weight in kilograms
  * @param heightCm Height in centimeters
  * @param activityLevel Activity level multiplier
- * @returns Daily calorie requirement
+ * @param targetWeightKg Optional target weight for calorie adjustment
+ * @returns Daily calorie requirement (adjusted for goals)
  */
 export function calculateDailyCalories(
   ageYears: number,
   genderChar: string,
   weightKg: number,
   heightCm: number,
-  activityLevel: string
+  activityLevel: string,
+  targetWeightKg?: number
 ): number {
   // Mifflin-St Jeor formula
   let bmr: number;
-  if (genderChar === 'M') {
+  if (genderChar === 'M' || genderChar === 'male') {
     bmr = 10 * weightKg + 6.25 * heightCm - 5 * ageYears + 5;
   } else {
     bmr = 10 * weightKg + 6.25 * heightCm - 5 * ageYears - 161;
@@ -56,7 +59,35 @@ export function calculateDailyCalories(
   };
 
   const multiplier = activityMultipliers[activityLevel] || 1.2;
-  return Math.round(bmr * multiplier);
+  let tdee = Math.round(bmr * multiplier);
+
+  // Calculate BMI to determine if adjustment needed
+  const heightM = heightCm / 100;
+  const bmi = weightKg / (heightM * heightM);
+
+  // Apply calorie adjustment based on BMI and target
+  if (bmi >= 30) {
+    // OBESITAS: deficit 750 kcal (aggressive but safe weight loss ~0.75kg/week)
+    tdee = Math.max(1200, tdee - 750); // Never go below 1200 kcal
+  } else if (bmi >= 25) {
+    // GEMUK/OVERWEIGHT: deficit 500 kcal (~0.5kg/week)
+    tdee = Math.max(1200, tdee - 500);
+  } else if (bmi < 18.5) {
+    // KURUS/UNDERWEIGHT: surplus 300-500 kcal for weight gain
+    tdee = tdee + 400;
+  }
+  // NORMAL: no adjustment, maintain TDEE
+
+  // Additional adjustment if user has specific target weight
+  if (targetWeightKg && targetWeightKg !== weightKg) {
+    if (targetWeightKg < weightKg && bmi >= 25) {
+      // Already applied deficit above, no additional adjustment
+    } else if (targetWeightKg > weightKg && bmi < 18.5) {
+      // Already applied surplus above, no additional adjustment
+    }
+  }
+
+  return Math.round(tdee);
 }
 
 /**

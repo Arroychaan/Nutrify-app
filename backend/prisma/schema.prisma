@@ -60,6 +60,10 @@ model User {
   mealPlans           MealPlan[]
   conversations       Conversation[]
   feedback            MealPlanFeedback[]
+  foodLogs            FoodLog[]
+  pushSubscriptions   PushSubscription[]
+  notificationSettings NotificationSettings?
+  notificationLogs    NotificationLog[]
 
   @@map("users")
   @@index([email])
@@ -396,6 +400,43 @@ model ChatMessage {
 }
 
 // ============================================================================
+// FOOD LOGGING MODELS
+// ============================================================================
+
+model FoodLog {
+  id                    String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId                String    @db.Uuid
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Meal Info
+  mealType              String    // breakfast, lunch, dinner, snack
+  foodName              String
+  portion               String?   // e.g., "1 piring", "200g"
+  
+  // Nutrition (estimated by AI or manual)
+  calories              Decimal?  @db.Decimal(10, 2)
+  proteinG              Decimal?  @db.Decimal(10, 2)
+  carbsG                Decimal?  @db.Decimal(10, 2)
+  fatG                  Decimal?  @db.Decimal(10, 2)
+  fiberG                Decimal?  @db.Decimal(10, 2)
+  sodiumMg              Decimal?  @db.Decimal(10, 2)
+  sugarG                Decimal?  @db.Decimal(10, 2)
+
+  // Metadata
+  loggedAt              DateTime  @default(now())
+  notes                 String?
+  imageUrl              String?
+  source                String    @default("manual") // manual, chat, meal_plan
+
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  @@map("food_logs")
+  @@index([userId, loggedAt(sort: Desc)])
+  @@index([userId, mealType])
+}
+
+// ============================================================================
 // FEEDBACK & ANALYTICS MODELS
 // ============================================================================
 
@@ -432,4 +473,69 @@ model KPIMetric {
 
   @@map("kpi_metrics")
   @@index([metricName, periodStart, periodEnd])
+}
+
+// ============================================================================
+// PUSH NOTIFICATION MODELS
+// ============================================================================
+
+model PushSubscription {
+  id                    String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId                String    @db.Uuid
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  endpoint              String    @unique
+  p256dh                String    // Public key
+  auth                  String    // Auth secret
+
+  // Device info (optional)
+  platform              String?   // web, android, ios
+  browser               String?   // chrome, firefox, safari
+
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  @@map("push_subscriptions")
+  @@index([userId])
+}
+
+model NotificationSettings {
+  id                    String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId                String    @unique @db.Uuid
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Notification types toggle
+  mealReminders         Boolean   @default(true)
+  streakReminders       Boolean   @default(true)
+  goalProgress          Boolean   @default(true)
+  dailyTips             Boolean   @default(true)
+  weeklyReport          Boolean   @default(true)
+
+  // Custom meal times (HH:mm format)
+  breakfastTime         String    @default("07:00")
+  lunchTime             String    @default("12:00")
+  dinnerTime            String    @default("19:00")
+
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  @@map("notification_settings")
+}
+
+model NotificationLog {
+  id                    String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId                String    @db.Uuid
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  type                  String    // meal_reminder, streak_warning, badge_earned, etc
+  title                 String
+  body                  String
+
+  sentAt                DateTime  @default(now())
+  successCount          Int       @default(0)
+  failedCount           Int       @default(0)
+
+  @@map("notification_logs")
+  @@index([userId, sentAt(sort: Desc)])
+  @@index([type])
 }

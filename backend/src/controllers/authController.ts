@@ -353,3 +353,104 @@ export const updateProfileController = asyncHandler(
     });
   }
 );
+
+/**
+ * Change password
+ * PUT /api/v1/auth/password
+ */
+export const changePasswordController = asyncHandler(
+  async (req: Request, res: Response) => {
+    const userId = req.userId;
+    const { currentPassword, newPassword } = req.body;
+
+    if (!userId) {
+      res.status(401).json({
+        success: false,
+        error: { code: 'UNAUTHORIZED', message: 'User not authenticated' },
+      });
+      return;
+    }
+
+    if (!currentPassword || !newPassword) {
+      res.status(400).json({
+        success: false,
+        error: { code: 'VALIDATION_ERROR', message: 'Current password and new password are required' },
+      });
+      return;
+    }
+
+    if (newPassword.length < 8) {
+      res.status(400).json({
+        success: false,
+        error: { code: 'VALIDATION_ERROR', message: 'New password must be at least 8 characters' },
+      });
+      return;
+    }
+
+    const user = await prisma.user.findUnique({ where: { id: userId } });
+
+    if (!user) {
+      res.status(404).json({
+        success: false,
+        error: { code: 'USER_NOT_FOUND', message: 'User not found' },
+      });
+      return;
+    }
+
+    const isPasswordValid = await comparePasswords(currentPassword, user.passwordHash);
+
+    if (!isPasswordValid) {
+      res.status(401).json({
+        success: false,
+        error: { code: 'INVALID_PASSWORD', message: 'Current password is incorrect' },
+      });
+      return;
+    }
+
+    const hashedPassword = await hashPassword(newPassword);
+
+    await prisma.user.update({
+      where: { id: userId },
+      data: { passwordHash: hashedPassword },
+    });
+
+    logger.info('User password changed successfully', { userId });
+
+    res.json({
+      success: true,
+      message: 'Password changed successfully',
+    });
+  }
+);
+
+/**
+ * Delete account
+ * DELETE /api/v1/auth/account
+ */
+export const deleteAccountController = asyncHandler(
+  async (req: Request, res: Response) => {
+    const userId = req.userId;
+
+    if (!userId) {
+      res.status(401).json({
+        success: false,
+        error: { code: 'UNAUTHORIZED', message: 'User not authenticated' },
+      });
+      return;
+    }
+
+    logger.info('User account deletion requested', { userId });
+
+    // Delete user (cascade will delete related data)
+    await prisma.user.delete({
+      where: { id: userId },
+    });
+
+    logger.info('User account deleted successfully', { userId });
+
+    res.json({
+      success: true,
+      message: 'Account deleted successfully',
+    });
+  }
+);

@@ -71,6 +71,16 @@ export const authApi = {
     const response = await api.put('/api/v1/auth/profile', data)
     return response.data
   },
+
+  changePassword: async (currentPassword: string, newPassword: string) => {
+    const response = await api.put('/api/v1/auth/password', { currentPassword, newPassword })
+    return response.data
+  },
+
+  deleteAccount: async () => {
+    const response = await api.delete('/api/v1/auth/account')
+    return response.data
+  },
 }
 
 // Meal Plan API
@@ -94,6 +104,113 @@ export const chatApi = {
   },
   getConversation: async (conversationId: string) => {
     const response = await api.get(`/api/v1/chat/conversations/${conversationId}`)
+    return response.data?.data ?? response.data
+  },
+}
+
+// Food Log API
+export const foodLogApi = {
+  // Create new food log
+  create: async (data: {
+    mealType: string
+    foodName: string
+    portion?: string
+    notes?: string
+    calories?: number
+    proteinG?: number
+    carbsG?: number
+    fatG?: number
+  }) => {
+    const response = await api.post('/api/v1/food-logs', data)
+    return response.data?.data ?? response.data
+  },
+
+  // Get food logs by date
+  getByDate: async (date?: string) => {
+    const response = await api.get('/api/v1/food-logs', { params: { date } })
+    return response.data?.data ?? response.data
+  },
+
+  // Get today's summary
+  getTodaySummary: async () => {
+    const response = await api.get('/api/v1/food-logs/today')
+    return response.data?.data ?? response.data
+  },
+
+  // Get summary for date range
+  getSummary: async (startDate?: string, endDate?: string) => {
+    const response = await api.get('/api/v1/food-logs/summary', { params: { startDate, endDate } })
+    return response.data?.data ?? response.data
+  },
+
+  // Update food log
+  update: async (id: string, data: any) => {
+    const response = await api.put(`/api/v1/food-logs/${id}`, data)
+    return response.data?.data ?? response.data
+  },
+
+  // Delete food log
+  delete: async (id: string) => {
+    const response = await api.delete(`/api/v1/food-logs/${id}`)
+    return response.data
+  },
+}
+
+// Notification API
+export const notificationApi = {
+  // Get VAPID public key
+  getVapidKey: async () => {
+    const response = await api.get('/api/v1/notifications/vapid-key')
+    return response.data?.data ?? response.data
+  },
+
+  // Subscribe to push notifications
+  subscribe: async (subscription: {
+    endpoint: string
+    keys: { p256dh: string; auth: string }
+    platform?: string
+    browser?: string
+  }) => {
+    const response = await api.post('/api/v1/notifications/subscribe', subscription)
+    return response.data?.data ?? response.data
+  },
+
+  // Unsubscribe from push notifications
+  unsubscribe: async (endpoint: string) => {
+    const response = await api.delete('/api/v1/notifications/subscribe', { data: { endpoint } })
+    return response.data?.data ?? response.data
+  },
+
+  // Get notification settings
+  getSettings: async () => {
+    const response = await api.get('/api/v1/notifications/settings')
+    return response.data?.data ?? response.data
+  },
+
+  // Update notification settings
+  updateSettings: async (settings: {
+    mealReminders?: boolean
+    streakReminders?: boolean
+    goalProgress?: boolean
+    dailyTips?: boolean
+    weeklyReport?: boolean
+    breakfastTime?: string
+    lunchTime?: string
+    dinnerTime?: string
+  }) => {
+    const response = await api.put('/api/v1/notifications/settings', settings)
+    return response.data?.data ?? response.data
+  },
+
+  // Get notification history
+  getHistory: async (limit?: number, offset?: number) => {
+    const response = await api.get('/api/v1/notifications/history', { params: { limit, offset } })
+    return response.data?.data ?? response.data
+  },
+
+  // Send test notification
+  sendTest: async () => {
+    const response = await api.post('/api/v1/notifications/test')
     return response.data?.data ?? response.data
   },
 }

@@ -10,6 +10,8 @@ Nutrify adalah aplikasi AI Dietician yang dirancang khusus untuk masyarakat Indo
 - 📊 **Biomarker Tracking** - Monitor gula darah, kolesterol, tekanan darah
 - 🎯 **AKG Compliance** - Sesuai dengan Angka Kecukupan Gizi Indonesia
 - 💰 **Budget Friendly** - Sesuaikan dengan budget harian
+- 🗄️ **Database 1346 Makanan Indonesia** - Data nutrisi akurat untuk ribuan makanan lokal (NEW!)
+- 🔍 **Food Search API** - Cari informasi nutrisi makanan Indonesia (NEW!)
 
 ## 🚀 Quick Start
 
@@ -116,6 +118,7 @@ npm start            # Jalankan production server
 npx prisma generate  # Generate Prisma client
 npx prisma migrate dev  # Jalankan database migrations
 npx prisma db seed   # Seed database dengan data sample
+npm run seed:nutrition  # Import 1346 makanan Indonesia dari CSV!
 
 # Testing
 npm test            # (coming soon)
@@ -147,6 +150,18 @@ GET  /api/v1/chat/history    # History chat
 GET  /api/v1/meal-plans              # List meal plans user
 POST /api/v1/meal-plans/generate     # Generate meal plan baru
 GET  /api/v1/meal-plans/:id          # Detail meal plan
+```
+
+### Food Database (NEW!)
+```
+GET  /api/v1/foods/search?q=nasi     # Cari makanan berdasarkan nama
+GET  /api/v1/foods/categories        # List semua kategori makanan
+GET  /api/v1/foods/stats             # Statistik database makanan
+GET  /api/v1/foods/suggestions       # Rekomendasi makanan random
+GET  /api/v1/foods/category/:cat     # Makanan per kategori
+GET  /api/v1/foods/:id               # Detail makanan by ID
+POST /api/v1/foods/nutrition         # Bulk nutrition lookup
+POST /api/v1/foods/filter            # Filter berdasarkan kondisi medis
 ```
 
 ## 🛠️ Tech Stack

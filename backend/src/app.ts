@@ -18,6 +18,10 @@ import { errorHandler } from './middlewares/errorHandler.js';
 import authRoutes from './routes/authRoutes.js';
 import chatRoutes from './routes/chatRoutes.js';
 import mealPlanRoutes from './routes/mealPlanRoutes.js';
+import foodLogRoutes from './routes/foodLogRoutes.js';
+import foodRoutes from './routes/foodRoutes.js';
+import notificationRoutes from './routes/notificationRoutes.js';
+import { initializeSchedulers, stopSchedulers } from './services/schedulerService.js';
 
 export async function createApp(): Promise<Application> {
   try {
@@ -81,6 +85,9 @@ export async function createApp(): Promise<Application> {
   app.use('/api/v1/auth', authRoutes);
   app.use('/api/v1/chat', chatRoutes);
   app.use('/api/v1/meal-plans', mealPlanRoutes);
+  app.use('/api/v1/food-logs', foodLogRoutes);
+  app.use('/api/v1/foods', foodRoutes);
+  app.use('/api/v1/notifications', notificationRoutes);
 
   // ============================================================================
   // 404 Handler
@@ -129,6 +136,9 @@ export async function initializeApp(): Promise<Application> {
     // Create Express app
     const app = await createApp();
 
+    // Initialize notification schedulers
+    initializeSchedulers();
+
     logger.info('Application initialized successfully');
 
     return app;
@@ -141,6 +151,9 @@ export async function initializeApp(): Promise<Application> {
 export async function shutdownApp(): Promise<void> {
   try {
     logger.info('Shutting down application...');
+
+    // Stop notification schedulers
+    stopSchedulers();
 
     await closePrisma();
     await closeRedis();

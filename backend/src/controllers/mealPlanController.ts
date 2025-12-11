@@ -5,6 +5,145 @@ import prisma from '@config/prisma.js';
 import logger from '@config/logger.js';
 
 /**
+ * Get random foods from database by category
+ */
+async function getRandomFoodsFromDatabase(
+  category: string,
+  count: number,
+  filters: {
+    medicalConditions?: string[];
+    dietaryRestrictions?: string[];
+  } = {}
+): Promise<any[]> {
+  const whereClause: any = { category };
+  
+  if (filters.dietaryRestrictions?.includes('vegetarian')) {
+    whereClause.isVegetarian = true;
+  }
+  if (filters.dietaryRestrictions?.includes('halal')) {
+    whereClause.isHalal = true;
+  }
+  
+  // Medical condition filters
+  if (filters.medicalConditions?.includes('Hipertensi')) {
+    whereClause.sodiumMg = { lt: 600 };
+  }
+  if (filters.medicalConditions?.includes('Diabetes')) {
+    whereClause.sugarG = { lt: 15 };
+  }
+  
+  const totalCount = await prisma.localFood.count({ where: whereClause });
+  const randomOffset = Math.floor(Math.random() * Math.max(1, totalCount - count));
+  
+  return prisma.localFood.findMany({
+    where: whereClause,
+    take: count,
+    skip: randomOffset,
+  });
+}
+
+/**
+ * Create meal from database foods
+ */
+async function createMealFromDatabase(
+  mealType: 'breakfast' | 'lunch' | 'dinner' | 'snack',
+  targetCalories: number,
+  filters: {
+    medicalConditions?: string[];
+    dietaryRestrictions?: string[];
+  } = {}
+): Promise<any> {
+  // Define meal templates based on type
+  const mealTemplates = {
+    breakfast: [
+      { name: 'Nasi Goreng', category: 'prepared_dishes' },
+      { name: 'Bubur Ayam', category: 'prepared_dishes' },
+      { name: 'Lontong Sayur', category: 'prepared_dishes' },
+      { name: 'Nasi Uduk', category: 'prepared_dishes' },
+    ],
+    lunch: [
+      { name: 'Soto', category: 'prepared_dishes' },
+      { name: 'Gado-gado', category: 'prepared_dishes' },
+      { name: 'Nasi Padang', category: 'prepared_dishes' },
+      { name: 'Pecel', category: 'prepared_dishes' },
+    ],
+    dinner: [
+      { name: 'Ayam', category: 'proteins' },
+      { name: 'Ikan', category: 'proteins' },
+      { name: 'Rendang', category: 'prepared_dishes' },
+      { name: 'Gulai', category: 'prepared_dishes' },
+    ],
+    snack: [
+      { name: 'Pisang', category: 'fruits' },
+      { name: 'Kacang', category: 'proteins' },
+      { name: 'Buah', category: 'fruits' },
+    ],
+  };
+  
+  const templates = mealTemplates[mealType];
+  const selectedTemplate = templates[Math.floor(Math.random() * templates.length)];
+  
+  // Try to find the food in database
+  let food = await prisma.localFood.findFirst({
+    where: {
+      name: { contains: selectedTemplate.name, mode: 'insensitive' },
+    },
+  });
+  
+  // Fallback to category search
+  if (!food) {
+    const foods = await getRandomFoodsFromDatabase(selectedTemplate.category, 1, filters);
+    food = foods[0];
+  }
+  
+  // If still no food, get any food from appropriate category
+  if (!food) {
+    const categoryFallback = mealType === 'snack' ? 'fruits' : 'prepared_dishes';
+    const foods = await getRandomFoodsFromDatabase(categoryFallback, 1, filters);
+    food = foods[0];
+  }
+  
+  if (!food) {
+    // Return default if database is empty
+    return {
+      name: `${mealType === 'breakfast' ? 'Sarapan' : mealType === 'lunch' ? 'Makan Siang' : mealType === 'dinner' ? 'Makan Malam' : 'Cemilan'} Sehat`,
+      description: 'Menu sehat bergizi seimbang',
+      portion: '1 porsi',
+      calories: targetCalories,
+      proteinG: targetCalories * 0.15 / 4,
+      carbsG: targetCalories * 0.55 / 4,
+      fatG: targetCalories * 0.30 / 9,
+      sodiumMg: 400,
+      isLocalFood: true,
+      isCultureApproved: true,
+    };
+  }
+  
+  // Calculate portion based on target calories
+  const baseCalories = Number(food.calories) || 200;
+  const portionMultiplier = targetCalories / baseCalories;
+  const portionDescription = portionMultiplier >= 1.5 ? '1.5 porsi' : 
+                             portionMultiplier >= 1 ? '1 porsi' : '0.5 porsi';
+  
+  return {
+    name: food.name,
+    description: food.benefits?.[0] || `${food.name} khas Indonesia`,
+    portion: portionDescription,
+    calories: Math.round(Number(food.calories) * portionMultiplier),
+    proteinG: Math.round(Number(food.proteinG) * portionMultiplier),
+    carbsG: Math.round(Number(food.carbsG) * portionMultiplier),
+    fatG: Math.round(Number(food.fatG) * portionMultiplier),
+    fiberG: food.fiberG ? Math.round(Number(food.fiberG) * portionMultiplier) : null,
+    sodiumMg: Math.round(Number(food.sodiumMg) * portionMultiplier),
+    sugarG: food.sugarG ? Math.round(Number(food.sugarG) * portionMultiplier) : null,
+    isLocalFood: true,
+    isCultureApproved: true,
+    // Store localFoodId separately for ingredient linking if needed
+    _localFoodId: food.id,
+  };
+}
+
+/**
  * Get all meal plans for current user
  * GET /api/v1/meal-plans
  */
@@ -90,24 +229,104 @@ export const generateMealPlanController = asyncHandler(
       },
     });
 
-    // TODO: Call Gemini AI to generate meal plan
-    // For now, create mock meal plan with actual meals
+    // Delete existing meal plans for today to avoid duplicates
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    // Find and delete existing meal plans for today
+    const existingPlans = await prisma.mealPlan.findMany({
+      where: {
+        userId,
+        startDate: {
+          gte: today,
+          lt: tomorrow,
+        },
+      },
+      select: { id: true },
+    });
+
+    if (existingPlans.length > 0) {
+      const planIds = existingPlans.map(p => p.id);
+      
+      // Delete in correct order due to foreign key constraints
+      // 1. Delete MealPlanDayMeal entries
+      const days = await prisma.mealPlanDay.findMany({
+        where: { mealPlanId: { in: planIds } },
+        select: { id: true },
+      });
+      const dayIds = days.map(d => d.id);
+      
+      await prisma.mealPlanDayMeal.deleteMany({
+        where: { mealPlanDayId: { in: dayIds } },
+      });
+      
+      // 2. Delete MealPlanDay entries
+      await prisma.mealPlanDay.deleteMany({
+        where: { mealPlanId: { in: planIds } },
+      });
+      
+      // 3. Delete MealPlan entries
+      await prisma.mealPlan.deleteMany({
+        where: { id: { in: planIds } },
+      });
+
+      logger.info('Deleted existing meal plans for today', { userId, count: planIds.length });
+    }
+
+    // Create new meal plan
     const startDate = new Date();
     const endDate = new Date(Date.now() + 24 * 60 * 60 * 1000); // 1 day later
 
-    // Create meal plan
+    // User filters for food selection
+    const userFilters = {
+      medicalConditions: user?.medicalConditions || [],
+      dietaryRestrictions: user?.dislikes || [],
+    };
+
+    // Calculate calorie distribution
+    const dailyCalories = targetCalories || 2000;
+    const breakfastCal = Math.round(dailyCalories * 0.25);
+    const lunchCal = Math.round(dailyCalories * 0.35);
+    const dinnerCal = Math.round(dailyCalories * 0.30);
+    const snackCal = Math.round(dailyCalories * 0.10);
+
+    // Generate meals from database
+    const breakfastData = await createMealFromDatabase('breakfast', breakfastCal, userFilters);
+    const lunchData = await createMealFromDatabase('lunch', lunchCal, userFilters);
+    const dinnerData = await createMealFromDatabase('dinner', dinnerCal, userFilters);
+    const snack1Data = await createMealFromDatabase('snack', snackCal / 2, userFilters);
+    const snack2Data = await createMealFromDatabase('snack', snackCal / 2, userFilters);
+
+    // Calculate totals
+    let totalCalories = breakfastData.calories + lunchData.calories + dinnerData.calories;
+    let totalProtein = breakfastData.proteinG + lunchData.proteinG + dinnerData.proteinG;
+    let totalCarbs = breakfastData.carbsG + lunchData.carbsG + dinnerData.carbsG;
+    let totalFat = breakfastData.fatG + lunchData.fatG + dinnerData.fatG;
+    let totalSodium = breakfastData.sodiumMg + lunchData.sodiumMg + dinnerData.sodiumMg;
+
+    if (includeSnacks) {
+      totalCalories += snack1Data.calories + snack2Data.calories;
+      totalProtein += snack1Data.proteinG + snack2Data.proteinG;
+      totalCarbs += snack1Data.carbsG + snack2Data.carbsG;
+      totalFat += snack1Data.fatG + snack2Data.fatG;
+      totalSodium += snack1Data.sodiumMg + snack2Data.sodiumMg;
+    }
+
+    // Create meal plan with calculated totals
     const mealPlan = await prisma.mealPlan.create({
       data: {
         userId,
         startDate,
         endDate,
         duration: '1_day',
-        avgCalories: targetCalories || 2000,
-        avgProteinG: 90,
-        avgCarbsG: 220,
-        avgFatG: 50,
+        avgCalories: totalCalories,
+        avgProteinG: totalProtein,
+        avgCarbsG: totalCarbs,
+        avgFatG: totalFat,
         avgSugarG: 30,
-        avgSodiumMg: 2000,
+        avgSodiumMg: totalSodium,
         akgCompliance: 0.85,
         localFoodPercentage: 0.95,
         medicalSafetyScore: 0.90,
@@ -124,51 +343,16 @@ export const generateMealPlanController = asyncHandler(
       },
     });
 
-    // Create meals
-    const breakfastMeal = await prisma.meal.create({
-      data: {
-        name: 'Nasi Goreng Sayuran dengan Telur',
-        description: 'Nasi goreng sayuran sehat dengan telur mata sapi',
-        portion: '1 porsi',
-        calories: 450,
-        proteinG: 18,
-        carbsG: 65,
-        fatG: 12,
-        sodiumMg: 800,
-        isLocalFood: true,
-        isCultureApproved: true,
-      },
-    });
+    // Helper to extract only valid Meal fields (remove _localFoodId)
+    const toMealData = (data: any) => {
+      const { _localFoodId, ...mealData } = data;
+      return mealData;
+    };
 
-    const lunchMeal = await prisma.meal.create({
-      data: {
-        name: 'Pecel Lele dengan Nasi dan Lalapan',
-        description: 'Lele goreng dengan nasi, sambal, dan sayuran segar',
-        portion: '1 porsi',
-        calories: 600,
-        proteinG: 35,
-        carbsG: 70,
-        fatG: 18,
-        sodiumMg: 900,
-        isLocalFood: true,
-        isCultureApproved: true,
-      },
-    });
-
-    const dinnerMeal = await prisma.meal.create({
-      data: {
-        name: 'Soto Ayam dengan Nasi',
-        description: 'Soto ayam hangat dengan nasi putih',
-        portion: '1 porsi',
-        calories: 550,
-        proteinG: 30,
-        carbsG: 60,
-        fatG: 15,
-        sodiumMg: 850,
-        isLocalFood: true,
-        isCultureApproved: true,
-      },
-    });
+    // Create meals in database
+    const breakfastMeal = await prisma.meal.create({ data: toMealData(breakfastData) });
+    const lunchMeal = await prisma.meal.create({ data: toMealData(lunchData) });
+    const dinnerMeal = await prisma.meal.create({ data: toMealData(dinnerData) });
 
     // Link meals to day
     await prisma.mealPlanDayMeal.createMany({
@@ -193,35 +377,8 @@ export const generateMealPlanController = asyncHandler(
 
     // Add snacks if requested
     if (includeSnacks) {
-      const snackMeal1 = await prisma.meal.create({
-        data: {
-          name: 'Pisang',
-          description: 'Pisang segar',
-          portion: '1 buah',
-          calories: 100,
-          proteinG: 1,
-          carbsG: 25,
-          fatG: 0,
-          sodiumMg: 5,
-          isLocalFood: true,
-          isCultureApproved: true,
-        },
-      });
-
-      const snackMeal2 = await prisma.meal.create({
-        data: {
-          name: 'Kacang Rebus',
-          description: 'Kacang rebus tanpa garam',
-          portion: '1 porsi kecil',
-          calories: 150,
-          proteinG: 8,
-          carbsG: 15,
-          fatG: 7,
-          sodiumMg: 10,
-          isLocalFood: true,
-          isCultureApproved: true,
-        },
-      });
+      const snackMeal1 = await prisma.meal.create({ data: toMealData(snack1Data) });
+      const snackMeal2 = await prisma.meal.create({ data: toMealData(snack2Data) });
 
       await prisma.mealPlanDayMeal.createMany({
         data: [
@@ -255,7 +412,7 @@ export const generateMealPlanController = asyncHandler(
       },
     });
 
-    logger.info('Meal plan created', { userId, mealPlanId: mealPlan.id });
+    logger.info('Meal plan created', { userId, mealPlanId: mealPlan.id, totalCalories });
 
     // Transform for frontend
     const firstDay = completeMealPlan!.days[0];

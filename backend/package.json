@@ -18,7 +18,8 @@
     "test:coverage": "jest --coverage",
     "lint": "eslint src --ext .ts",
     "format": "prettier --write \"src/**/*.ts\"",
-    "seed": "tsx prisma/seed.ts"
+    "seed": "tsx prisma/seed.ts",
+    "seed:nutrition": "tsx prisma/seedNutrition.ts"
   },
   "keywords": [
     "AI",
@@ -43,8 +44,10 @@
     "express-rate-limit": "^7.1.5",
     "helmet": "^7.1.0",
     "jsonwebtoken": "^9.0.2",
+    "node-cron": "^3.0.3",
     "node-fetch": "^2.7.0",
     "redis": "^4.6.13",
+    "web-push": "^3.6.7",
     "winston": "^3.11.0",
     "zod": "^3.22.4"
   },
@@ -55,7 +58,9 @@
     "@types/jest": "^29.5.11",
     "@types/jsonwebtoken": "^9.0.7",
     "@types/node": "^20.10.6",
+    "@types/node-cron": "^3.0.11",
     "@types/redis": "^4.0.10",
+    "@types/web-push": "^3.6.3",
     "@typescript-eslint/eslint-plugin": "^6.17.0",
     "@typescript-eslint/parser": "^6.17.0",
     "eslint": "^8.56.0",
