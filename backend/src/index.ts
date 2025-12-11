@@ -1,5 +1,4 @@
 import 'dotenv/config';
-import 'tsconfig-paths/register';
 import config from '@config/index.js';
 import logger from '@config/logger.js';
 import { initializeApp, shutdownApp } from '@/app.js';
@@ -13,9 +12,10 @@ async function bootstrap() {
 
     const app = await initializeApp();
 
-    const server = app.listen(config.port, () => {
+    const server = app.listen(config.port, '0.0.0.0', () => {
       logger.info(`Server is running on http://localhost:${config.port}`);
       logger.info(`API Documentation: http://localhost:${config.port}/api/docs`);
+      logger.info(`Share via Dev Tunnel: Configure tunnel in VS Code`);
     });
 
     // Graceful shutdown

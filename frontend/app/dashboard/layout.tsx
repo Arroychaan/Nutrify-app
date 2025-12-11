@@ -175,38 +175,43 @@ export default function DashboardLayout({
       </aside>
 
       {/* MOBILE BOTTOM NAVIGATION */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white/80 dark:bg-gray-800/90 backdrop-blur-md border-t border-gray-200 dark:border-gray-700 z-50 pb-[env(safe-area-inset-bottom)] shadow-[0_-4px_16px_rgba(0,0,0,0.05)]">
-        <div className="flex justify-around items-center px-2 py-3">
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white/90 dark:bg-gray-800/90 backdrop-blur-xl border-t border-gray-200 dark:border-gray-700 z-50 pb-[env(safe-area-inset-bottom)]">
+        <div className="flex justify-around items-center px-2 py-2">
           {navigation.map((item) => {
             const isActive = pathname === item.href
             return (
               <Link
                 key={item.name}
                 href={item.href}
-                className={`flex flex-col items-center gap-1 p-2 rounded-xl transition-all duration-300 relative ${isActive
-                  ? 'text-emerald-600 dark:text-emerald-400'
-                  : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-300'
-                  }`}
+                className={`flex-1 flex flex-col items-center justify-center gap-1 py-3 rounded-xl transition-all duration-300 relative group overflow-hidden`}
               >
-                <item.icon
-                  className={`w-6 h-6 transition-transform duration-300 ${isActive ? '-translate-y-1' : ''}`}
-                  strokeWidth={isActive ? 2.5 : 2}
-                  fill={isActive ? "currentColor" : "none"}
-                  fillOpacity={isActive ? 0.1 : 0}
-                />
-                <span className={`text-[10px] font-medium transition-all duration-300 ${isActive ? 'font-bold' : ''}`}>
-                  {item.name}
-                </span>
+                {/* Active Background Pill */}
                 {isActive && (
                   <motion.div
-                    layoutId="mobileActiveIndicator"
-                    className="absolute bottom-1 w-1 h-1 bg-emerald-500 rounded-full"
+                    layoutId="navbar-active"
+                    className="absolute inset-x-2 top-1 bottom-1 bg-emerald-50 dark:bg-emerald-900/20 rounded-xl -z-10"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ type: "spring", stiffness: 300, damping: 30 }}
                   />
                 )}
+
+                <div className={`relative p-1 rounded-lg transition-transform duration-300 ${isActive ? '-translate-y-0.5' : 'group-hover:-translate-y-0.5'}`}>
+                  <item.icon
+                    className={`w-6 h-6 transition-colors duration-300 ${isActive ? 'text-emerald-600 dark:text-emerald-400' : 'text-gray-400 group-hover:text-emerald-500'}`}
+                    strokeWidth={isActive ? 2.5 : 2}
+                    fill={isActive ? "currentColor" : "none"}
+                    fillOpacity={isActive ? 0.2 : 0}
+                  />
+                </div>
+
+                <span className={`text-[10px] font-medium transition-colors duration-300 ${isActive ? 'text-emerald-700 dark:text-emerald-300 font-bold' : 'text-gray-400 group-hover:text-emerald-500'}`}>
+                  {item.name}
+                </span>
               </Link>
             )
           })}
-          {/* Mobile Logout (Optional - maybe in Profile? For now keeping it simple) */}
         </div>
       </nav>
 
@@ -223,34 +228,7 @@ export default function DashboardLayout({
         </div>
       </main>
 
-      {/* FLOATING CHAT AI BUTTON */}
-      <Link
-        href="/dashboard/chat"
-        className="fixed bottom-24 md:bottom-8 right-4 md:right-8 z-50 group"
-      >
-        <motion.div
-          initial={{ scale: 0 }}
-          animate={{ scale: 1 }}
-          transition={{ delay: 0.5, type: 'spring', stiffness: 200 }}
-          whileHover={{ scale: 1.1 }}
-          whileTap={{ scale: 0.95 }}
-          className="relative"
-        >
-          {/* Main Button */}
-          <div className="w-14 h-14 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-full flex items-center justify-center shadow-lg shadow-emerald-500/30 hover:shadow-xl hover:shadow-emerald-500/40 transition-all duration-300">
-            <MessageSquare className="w-6 h-6 text-white" strokeWidth={2} />
-          </div>
 
-          {/* Tooltip */}
-          <div className="absolute right-full mr-3 top-1/2 -translate-y-1/2 px-3 py-1.5 bg-gray-900 text-white text-sm font-medium rounded-lg whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none">
-            Chat AI 🤖
-            <div className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-full border-8 border-transparent border-l-gray-900" />
-          </div>
-
-          {/* Pulse Animation */}
-          <div className="absolute inset-0 rounded-full bg-emerald-500/30 animate-ping" />
-        </motion.div>
-      </Link>
     </div>
   )
 }

@@ -5,7 +5,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { authApi } from '@/lib/api'
 import { motion } from 'framer-motion'
-import { Eye, EyeOff, ArrowLeft, Loader2, Check } from 'lucide-react'
+import { Eye, EyeOff, ArrowLeft, Loader2, Leaf, Check } from 'lucide-react'
 
 export default function RegisterPage() {
   const router = useRouter()
@@ -75,40 +75,47 @@ export default function RegisterPage() {
     setStep(2)
   }
 
-  return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex">
-      {/* Left Panel - Branding */}
-      <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-teal-500 via-emerald-500 to-green-500 relative overflow-hidden">
-        <div className="absolute inset-0 opacity-20">
-          <div className="absolute inset-0" style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, white 1px, transparent 0)', backgroundSize: '32px 32px' }} />
-        </div>
+  const benefits = [
+    'Database 1000+ makanan Indonesia',
+    'AI nutritionist personal',
+    'Sesuai kondisi kesehatan',
+    'Gratis sepenuhnya',
+  ]
 
-        <div className="relative z-10 flex flex-col justify-center px-12">
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-teal-50/50 via-white to-emerald-50/50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800 flex relative overflow-hidden">
+      {/* Decorative Blobs */}
+      <div className="absolute top-0 -right-48 w-96 h-96 bg-teal-200/40 dark:bg-teal-900/20 rounded-full blur-3xl" />
+      <div className="absolute bottom-0 -left-48 w-[500px] h-[500px] bg-emerald-200/40 dark:bg-emerald-900/20 rounded-full blur-3xl" />
+      <div className="absolute top-1/3 right-1/4 w-64 h-64 bg-cyan-200/30 dark:bg-cyan-900/20 rounded-full blur-3xl" />
+
+      {/* Left Panel - Branding (Desktop) */}
+      <div className="hidden lg:flex lg:w-1/2 relative z-10 items-center justify-center p-12">
+        <div className="max-w-md">
           <Link href="/" className="flex items-center gap-3 mb-12">
-            <img src="/icon.svg" alt="Nutrify" className="w-12 h-12" />
-            <span className="text-2xl font-bold text-white">Nutrify</span>
+            <div className="w-12 h-12 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-2xl flex items-center justify-center shadow-lg shadow-emerald-500/20">
+              <Leaf className="w-6 h-6 text-white" />
+            </div>
+            <span className="text-2xl font-bold text-gray-900 dark:text-white">Nutrify</span>
           </Link>
 
-          <h1 className="text-4xl font-bold text-white mb-4">
-            Mulai Perjalanan Sehat Anda
+          <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4 leading-tight">
+            Mulai Perjalanan
+            <span className="block text-emerald-500">Sehatmu! 🌱</span>
           </h1>
-          <p className="text-emerald-100 text-lg leading-relaxed max-w-md mb-8">
-            Bergabunglah dengan Nutrify dan dapatkan rencana nutrisi personal
-            yang disesuaikan dengan kebutuhan dan kondisi kesehatan Anda.
+          <p className="text-gray-600 dark:text-gray-400 text-lg leading-relaxed mb-8">
+            Bergabung dengan Nutrify dan dapatkan rencana nutrisi personal
+            yang disesuaikan dengan kebutuhanmu.
           </p>
 
-          <div className="space-y-3 max-w-sm">
-            {[
-              'Database 1000+ makanan Indonesia',
-              'AI nutritionist personal',
-              'Sesuai kondisi kesehatan Anda',
-              'Gratis sepenuhnya',
-            ].map((item, index) => (
+          {/* Benefits */}
+          <div className="space-y-3">
+            {benefits.map((benefit, index) => (
               <div key={index} className="flex items-center gap-3">
-                <div className="w-6 h-6 bg-white/20 rounded-full flex items-center justify-center">
-                  <Check className="w-4 h-4 text-white" />
+                <div className="w-6 h-6 bg-emerald-100 dark:bg-emerald-900/30 rounded-full flex items-center justify-center">
+                  <Check className="w-4 h-4 text-emerald-500" />
                 </div>
-                <span className="text-emerald-50">{item}</span>
+                <span className="text-gray-700 dark:text-gray-300">{benefit}</span>
               </div>
             ))}
           </div>
@@ -116,7 +123,7 @@ export default function RegisterPage() {
       </div>
 
       {/* Right Panel - Form */}
-      <div className="w-full lg:w-1/2 flex items-center justify-center px-6 py-12">
+      <div className="w-full lg:w-1/2 flex items-center justify-center px-6 py-12 relative z-10">
         <motion.div
           className="w-full max-w-md"
           initial={{ opacity: 0, y: 20 }}
@@ -130,222 +137,227 @@ export default function RegisterPage() {
               Kembali
             </Link>
             <div className="flex items-center gap-3 mb-2">
-              <img src="/icon.svg" alt="Nutrify" className="w-10 h-10" />
+              <div className="w-10 h-10 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-xl flex items-center justify-center">
+                <Leaf className="w-5 h-5 text-white" />
+              </div>
               <span className="text-xl font-bold text-gray-900 dark:text-white">Nutrify</span>
             </div>
           </div>
 
-          <div>
-            <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-2">
-              Buat Akun Baru
-            </h2>
-            <p className="text-gray-500 dark:text-gray-400 mb-6">
-              Sudah punya akun?{' '}
-              <Link href="/auth/login" className="text-emerald-600 dark:text-emerald-400 hover:underline font-semibold">
-                Masuk di sini
-              </Link>
-            </p>
-          </div>
-
-          {/* Progress Steps */}
-          <div className="flex items-center gap-3 mb-8">
-            <div className={`flex items-center gap-2 ${step >= 1 ? 'text-emerald-600' : 'text-gray-400'}`}>
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${step >= 1 ? 'bg-emerald-500 text-white' : 'bg-gray-200 dark:bg-gray-700'}`}>
-                {step > 1 ? <Check className="w-4 h-4" /> : '1'}
+          {/* Form Card */}
+          <div className="bg-white dark:bg-gray-800 rounded-3xl p-8 shadow-xl shadow-gray-200/50 dark:shadow-none border border-gray-100 dark:border-gray-700">
+            {/* Progress Steps */}
+            <div className="flex items-center gap-3 mb-8">
+              <div className={`flex items-center gap-2 ${step >= 1 ? 'text-emerald-600' : 'text-gray-400'}`}>
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${step >= 1 ? 'bg-emerald-500 text-white' : 'bg-gray-100 dark:bg-gray-700'}`}>
+                  {step > 1 ? <Check className="w-4 h-4" /> : '1'}
+                </div>
+                <span className="text-sm font-medium hidden sm:inline">Akun</span>
               </div>
-              <span className="text-sm font-medium hidden sm:inline">Akun</span>
-            </div>
-            <div className={`flex-1 h-1 rounded ${step >= 2 ? 'bg-emerald-500' : 'bg-gray-200 dark:bg-gray-700'}`} />
-            <div className={`flex items-center gap-2 ${step >= 2 ? 'text-emerald-600' : 'text-gray-400'}`}>
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${step >= 2 ? 'bg-emerald-500 text-white' : 'bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-400'}`}>
-                2
+              <div className={`flex-1 h-1 rounded ${step >= 2 ? 'bg-emerald-500' : 'bg-gray-100 dark:bg-gray-700'}`} />
+              <div className={`flex items-center gap-2 ${step >= 2 ? 'text-emerald-600' : 'text-gray-400'}`}>
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${step >= 2 ? 'bg-emerald-500 text-white' : 'bg-gray-100 dark:bg-gray-700 text-gray-500'}`}>
+                  2
+                </div>
+                <span className="text-sm font-medium hidden sm:inline">Profil</span>
               </div>
-              <span className="text-sm font-medium hidden sm:inline">Profil</span>
             </div>
-          </div>
 
-          {/* Error Message */}
-          {error && (
-            <motion.div
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="mb-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl"
-            >
-              <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
-            </motion.div>
-          )}
+            <div className="mb-6">
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+                {step === 1 ? 'Buat Akun' : 'Data Diri'}
+              </h2>
+              <p className="text-gray-500 dark:text-gray-400">
+                Sudah punya akun?{' '}
+                <Link href="/auth/login" className="text-emerald-600 dark:text-emerald-400 hover:underline font-semibold">
+                  Masuk
+                </Link>
+              </p>
+            </div>
 
-          {/* Form */}
-          <form onSubmit={handleSubmit} className="space-y-5">
-            {step === 1 && (
+            {/* Error Message */}
+            {error && (
               <motion.div
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                className="space-y-5"
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="mb-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-800 rounded-2xl"
               >
-                <div>
-                  <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Email
-                  </label>
-                  <input
-                    id="email"
-                    type="email"
-                    required
-                    value={formData.email}
-                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    className="w-full px-4 py-3 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition-all text-gray-900 dark:text-white"
-                    placeholder="nama@email.com"
-                  />
-                </div>
-
-                <div>
-                  <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Password
-                  </label>
-                  <div className="relative">
-                    <input
-                      id="password"
-                      type={showPassword ? 'text' : 'password'}
-                      required
-                      value={formData.password}
-                      onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                      className="w-full px-4 py-3 pr-12 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition-all text-gray-900 dark:text-white"
-                      placeholder="Minimal 6 karakter"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-                    >
-                      {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                    </button>
-                  </div>
-                </div>
-
-                <div>
-                  <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Konfirmasi Password
-                  </label>
-                  <div className="relative">
-                    <input
-                      id="confirmPassword"
-                      type={showConfirmPassword ? 'text' : 'password'}
-                      required
-                      value={formData.confirmPassword}
-                      onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
-                      className="w-full px-4 py-3 pr-12 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition-all text-gray-900 dark:text-white"
-                      placeholder="Ulangi password"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                      className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-                    >
-                      {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                    </button>
-                  </div>
-                </div>
-
-                <button
-                  type="button"
-                  onClick={nextStep}
-                  className="w-full bg-gray-900 dark:bg-white text-white dark:text-gray-900 font-bold py-3.5 px-4 rounded-xl hover:opacity-90 transition-opacity"
-                >
-                  Lanjut
-                </button>
+                <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
               </motion.div>
             )}
 
-            {step === 2 && (
-              <motion.div
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                className="space-y-5"
-              >
-                <div>
-                  <label htmlFor="fullName" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Nama Lengkap
-                  </label>
-                  <input
-                    id="fullName"
-                    type="text"
-                    required
-                    value={formData.fullName}
-                    onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
-                    className="w-full px-4 py-3 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition-all text-gray-900 dark:text-white"
-                    placeholder="Nama lengkap Anda"
-                  />
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
+            {/* Form */}
+            <form onSubmit={handleSubmit} className="space-y-5">
+              {step === 1 && (
+                <motion.div
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  className="space-y-5"
+                >
                   <div>
-                    <label htmlFor="heightCm" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      Tinggi Badan
+                    <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Email
+                    </label>
+                    <input
+                      id="email"
+                      type="email"
+                      required
+                      value={formData.email}
+                      onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                      className="w-full px-4 py-3.5 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-2xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition-all text-gray-900 dark:text-white"
+                      placeholder="nama@email.com"
+                    />
+                  </div>
+
+                  <div>
+                    <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Password
                     </label>
                     <div className="relative">
                       <input
-                        id="heightCm"
-                        type="number"
-                        step="0.01"
+                        id="password"
+                        type={showPassword ? 'text' : 'password'}
                         required
-                        value={formData.heightCm}
-                        onChange={(e) => setFormData({ ...formData, heightCm: e.target.value })}
-                        className="w-full px-4 py-3 pr-12 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition-all text-gray-900 dark:text-white"
-                        placeholder="170"
+                        value={formData.password}
+                        onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                        className="w-full px-4 py-3.5 pr-12 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-2xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition-all text-gray-900 dark:text-white"
+                        placeholder="Minimal 6 karakter"
                       />
-                      <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 text-sm">cm</span>
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                      >
+                        {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                      </button>
                     </div>
                   </div>
 
                   <div>
-                    <label htmlFor="currentWeightKg" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      Berat Badan
+                    <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Konfirmasi Password
                     </label>
                     <div className="relative">
                       <input
-                        id="currentWeightKg"
-                        type="number"
-                        step="0.01"
+                        id="confirmPassword"
+                        type={showConfirmPassword ? 'text' : 'password'}
                         required
-                        value={formData.currentWeightKg}
-                        onChange={(e) => setFormData({ ...formData, currentWeightKg: e.target.value })}
-                        className="w-full px-4 py-3 pr-12 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition-all text-gray-900 dark:text-white"
-                        placeholder="65"
+                        value={formData.confirmPassword}
+                        onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
+                        className="w-full px-4 py-3.5 pr-12 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-2xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition-all text-gray-900 dark:text-white"
+                        placeholder="Ulangi password"
                       />
-                      <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 text-sm">kg</span>
+                      <button
+                        type="button"
+                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                        className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                      >
+                        {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                      </button>
                     </div>
                   </div>
-                </div>
 
-                <div className="flex gap-3">
                   <button
                     type="button"
-                    onClick={() => setStep(1)}
-                    className="flex-1 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 font-bold py-3.5 px-4 rounded-xl hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+                    onClick={nextStep}
+                    className="w-full bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-bold py-4 px-4 rounded-2xl hover:shadow-lg hover:shadow-emerald-500/25 transition-all"
                   >
-                    Kembali
+                    Lanjut
                   </button>
-                  <button
-                    type="submit"
-                    disabled={loading}
-                    className="flex-1 bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-bold py-3.5 px-4 rounded-xl hover:shadow-lg hover:shadow-emerald-500/25 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                  >
-                    {loading ? (
-                      <>
-                        <Loader2 className="w-5 h-5 animate-spin" />
-                        Memproses...
-                      </>
-                    ) : (
-                      'Daftar'
-                    )}
-                  </button>
-                </div>
-              </motion.div>
-            )}
-          </form>
+                </motion.div>
+              )}
+
+              {step === 2 && (
+                <motion.div
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  className="space-y-5"
+                >
+                  <div>
+                    <label htmlFor="fullName" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Nama Lengkap
+                    </label>
+                    <input
+                      id="fullName"
+                      type="text"
+                      required
+                      value={formData.fullName}
+                      onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
+                      className="w-full px-4 py-3.5 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-2xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition-all text-gray-900 dark:text-white"
+                      placeholder="Nama lengkap Anda"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label htmlFor="heightCm" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        Tinggi Badan
+                      </label>
+                      <div className="relative">
+                        <input
+                          id="heightCm"
+                          type="number"
+                          step="0.01"
+                          required
+                          value={formData.heightCm}
+                          onChange={(e) => setFormData({ ...formData, heightCm: e.target.value })}
+                          className="w-full px-4 py-3.5 pr-12 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-2xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition-all text-gray-900 dark:text-white"
+                          placeholder="170"
+                        />
+                        <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 text-sm">cm</span>
+                      </div>
+                    </div>
+
+                    <div>
+                      <label htmlFor="currentWeightKg" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        Berat Badan
+                      </label>
+                      <div className="relative">
+                        <input
+                          id="currentWeightKg"
+                          type="number"
+                          step="0.01"
+                          required
+                          value={formData.currentWeightKg}
+                          onChange={(e) => setFormData({ ...formData, currentWeightKg: e.target.value })}
+                          className="w-full px-4 py-3.5 pr-12 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-2xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition-all text-gray-900 dark:text-white"
+                          placeholder="65"
+                        />
+                        <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 text-sm">kg</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex gap-3">
+                    <button
+                      type="button"
+                      onClick={() => setStep(1)}
+                      className="flex-1 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 font-bold py-4 px-4 rounded-2xl hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+                    >
+                      Kembali
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={loading}
+                      className="flex-1 bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-bold py-4 px-4 rounded-2xl hover:shadow-lg hover:shadow-emerald-500/25 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                    >
+                      {loading ? (
+                        <>
+                          <Loader2 className="w-5 h-5 animate-spin" />
+                          Memproses...
+                        </>
+                      ) : (
+                        'Daftar'
+                      )}
+                    </button>
+                  </div>
+                </motion.div>
+              )}
+            </form>
+          </div>
 
           {/* Bottom Link */}
-          <div className="mt-8 text-center">
+          <div className="mt-6 text-center">
             <Link
               href="/"
               className="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors"

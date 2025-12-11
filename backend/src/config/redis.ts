@@ -7,7 +7,7 @@ export let redis: RedisClientType | null = null;
 export async function initializeRedis() {
   try {
     // Skip Redis initialization in development mode
-    if (process.env.NODE_ENV === 'development') {
+    if (config.nodeEnv === 'development') {
       logger.info('Skipping Redis initialization in development mode');
       return null;
     }

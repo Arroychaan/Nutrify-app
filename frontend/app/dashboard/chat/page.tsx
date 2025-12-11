@@ -101,51 +101,61 @@ export default function ChatPage() {
   ]
 
   return (
-    <div className="flex flex-col h-[calc(100vh-100px)] rounded-3xl overflow-hidden bg-white dark:bg-gray-800 shadow-sm border border-gray-100 dark:border-gray-700 relative">
-      {/* Header */}
-      <div className="px-6 py-4 bg-white/90 dark:bg-gray-800/90 backdrop-blur-md border-b border-gray-100 dark:border-gray-700 z-10 flex items-center justify-between">
+    <div className="flex flex-col h-[calc(100vh-80px)] md:h-[calc(100vh-100px)] relative bg-gray-50/50 dark:bg-gray-900">
+      {/* Header - Fixed Top */}
+      <div className="fixed top-0 left-0 right-0 md:left-72 z-40 px-6 py-4 bg-white/80 dark:bg-gray-800/80 backdrop-blur-md border-b border-gray-100 dark:border-gray-700 flex items-center justify-between shadow-sm">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-400 to-teal-600 flex items-center justify-center text-white shadow-lg shadow-emerald-500/20">
-            <Bot className="w-6 h-6" />
+          <div className="relative">
+            <div className="w-10 h-10 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
+              <Bot className="w-6 h-6" />
+            </div>
+            <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white dark:border-gray-800 rounded-full"></div>
           </div>
           <div>
-            <h1 className="font-bold text-gray-900 dark:text-white leading-tight">Asisten AI Nutrify</h1>
-            <p className="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1">
-              <Sparkles className="w-3 h-3 text-amber-500" />
-              Didukung oleh Gemini Pro
-            </p>
+            <h1 className="font-bold text-gray-900 dark:text-white leading-tight">Nutrify Assistant</h1>
+            <div className="flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></span>
+              <p className="text-xs text-emerald-600 dark:text-emerald-400 font-medium">Online</p>
+            </div>
           </div>
         </div>
         {userSummary && (
-          <div className="hidden md:flex items-center gap-2 px-3 py-1.5 bg-gray-50 dark:bg-gray-700 rounded-lg text-xs text-gray-600 dark:text-gray-300 max-w-sm truncate border border-gray-100 dark:border-gray-600">
+          <div className="hidden md:flex items-center gap-2 px-3 py-1.5 bg-emerald-50 dark:bg-emerald-900/20 rounded-full text-xs text-emerald-700 dark:text-emerald-300 border border-emerald-100 dark:border-emerald-800/50">
             <Info className="w-3 h-3 flex-shrink-0" />
-            <span className="truncate">{userSummary}</span>
+            <span className="truncate max-w-[200px]">{userSummary}</span>
           </div>
         )}
       </div>
 
-      {/* Messages Area */}
-      <div className="flex-1 overflow-y-auto px-4 py-6 space-y-6 scroll-smooth">
+      {/* Messages Area - Adjusted for Fixed Header/Footer */}
+      <div className="flex-1 overflow-y-auto pt-24 pb-24 px-4 space-y-6 scroll-smooth">
         {/* Welcome State */}
         {messages.length === 0 && (
-          <div className="flex flex-col items-center justify-center h-full text-center space-y-6 opacity-70">
-            <div className="w-20 h-20 bg-emerald-50 dark:bg-emerald-900/20 rounded-full flex items-center justify-center mb-2">
-              <Sparkles className="w-10 h-10 text-emerald-500" />
+          <div className="flex flex-col items-center justify-center h-full pt-10 text-center space-y-4 opacity-100">
+            <div className="relative">
+              <div className="w-16 h-16 bg-gradient-to-br from-emerald-400 to-teal-600 rounded-2xl rotate-3 flex items-center justify-center shadow-lg shadow-emerald-500/20">
+                <Sparkles className="w-8 h-8 text-white" />
+              </div>
+              <div className="absolute -top-3 -right-3 w-8 h-8 bg-white dark:bg-gray-800 rounded-xl -rotate-6 flex items-center justify-center shadow-md">
+                <span className="text-xl">🥗</span>
+              </div>
             </div>
-            <div className="max-w-md space-y-2">
-              <h2 className="text-xl font-bold text-gray-900 dark:text-white">Apa yang bisa saya bantu?</h2>
-              <p className="text-sm text-gray-500 dark:text-gray-400">
-                Saya bisa membantu membuat rencana makan, menghitung gizi, atau memberikan saran kesehatan sesuai profil Anda.
+
+            <div className="max-w-md space-y-1">
+              <h2 className="text-lg font-bold text-gray-900 dark:text-white">Halo, ada yang bisa dibantu?</h2>
+              <p className="text-xs text-gray-500 dark:text-gray-400">
+                Tanyakan rencana makan atau tips kesehatan.
               </p>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 w-full max-w-lg">
+
+            <div className="grid grid-cols-1 gap-2 w-full max-w-sm px-4">
               {suggestions.map((s, i) => (
                 <button
                   key={i}
                   onClick={() => { setInput(s); }}
-                  className="text-left text-sm p-3 rounded-xl border border-gray-200 dark:border-gray-700 hover:border-emerald-500 dark:hover:border-emerald-500 hover:bg-emerald-50 dark:hover:bg-emerald-900/10 transition text-gray-600 dark:text-gray-300"
+                  className="text-left text-xs p-3 rounded-xl bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 hover:border-emerald-500 dark:hover:border-emerald-500 hover:shadow-sm transition-all group"
                 >
-                  {s}
+                  <span className="text-gray-600 dark:text-gray-300 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">{s}</span>
                 </button>
               ))}
             </div>
@@ -160,69 +170,60 @@ export default function ChatPage() {
             className={`flex gap-3 ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}
           >
             {m.role === 'assistant' && (
-              <div className="w-8 h-8 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center text-emerald-600 dark:text-emerald-400 flex-shrink-0 mt-1">
+              <div className="w-8 h-8 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center text-emerald-600 dark:text-emerald-400 flex-shrink-0 mt-auto mb-1">
                 <Bot className="w-5 h-5" />
               </div>
             )}
 
             <div className={`max-w-[85%] sm:max-w-[75%] rounded-2xl px-5 py-3.5 shadow-sm text-sm leading-relaxed ${m.role === 'user'
-              ? 'bg-emerald-500 text-white rounded-br-none'
+              ? 'bg-gradient-to-br from-emerald-500 to-teal-600 text-white rounded-br-none shadow-emerald-500/10'
               : 'bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 text-gray-800 dark:text-gray-200 rounded-bl-none'
               }`}>
               <div className="whitespace-pre-wrap">{m.content}</div>
             </div>
-
-            {m.role === 'user' && (
-              <div className="w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-gray-500 dark:text-gray-400 flex-shrink-0 mt-1">
-                <User className="w-5 h-5" />
-              </div>
-            )}
           </motion.div>
         ))}
         {sending && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex gap-3 justify-start">
-            <div className="w-8 h-8 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center text-emerald-600 dark:text-emerald-400 flex-shrink-0 mt-1">
+            <div className="w-8 h-8 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center text-emerald-600 dark:text-emerald-400 flex-shrink-0 mt-auto mb-1">
               <Bot className="w-5 h-5" />
             </div>
             <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl rounded-bl-none px-4 py-3 shadow-sm flex items-center gap-1">
-              <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce [animation-delay:-0.3s]"></span>
-              <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce [animation-delay:-0.15s]"></span>
-              <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></span>
+              <span className="w-2 h-2 bg-emerald-400 rounded-full animate-bounce [animation-delay:-0.3s]"></span>
+              <span className="w-2 h-2 bg-emerald-400 rounded-full animate-bounce [animation-delay:-0.15s]"></span>
+              <span className="w-2 h-2 bg-emerald-400 rounded-full animate-bounce"></span>
             </div>
           </motion.div>
         )}
         <div ref={endRef} />
       </div>
 
-      {/* Input Area */}
-      <div className="p-4 bg-white dark:bg-gray-800 border-t border-gray-100 dark:border-gray-700">
+      {/* Fixed Bottom Input Area */}
+      <div className="fixed bottom-[80px] md:bottom-4 left-0 right-0 md:left-72 p-4 bg-gradient-to-t from-white via-white/80 to-transparent dark:from-gray-900 dark:via-gray-900/80 z-30">
         {error && (
-          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="mb-3 px-4 py-2 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-300 text-sm rounded-lg flex items-center gap-2">
+          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="mb-3 mx-auto max-w-3xl px-4 py-2 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-300 text-sm rounded-xl flex items-center gap-2 shadow-sm border border-red-100 dark:border-red-900/50">
             <AlertCircle className="w-4 h-4" />
             {error}
           </motion.div>
         )}
-        <div className="relative flex items-center gap-2">
+        <div className="max-w-3xl mx-auto relative flex items-center gap-2 bg-white dark:bg-gray-800 p-2 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.06)] border border-gray-100 dark:border-gray-700">
           <input
             type="text"
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={onKeyDown}
-            placeholder="Tanya soal nutrisi, resep, atau meal plan..."
+            placeholder="Ketik pesan..."
             disabled={sending}
-            className="w-full pl-5 pr-14 py-4 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-600"
+            className="w-full pl-4 py-3 bg-transparent border-none focus:ring-0 outline-none text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500"
           />
           <button
             onClick={onSend}
             disabled={!canSend}
-            className="absolute right-2 p-2 bg-emerald-500 hover:bg-emerald-600 disabled:bg-gray-300 dark:disabled:bg-gray-700 text-white rounded-lg transition-all shadow-md shadow-emerald-500/20 disabled:shadow-none"
+            className="p-3 bg-emerald-500 hover:bg-emerald-600 disabled:bg-gray-100 dark:disabled:bg-gray-700 disabled:text-gray-400 text-white rounded-xl transition-all shadow-sm transform active:scale-95"
           >
             <Send className="w-5 h-5" />
           </button>
         </div>
-        <p className="text-center text-[10px] text-gray-400 mt-2">
-          AI dapat membuat kesalahan. Selalu konsultasikan masalah medis serius ke dokter.
-        </p>
       </div>
     </div>
   )

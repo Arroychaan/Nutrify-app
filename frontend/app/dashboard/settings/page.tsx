@@ -8,7 +8,7 @@ import {
     User,
     Settings,
     Bell,
-    Scale,
+    Weight,
     Shield,
     Moon,
     Sun,
@@ -102,9 +102,18 @@ export default function SettingsPage() {
     if (loading) {
         return (
             <div className="max-w-2xl mx-auto space-y-6 animate-pulse">
-                <div className="h-32 bg-gray-200 dark:bg-gray-800 rounded-3xl" />
-                <div className="h-64 bg-gray-200 dark:bg-gray-800 rounded-3xl" />
-                <div className="h-48 bg-gray-200 dark:bg-gray-800 rounded-3xl" />
+                <div className="mb-8 p-2 flex items-center gap-4">
+                    <div className="w-16 h-16 bg-gray-200 dark:bg-gray-800 rounded-full" />
+                    <div className="flex-1 space-y-2">
+                        <div className="h-6 w-1/3 bg-gray-200 dark:bg-gray-800 rounded" />
+                        <div className="h-4 w-1/4 bg-gray-200 dark:bg-gray-800 rounded" />
+                    </div>
+                </div>
+                <div className="space-y-4">
+                    {[1, 2, 3, 4, 5].map(i => (
+                        <div key={i} className="h-16 bg-gray-200 dark:bg-gray-800 rounded-2xl" />
+                    ))}
+                </div>
             </div>
         )
     }
@@ -125,229 +134,173 @@ export default function SettingsPage() {
                     <p className="text-gray-500 text-sm mt-1">Kelola akun dan preferensi aplikasi</p>
                 </div>
 
-                {/* User Card */}
+                {/* User Card - Minimalist */}
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="bg-white dark:bg-gray-800 rounded-3xl p-6 shadow-sm border border-gray-100 dark:border-gray-700"
+                    className="mb-8"
                 >
-                    <Link href="/dashboard/settings/profile" className="flex items-center gap-4 group">
-                        <div className="w-16 h-16 bg-gradient-to-br from-emerald-400 to-teal-600 rounded-2xl flex items-center justify-center text-2xl font-bold text-white shadow-lg shadow-emerald-200 dark:shadow-none">
+                    <Link href="/dashboard/settings/profile" className="flex items-center gap-4 group p-2 hover:bg-gray-50 dark:hover:bg-gray-800/50 rounded-2xl transition-all">
+                        <div className="w-16 h-16 bg-emerald-100 dark:bg-emerald-900/30 rounded-full flex items-center justify-center text-2xl font-bold text-emerald-600 dark:text-emerald-400 group-hover:scale-110 transition-transform">
                             {user?.fullName?.charAt(0)?.toUpperCase() || 'U'}
                         </div>
                         <div className="flex-1">
-                            <h2 className="text-lg font-bold text-gray-900 dark:text-white group-hover:text-emerald-600 transition-colors">
+                            <h2 className="text-xl font-bold text-gray-900 dark:text-white group-hover:text-emerald-600 transition-colors">
                                 {user?.fullName || 'Pengguna'}
                             </h2>
                             <p className="text-sm text-gray-500">{user?.email}</p>
                         </div>
-                        <ChevronRight className="w-5 h-5 text-gray-400 group-hover:text-emerald-500 transition-colors" />
+                        <div className="w-10 h-10 bg-white dark:bg-gray-800 rounded-full flex items-center justify-center shadow-sm text-gray-300 group-hover:text-emerald-500 transition-colors">
+                            <ChevronRight className="w-5 h-5" />
+                        </div>
                     </Link>
                 </motion.div>
 
-                {/* Account & Profile Section */}
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.1 }}
-                    className="bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden"
-                >
-                    <div className="p-4 border-b border-gray-100 dark:border-gray-700">
-                        <h3 className="font-bold text-gray-900 dark:text-white flex items-center gap-2">
-                            <User className="w-5 h-5 text-emerald-500" />
-                            Akun & Profil
-                        </h3>
-                    </div>
-
-                    <div className="divide-y divide-gray-100 dark:divide-gray-700">
+                {/* Account & Profil */}
+                <div className="space-y-3">
+                    <h3 className="text-sm font-semibold text-gray-500 ml-2 uppercase tracking-wider text-xs">Akun & Profil</h3>
+                    <div className="space-y-2">
                         <SettingsLink
                             href="/dashboard/settings/profile"
-                            icon={<User className="w-5 h-5 text-blue-500" />}
+                            icon={<User className="w-5 h-5 text-emerald-600" />}
                             title="Profil Saya"
                             description="Nama, email, tanggal lahir"
                         />
                         <SettingsLink
                             href="/dashboard/settings/weight"
-                            icon={<Scale className="w-5 h-5 text-purple-500" />}
+                            icon={<Weight className="w-5 h-5 text-green-600" />}
                             title="Berat Badan & Target"
                             description="Berat saat ini, target, tinggi badan"
                         />
                         <SettingsLink
                             href="/dashboard/settings/health"
-                            icon={<Heart className="w-5 h-5 text-red-500" />}
+                            icon={<Heart className="w-5 h-5 text-teal-600" />}
                             title="Kondisi Kesehatan"
                             description="Alergi, kondisi medis, diet"
                         />
                         <SettingsLink
                             href="/dashboard/settings/goals"
-                            icon={<Target className="w-5 h-5 text-orange-500" />}
+                            icon={<Target className="w-5 h-5 text-emerald-500" />}
                             title="Target Nutrisi"
                             description="Target kalori, protein, karbo, lemak"
                         />
                     </div>
-                </motion.div>
+                </div>
 
-                {/* Notifications Section */}
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.2 }}
-                    className="bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden"
-                >
-                    <div className="p-4 border-b border-gray-100 dark:border-gray-700">
-                        <h3 className="font-bold text-gray-900 dark:text-white flex items-center gap-2">
-                            <Bell className="w-5 h-5 text-emerald-500" />
-                            Notifikasi
-                        </h3>
-                    </div>
-
-                    <div className="divide-y divide-gray-100 dark:divide-gray-700">
+                {/* Notifications */}
+                <div className="space-y-3 pt-4">
+                    <h3 className="text-sm font-semibold text-gray-500 ml-2 uppercase tracking-wider text-xs">Notifikasi</h3>
+                    <div>
                         <SettingsLink
                             href="/dashboard/notifications"
-                            icon={<Bell className="w-5 h-5 text-amber-500" />}
+                            icon={<Bell className="w-5 h-5 text-emerald-600" />}
                             title="Pengaturan Notifikasi"
                             description="Pengingat makan, streak, tips harian"
                         />
                     </div>
-                </motion.div>
+                </div>
 
-                {/* Appearance Section */}
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.3 }}
-                    className="bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden"
-                >
-                    <div className="p-4 border-b border-gray-100 dark:border-gray-700">
-                        <h3 className="font-bold text-gray-900 dark:text-white flex items-center gap-2">
-                            <Palette className="w-5 h-5 text-emerald-500" />
-                            Tampilan
-                        </h3>
-                    </div>
-
-                    <div className="divide-y divide-gray-100 dark:divide-gray-700">
-                        {/* Dark Mode Toggle */}
+                {/* Tampilan */}
+                <div className="space-y-3 pt-4">
+                    <h3 className="text-sm font-semibold text-gray-500 ml-2 uppercase tracking-wider text-xs">Tampilan</h3>
+                    <div className="space-y-2">
+                        {/* Dark Mode Toggle - Standalone */}
                         <button
                             onClick={toggleDarkMode}
-                            className="w-full flex items-center justify-between p-4 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
+                            className="w-full flex items-center justify-between p-4 bg-white dark:bg-gray-800 rounded-2xl shadow-[0_2px_8px_-4px_rgba(0,0,0,0.05)] border border-transparent hover:border-emerald-100 transition-all group"
                         >
                             <div className="flex items-center gap-4">
-                                <div className="w-10 h-10 bg-gray-100 dark:bg-gray-700 rounded-xl flex items-center justify-center">
-                                    {isDarkMode ? <Moon className="w-5 h-5 text-indigo-500" /> : <Sun className="w-5 h-5 text-amber-500" />}
+                                <div className="w-10 h-10 bg-emerald-50 dark:bg-emerald-900/10 rounded-full flex items-center justify-center group-hover:bg-emerald-100 dark:group-hover:bg-emerald-900/30 transition-colors">
+                                    {isDarkMode ? <Moon className="w-5 h-5 text-emerald-600" /> : <Sun className="w-5 h-5 text-emerald-600" />}
                                 </div>
                                 <div className="text-left">
-                                    <p className="font-semibold text-gray-900 dark:text-white">Mode Gelap</p>
+                                    <p className="font-semibold text-gray-900 dark:text-white group-hover:text-emerald-600 transition-colors">Mode Gelap</p>
                                     <p className="text-xs text-gray-500">{isDarkMode ? 'Aktif' : 'Nonaktif'}</p>
                                 </div>
                             </div>
-                            <div className={`relative w-12 h-7 rounded-full transition-colors ${isDarkMode ? 'bg-emerald-500' : 'bg-gray-200 dark:bg-gray-600'}`}>
-                                <span className={`absolute top-1 left-1 w-5 h-5 bg-white rounded-full shadow-sm transform transition-transform ${isDarkMode ? 'translate-x-5' : 'translate-x-0'}`} />
+                            <div className={`relative w-11 h-6 rounded-full transition-colors ${isDarkMode ? 'bg-emerald-500' : 'bg-gray-200 dark:bg-gray-600'}`}>
+                                <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow-sm transform transition-transform ${isDarkMode ? 'translate-x-5' : 'translate-x-0'}`} />
                             </div>
                         </button>
 
                         <SettingsLink
                             href="/dashboard/settings/language"
-                            icon={<Globe className="w-5 h-5 text-blue-500" />}
+                            icon={<Globe className="w-5 h-5 text-teal-600" />}
                             title="Bahasa"
                             description="Indonesia"
                         />
                     </div>
-                </motion.div>
+                </div>
 
-                {/* Security Section */}
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.4 }}
-                    className="bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden"
-                >
-                    <div className="p-4 border-b border-gray-100 dark:border-gray-700">
-                        <h3 className="font-bold text-gray-900 dark:text-white flex items-center gap-2">
-                            <Shield className="w-5 h-5 text-emerald-500" />
-                            Keamanan & Privasi
-                        </h3>
-                    </div>
-
-                    <div className="divide-y divide-gray-100 dark:divide-gray-700">
+                {/* Keamanan & Privasi */}
+                <div className="space-y-3 pt-4">
+                    <h3 className="text-sm font-semibold text-gray-500 ml-2 uppercase tracking-wider text-xs">Keamanan</h3>
+                    <div className="space-y-2">
                         <SettingsLink
                             href="/dashboard/settings/password"
-                            icon={<Lock className="w-5 h-5 text-green-500" />}
+                            icon={<Lock className="w-5 h-5 text-emerald-600" />}
                             title="Ubah Password"
                             description="Perbarui kata sandi akun Anda"
                         />
                         <SettingsLink
                             href="/dashboard/settings/privacy"
-                            icon={<Shield className="w-5 h-5 text-indigo-500" />}
+                            icon={<Shield className="w-5 h-5 text-green-600" />}
                             title="Privasi Data"
                             description="Kelola data dan ekspor"
                         />
                     </div>
-                </motion.div>
+                </div>
 
-                {/* Help Section */}
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.5 }}
-                    className="bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden"
-                >
-                    <div className="p-4 border-b border-gray-100 dark:border-gray-700">
-                        <h3 className="font-bold text-gray-900 dark:text-white flex items-center gap-2">
-                            <HelpCircle className="w-5 h-5 text-emerald-500" />
-                            Bantuan
-                        </h3>
-                    </div>
-
-                    <div className="divide-y divide-gray-100 dark:divide-gray-700">
+                {/* Bantuan */}
+                <div className="space-y-3 pt-4">
+                    <h3 className="text-sm font-semibold text-gray-500 ml-2 uppercase tracking-wider text-xs">Lainnya</h3>
+                    <div className="space-y-2">
                         <SettingsLink
                             href="/help"
-                            icon={<HelpCircle className="w-5 h-5 text-blue-500" />}
+                            icon={<HelpCircle className="w-5 h-5 text-teal-500" />}
                             title="Pusat Bantuan"
                             description="FAQ dan panduan penggunaan"
                         />
                         <SettingsLink
                             href="/about"
-                            icon={<Info className="w-5 h-5 text-gray-500" />}
+                            icon={<Info className="w-5 h-5 text-emerald-500" />}
                             title="Tentang Aplikasi"
                             description="Versi 1.0.0"
                         />
                     </div>
-                </motion.div>
+                </div>
 
-                {/* Danger Zone */}
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.6 }}
-                    className="space-y-3"
-                >
+                {/* Danger Zone - Flat Buttons */}
+                <div className="space-y-3 pt-6">
                     <button
                         onClick={handleLogout}
-                        className="w-full flex items-center justify-center gap-3 p-4 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl text-gray-700 dark:text-gray-300 font-semibold hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                        className="w-full flex items-center justify-between p-4 bg-white dark:bg-gray-800 rounded-2xl shadow-sm text-red-500 font-semibold hover:bg-red-50 dark:hover:bg-red-900/10 transition-colors"
                     >
-                        <LogOut className="w-5 h-5" />
-                        Keluar dari Akun
+                        <span className="flex items-center gap-3">
+                            <LogOut className="w-5 h-5" />
+                            Keluar dari Akun
+                        </span>
                     </button>
 
                     <button
                         onClick={handleDeleteAccount}
-                        className="w-full flex items-center justify-center gap-3 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-2xl text-red-600 dark:text-red-400 font-semibold hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors"
+                        className="w-full flex items-center justify-center gap-2 p-3 text-red-400 text-sm hover:text-red-600 transition-colors"
                     >
-                        <Trash2 className="w-5 h-5" />
-                        Hapus Akun
+                        <Trash2 className="w-4 h-4" />
+                        Hapus Akun Permanen
                     </button>
-                </motion.div>
+                </div>
 
                 {/* Footer */}
-                <p className="text-center text-xs text-gray-400 pt-4">
-                    Nutrify © 2024. Semua hak dilindungi.
+                <p className="text-center text-xs text-gray-400 pt-8 pb-4">
+                    Nutrify v1.0.0 • Made with 💚 by Arroychaan
                 </p>
             </div>
         </>
     )
 }
 
-// Settings Link Component
+// Settings Link Component - Flat Block Style
 function SettingsLink({
     href,
     icon,
@@ -362,16 +315,16 @@ function SettingsLink({
     return (
         <Link
             href={href}
-            className="flex items-center justify-between p-4 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors group"
+            className="flex items-center justify-between p-4 bg-white dark:bg-gray-800 rounded-2xl shadow-[0_2px_8px_-4px_rgba(0,0,0,0.05)] border border-transparent hover:border-emerald-100 dark:hover:border-emerald-900 transition-all group"
         >
             <div className="flex items-center gap-4">
-                <div className="w-10 h-10 bg-gray-100 dark:bg-gray-700 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
+                <div className="w-10 h-10 bg-emerald-50 dark:bg-emerald-900/10 rounded-full flex items-center justify-center group-hover:bg-emerald-100 dark:group-hover:bg-emerald-900/30 transition-colors">
                     {icon}
                 </div>
                 <div>
-                    <p className="font-semibold text-gray-900 dark:text-white group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
+                    <h4 className="font-semibold text-gray-900 dark:text-white group-hover:text-emerald-600 transition-colors">
                         {title}
-                    </p>
+                    </h4>
                     <p className="text-xs text-gray-500">{description}</p>
                 </div>
             </div>

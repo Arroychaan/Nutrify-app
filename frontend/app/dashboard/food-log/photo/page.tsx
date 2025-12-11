@@ -13,6 +13,7 @@ import {
     Check,
     X,
     ImageIcon,
+    AlertCircle,
     Sunrise,
     Sun,
     Moon,
@@ -223,8 +224,8 @@ export default function PhotoFoodPage() {
                                     key={meal.id}
                                     onClick={() => setMealType(meal.id)}
                                     className={`flex flex-col items-center gap-2 p-3 rounded-xl transition-all ${isActive
-                                            ? 'bg-emerald-500 text-white'
-                                            : 'bg-gray-50 dark:bg-gray-700 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-600'
+                                        ? 'bg-emerald-500 text-white'
+                                        : 'bg-gray-50 dark:bg-gray-700 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-600'
                                         }`}
                                 >
                                     <Icon className="w-5 h-5" />
@@ -240,118 +241,120 @@ export default function PhotoFoodPage() {
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.1 }}
-                    className="bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden"
+                    className="bg-black rounded-3xl overflow-hidden relative shadow-lg shadow-emerald-900/10"
                 >
                     {/* Preview Area */}
-                    <div className="aspect-[4/3] bg-gray-900 relative flex items-center justify-center">
+                    <div className="aspect-[4/5] bg-gray-900 relative flex items-center justify-center overflow-hidden">
                         {capturedImage ? (
-                            // Show captured image
                             <img
                                 src={capturedImage}
                                 alt="Captured food"
                                 className="w-full h-full object-cover"
                             />
                         ) : cameraActive ? (
-                            // Show camera feed
-                            <video
-                                ref={videoRef}
-                                autoPlay
-                                playsInline
-                                muted
-                                className="w-full h-full object-cover"
-                            />
+                            <div className="relative w-full h-full">
+                                <video
+                                    ref={videoRef}
+                                    autoPlay
+                                    playsInline
+                                    muted
+                                    className="w-full h-full object-cover"
+                                />
+                                {/* Scanning Overlay */}
+                                <div className="absolute inset-0 border-[30px] border-black/50 pointer-events-none">
+                                    <div className="w-full h-full border-2 border-white/30 relative">
+                                        <div className="absolute top-0 left-0 w-8 h-8 border-t-4 border-l-4 border-emerald-500 -mt-0.5 -ml-0.5" />
+                                        <div className="absolute top-0 right-0 w-8 h-8 border-t-4 border-r-4 border-emerald-500 -mt-0.5 -mr-0.5" />
+                                        <div className="absolute bottom-0 left-0 w-8 h-8 border-b-4 border-l-4 border-emerald-500 -mb-0.5 -ml-0.5" />
+                                        <div className="absolute bottom-0 right-0 w-8 h-8 border-b-4 border-r-4 border-emerald-500 -mb-0.5 -mr-0.5" />
+                                        {/* Scanning Line Animation */}
+                                        <div className="absolute top-0 left-0 right-0 h-0.5 bg-emerald-500/80 shadow-[0_0_15px_rgba(16,185,129,1)] animate-[scan_2s_ease-in-out_infinite]" />
+                                    </div>
+                                </div>
+                            </div>
                         ) : cameraError ? (
-                            // Show error
-                            <div className="text-center p-6">
-                                <Camera className="w-16 h-16 text-gray-600 mx-auto mb-4" />
+                            <div className="text-center p-6 text-white">
+                                <AlertCircle className="w-16 h-16 text-gray-500 mx-auto mb-4" />
                                 <p className="text-red-400 text-sm mb-4">{cameraError}</p>
-                                <button
-                                    onClick={() => fileInputRef.current?.click()}
-                                    className="px-4 py-2 bg-purple-500 text-white rounded-xl font-medium"
-                                >
-                                    Upload dari Galeri
-                                </button>
                             </div>
                         ) : (
-                            // Show placeholder
-                            <div className="text-center">
-                                <Camera className="w-20 h-20 text-gray-600 mx-auto mb-4" />
-                                <p className="text-gray-400">Ambil foto atau upload dari galeri</p>
+                            <div className="text-center text-white/50">
+                                <Camera className="w-20 h-20 text-white/20 mx-auto mb-4" />
+                                <p>Tap kamera untuk mulai</p>
                             </div>
                         )}
 
-                        {/* Analysis Overlay */}
+                        {/* Analysis Loading Overlay */}
                         {analyzing && (
-                            <div className="absolute inset-0 bg-black/70 flex items-center justify-center">
+                            <div className="absolute inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-20">
                                 <div className="text-center text-white">
-                                    <Loader2 className="w-12 h-12 animate-spin mx-auto mb-4" />
-                                    <p className="font-medium">Menganalisis foto...</p>
-                                    <p className="text-sm text-gray-300">AI sedang mendeteksi makanan</p>
+                                    <div className="relative w-20 h-20 mx-auto mb-6">
+                                        <div className="absolute inset-0 border-4 border-emerald-500/30 rounded-full" />
+                                        <div className="absolute inset-0 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin" />
+                                        <Sparkles className="absolute inset-0 m-auto w-8 h-8 text-emerald-400 animate-pulse" />
+                                    </div>
+                                    <h3 className="text-xl font-bold mb-1">Menganalisis Makanan...</h3>
+                                    <p className="text-sm text-gray-400">AI sedang mendeteksi nutrisi</p>
                                 </div>
                             </div>
                         )}
                     </div>
 
-                    {/* Action Buttons */}
-                    <div className="p-4 flex gap-3">
+                    {/* Action Bar Overlay */}
+                    <div className="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-black/90 to-transparent flex items-center justify-between gap-4">
                         {!capturedImage ? (
                             <>
                                 <button
-                                    onClick={cameraActive ? capturePhoto : startCamera}
-                                    className="flex-1 py-3 bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded-xl flex items-center justify-center gap-2 transition-all"
-                                >
-                                    <Camera className="w-5 h-5" />
-                                    {cameraActive ? 'Ambil Foto' : 'Buka Kamera'}
-                                </button>
-                                <button
                                     onClick={() => fileInputRef.current?.click()}
-                                    className="py-3 px-4 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 font-bold rounded-xl flex items-center justify-center gap-2 hover:bg-gray-200 dark:hover:bg-gray-600 transition-all"
+                                    className="w-12 h-12 rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center hover:bg-white/20 transition-all text-white"
                                 >
-                                    <Upload className="w-5 h-5" />
+                                    <ImageIcon className="w-5 h-5" />
+                                </button>
+
+                                <button
+                                    onClick={cameraActive ? capturePhoto : startCamera}
+                                    className="w-20 h-20 rounded-full border-4 border-white flex items-center justify-center relative group"
+                                >
+                                    <div className={`rounded-full transition-all duration-300 ${cameraActive ? 'w-16 h-16 bg-white group-hover:scale-95' : 'w-4 h-4 bg-emerald-500'}`} />
+                                </button>
+
+                                <button onClick={() => setMealType(mealTypes[(mealTypes.findIndex(m => m.id === mealType) + 1) % mealTypes.length].id)} className="w-12 h-12 rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center text-white text-xs font-bold">
+                                    {mealTypes.find(m => m.id === mealType)?.label.substring(0, 1)}
                                 </button>
                             </>
                         ) : !analysisResult ? (
-                            <>
+                            <div className="flex gap-3 w-full">
                                 <button
                                     onClick={resetPhoto}
-                                    className="py-3 px-4 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 font-bold rounded-xl flex items-center justify-center gap-2"
+                                    className="w-12 h-12 rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center text-white hover:bg-white/20"
                                 >
                                     <RotateCcw className="w-5 h-5" />
                                 </button>
                                 <button
                                     onClick={analyzePhoto}
-                                    disabled={analyzing}
-                                    className="flex-1 py-3 bg-purple-500 hover:bg-purple-600 disabled:bg-gray-400 text-white font-bold rounded-xl flex items-center justify-center gap-2 transition-all"
+                                    className="flex-1 h-12 bg-emerald-500 hover:bg-emerald-600 rounded-full flex items-center justify-center text-white font-bold gap-2 shadow-lg shadow-emerald-500/30 transition-all"
                                 >
-                                    {analyzing ? (
-                                        <Loader2 className="w-5 h-5 animate-spin" />
-                                    ) : (
-                                        <Sparkles className="w-5 h-5" />
-                                    )}
-                                    Analisis dengan AI
+                                    <Sparkles className="w-4 h-4" />
+                                    Analisis Foto
                                 </button>
-                            </>
+                            </div>
                         ) : (
-                            <>
+                            <div className="flex gap-3 w-full">
                                 <button
                                     onClick={resetPhoto}
-                                    className="py-3 px-4 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 font-bold rounded-xl flex items-center justify-center gap-2"
+                                    className="w-12 h-12 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center text-white hover:bg-white/30"
                                 >
                                     <X className="w-5 h-5" />
                                 </button>
                                 <button
                                     onClick={saveFood}
                                     disabled={saving}
-                                    className="flex-1 py-3 bg-emerald-500 hover:bg-emerald-600 disabled:bg-gray-400 text-white font-bold rounded-xl flex items-center justify-center gap-2 transition-all"
+                                    className="flex-1 h-12 bg-emerald-500 hover:bg-emerald-600 rounded-full flex items-center justify-center text-white font-bold gap-2 shadow-lg shadow-emerald-500/30 transition-all"
                                 >
-                                    {saving ? (
-                                        <Loader2 className="w-5 h-5 animate-spin" />
-                                    ) : (
-                                        <Check className="w-5 h-5" />
-                                    )}
-                                    Simpan
+                                    {saving ? <Loader2 className="w-5 h-5 animate-spin" /> : <Check className="w-5 h-5" />}
+                                    Simpan Log
                                 </button>
-                            </>
+                            </div>
                         )}
                     </div>
 
@@ -370,40 +373,41 @@ export default function PhotoFoodPage() {
                     <motion.div
                         initial={{ opacity: 0, scale: 0.95 }}
                         animate={{ opacity: 1, scale: 1 }}
-                        className="bg-white dark:bg-gray-800 rounded-3xl p-6 shadow-sm border border-gray-100 dark:border-gray-700"
+                        className="bg-white dark:bg-gray-800 rounded-3xl p-6 shadow-xl shadow-gray-200/50 dark:shadow-none border border-emerald-100 dark:border-gray-700 relative overflow-hidden"
                     >
-                        <div className="flex items-center gap-3 mb-4">
-                            <div className="w-12 h-12 bg-purple-100 dark:bg-purple-900/30 rounded-xl flex items-center justify-center">
-                                <Sparkles className="w-6 h-6 text-purple-500" />
+                        {/* Decorative Background */}
+                        <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-50 dark:bg-emerald-900/10 rounded-bl-[100px] -z-10" />
+
+                        <div className="flex items-center gap-4 mb-6">
+                            <div className="w-14 h-14 bg-gradient-to-br from-emerald-400 to-teal-600 rounded-2xl flex items-center justify-center shadow-lg shadow-emerald-500/20">
+                                <Sparkles className="w-7 h-7 text-white" />
                             </div>
                             <div>
-                                <p className="text-sm text-purple-600 dark:text-purple-400 font-medium">AI Terdeteksi</p>
-                                <h3 className="text-xl font-bold text-gray-900 dark:text-white">{analysisResult.foodName}</h3>
+                                <p className="text-xs font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wide">AI Confidence: 98%</p>
+                                <h3 className="text-2xl font-bold text-gray-900 dark:text-white leading-tight">{analysisResult.foodName}</h3>
+                                <p className="text-gray-500 text-sm">Porsi: {analysisResult.portion}</p>
                             </div>
                         </div>
 
-                        <div className="grid grid-cols-4 gap-3">
-                            <div className="bg-emerald-50 dark:bg-emerald-900/20 rounded-xl p-3 text-center">
-                                <p className="text-xs text-emerald-600 dark:text-emerald-400">Kalori</p>
-                                <p className="text-lg font-bold text-emerald-700 dark:text-emerald-300">{analysisResult.calories}</p>
+                        <div className="grid grid-cols-4 gap-2 mb-2">
+                            {/* Macros with Green/Teal Theme */}
+                            <div className="bg-emerald-50 dark:bg-emerald-900/20 rounded-2xl p-3 text-center border border-emerald-100 dark:border-emerald-800/30">
+                                <p className="text-[10px] items-center text-emerald-600 dark:text-emerald-400 font-bold uppercase mb-1">Kalori</p>
+                                <p className="text-lg font-black text-gray-900 dark:text-white">{analysisResult.calories}</p>
                             </div>
-                            <div className="bg-blue-50 dark:bg-blue-900/20 rounded-xl p-3 text-center">
-                                <p className="text-xs text-blue-600 dark:text-blue-400">Protein</p>
-                                <p className="text-lg font-bold text-blue-700 dark:text-blue-300">{analysisResult.protein}g</p>
+                            <div className="bg-teal-50 dark:bg-teal-900/20 rounded-2xl p-3 text-center border border-teal-100 dark:border-teal-800/30">
+                                <p className="text-[10px] text-teal-600 dark:text-teal-400 font-bold uppercase mb-1">Prot</p>
+                                <p className="text-lg font-black text-gray-900 dark:text-white">{analysisResult.protein}g</p>
                             </div>
-                            <div className="bg-amber-50 dark:bg-amber-900/20 rounded-xl p-3 text-center">
-                                <p className="text-xs text-amber-600 dark:text-amber-400">Karbo</p>
-                                <p className="text-lg font-bold text-amber-700 dark:text-amber-300">{analysisResult.carbs}g</p>
+                            <div className="bg-green-50 dark:bg-green-900/20 rounded-2xl p-3 text-center border border-green-100 dark:border-green-800/30">
+                                <p className="text-[10px] text-green-600 dark:text-green-400 font-bold uppercase mb-1">Carb</p>
+                                <p className="text-lg font-black text-gray-900 dark:text-white">{analysisResult.carbs}g</p>
                             </div>
-                            <div className="bg-pink-50 dark:bg-pink-900/20 rounded-xl p-3 text-center">
-                                <p className="text-xs text-pink-600 dark:text-pink-400">Lemak</p>
-                                <p className="text-lg font-bold text-pink-700 dark:text-pink-300">{analysisResult.fat}g</p>
+                            <div className="bg-lime-50 dark:bg-lime-900/20 rounded-2xl p-3 text-center border border-lime-100 dark:border-lime-800/30">
+                                <p className="text-[10px] text-lime-600 dark:text-lime-400 font-bold uppercase mb-1">Fat</p>
+                                <p className="text-lg font-black text-gray-900 dark:text-white">{analysisResult.fat}g</p>
                             </div>
                         </div>
-
-                        <p className="text-center text-sm text-gray-400 mt-4">
-                            Porsi: {analysisResult.portion}
-                        </p>
                     </motion.div>
                 )}
 

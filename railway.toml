@@ -1,0 +1,13 @@
+# Railway deployment configuration
+[build]
+builder = "dockerfile"
+dockerfilePath = "backend/Dockerfile"
+buildContext = "backend"
+
+[deploy]
+startCommand = "npm start"
+healthcheckPath = "/health"
+healthcheckTimeout = 600
+numReplicas = 1
+restartPolicyType = "on_failure"
+restartPolicyMaxRetries = 5

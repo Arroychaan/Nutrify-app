@@ -1,4 +1,3 @@
-import 'tsconfig-paths/register';
 import express, { Application, Request, Response, NextFunction } from 'express';
 import helmet from 'helmet';
 import cors from 'cors';
@@ -35,10 +34,10 @@ export async function createApp(): Promise<Application> {
     // Security headers
     app.use(helmet());
 
-    // CORS
+    // CORS - local development only
     app.use(
       cors({
-        origin: config.cors.allowedOrigins,
+        origin: ['http://localhost:3000', 'http://localhost:3001', 'http://127.0.0.1:3000', 'http://127.0.0.1:3001'],
         credentials: true,
       })
     );

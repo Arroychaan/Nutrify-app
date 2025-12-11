@@ -100,15 +100,7 @@ export default function FoodLogPage() {
 
     const isToday = selectedDate.toDateString() === new Date().toDateString()
 
-    const getMealIcon = (mealType: string) => {
-        switch (mealType) {
-            case 'breakfast': return <Sunrise className="w-5 h-5 text-amber-500" />
-            case 'lunch': return <Sun className="w-5 h-5 text-orange-500" />
-            case 'dinner': return <Moon className="w-5 h-5 text-indigo-500" />
-            case 'snack': return <Apple className="w-5 h-5 text-emerald-500" />
-            default: return <Utensils className="w-5 h-5 text-gray-500" />
-        }
-    }
+
 
     const getMealLabel = (mealType: string) => {
         switch (mealType) {
@@ -137,47 +129,30 @@ export default function FoodLogPage() {
             />
 
             <div className="max-w-3xl mx-auto space-y-6 pb-24 md:pb-8">
-                {/* Header */}
-                <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                        <button
-                            onClick={() => router.back()}
-                            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-colors"
-                        >
-                            <ArrowLeft className="w-5 h-5 text-gray-600 dark:text-gray-400" />
-                        </button>
-                        <div>
-                            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Log Makanan</h1>
-                            <p className="text-sm text-gray-500">Catat asupan harianmu</p>
-                        </div>
-                    </div>
-                    <Link
-                        href="/dashboard/food-log/add"
-                        className="flex items-center gap-2 px-4 py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl font-medium transition-all shadow-lg shadow-emerald-500/25"
-                    >
-                        <Plus className="w-5 h-5" />
-                        <span className="hidden sm:inline">Tambah</span>
-                    </Link>
+                {/* Header - Minimalist */}
+                <div className="pt-2 pb-2">
+                    <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Log Makanan</h1>
+                    <p className="text-sm text-gray-500">Catat asupan harianmu</p>
                 </div>
 
-                {/* Date Selector */}
+                {/* Date Selector - Floating & Clean */}
                 <motion.div
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="bg-white dark:bg-gray-800 rounded-2xl p-4 shadow-sm border border-gray-100 dark:border-gray-700 flex items-center justify-between"
+                    className="flex items-center justify-between bg-white dark:bg-gray-800 rounded-2xl p-2 shadow-sm"
                 >
                     <button
                         onClick={() => changeDate(-1)}
-                        className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xl transition-colors"
+                        className="w-10 h-10 flex items-center justify-center hover:bg-gray-50 dark:hover:bg-gray-700 rounded-xl transition-colors text-gray-600"
                     >
                         <ChevronLeft className="w-5 h-5" />
                     </button>
 
                     <div className="text-center">
-                        <p className="font-bold text-gray-900 dark:text-white">
+                        <p className="font-bold text-gray-900 dark:text-white text-sm">
                             {isToday ? 'Hari Ini' : selectedDate.toLocaleDateString('id-ID', { weekday: 'long' })}
                         </p>
-                        <p className="text-sm text-gray-500">
+                        <p className="text-xs text-gray-500">
                             {selectedDate.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}
                         </p>
                     </div>
@@ -185,127 +160,136 @@ export default function FoodLogPage() {
                     <button
                         onClick={() => changeDate(1)}
                         disabled={isToday}
-                        className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xl transition-colors disabled:opacity-30"
+                        className="w-10 h-10 flex items-center justify-center hover:bg-gray-50 dark:hover:bg-gray-700 rounded-xl transition-colors text-gray-600 disabled:opacity-30"
                     >
                         <ChevronRight className="w-5 h-5" />
                     </button>
                 </motion.div>
 
-                {/* Summary */}
+                {/* Summary Card */}
                 <motion.div
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.1 }}
-                    className="bg-gradient-to-r from-emerald-500 to-teal-600 rounded-2xl p-5 text-white"
+                    className="bg-gradient-to-br from-emerald-500 to-teal-600 rounded-3xl p-5 text-white shadow-lg shadow-emerald-500/20"
                 >
                     <div className="flex items-center justify-between mb-4">
                         <div className="flex items-center gap-2">
-                            <Flame className="w-5 h-5" />
-                            <span className="font-medium">Total Hari Ini</span>
+                            <Flame className="w-5 h-5 text-emerald-100" />
+                            <span className="font-medium text-emerald-50">Total Kalori</span>
                         </div>
-                        <span className="text-3xl font-bold">{summary.calories} kkal</span>
+                        <span className="text-3xl font-bold tracking-tight">{summary.calories}</span>
                     </div>
                     <div className="grid grid-cols-3 gap-3">
-                        <div className="bg-white/20 backdrop-blur-sm rounded-xl p-3 text-center">
-                            <p className="text-xs opacity-80">Protein</p>
-                            <p className="font-bold">{summary.protein}g</p>
+                        <div className="bg-white/10 backdrop-blur-md rounded-2xl p-3 text-center border border-white/10">
+                            <p className="text-[10px] uppercase tracking-wider text-emerald-100 mb-1">Protein</p>
+                            <p className="font-bold text-lg">{summary.protein}g</p>
                         </div>
-                        <div className="bg-white/20 backdrop-blur-sm rounded-xl p-3 text-center">
-                            <p className="text-xs opacity-80">Karbo</p>
-                            <p className="font-bold">{summary.carbs}g</p>
+                        <div className="bg-white/10 backdrop-blur-md rounded-2xl p-3 text-center border border-white/10">
+                            <p className="text-[10px] uppercase tracking-wider text-emerald-100 mb-1">Karbo</p>
+                            <p className="font-bold text-lg">{summary.carbs}g</p>
                         </div>
-                        <div className="bg-white/20 backdrop-blur-sm rounded-xl p-3 text-center">
-                            <p className="text-xs opacity-80">Lemak</p>
-                            <p className="font-bold">{summary.fat}g</p>
+                        <div className="bg-white/10 backdrop-blur-md rounded-2xl p-3 text-center border border-white/10">
+                            <p className="text-[10px] uppercase tracking-wider text-emerald-100 mb-1">Lemak</p>
+                            <p className="font-bold text-lg">{summary.fat}g</p>
                         </div>
                     </div>
                 </motion.div>
 
-                {/* Food Logs by Meal Type */}
-                {loading ? (
-                    <div className="space-y-4">
-                        {[1, 2, 3, 4].map(i => (
-                            <div key={i} className="h-24 bg-gray-200 dark:bg-gray-800 rounded-2xl animate-pulse" />
-                        ))}
-                    </div>
-                ) : (
-                    <div className="space-y-4">
-                        {(['breakfast', 'lunch', 'dinner', 'snack'] as const).map((mealType, index) => (
-                            <motion.div
-                                key={mealType}
-                                initial={{ opacity: 0, y: 10 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ delay: 0.1 + index * 0.05 }}
-                                className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden"
-                            >
-                                {/* Meal Header */}
-                                <div className="flex items-center justify-between p-4 border-b border-gray-100 dark:border-gray-700">
-                                    <div className="flex items-center gap-3">
-                                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${mealType === 'breakfast' ? 'bg-amber-100 dark:bg-amber-900/30' :
-                                            mealType === 'lunch' ? 'bg-orange-100 dark:bg-orange-900/30' :
-                                                mealType === 'dinner' ? 'bg-indigo-100 dark:bg-indigo-900/30' :
-                                                    'bg-emerald-100 dark:bg-emerald-900/30'
-                                            }`}>
-                                            {getMealIcon(mealType)}
+                {/* Food Logs - Containerless "Super App" Style */}
+                <div className="space-y-6 pb-8">
+                    {loading ? (
+                        <div className="space-y-6">
+                            {[1, 2, 3].map(i => (
+                                <div key={i} className="space-y-3">
+                                    <div className="flex justify-between items-center px-1">
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-800 animate-pulse" />
+                                            <div className="h-4 w-24 bg-gray-200 dark:bg-gray-800 rounded animate-pulse" />
                                         </div>
-                                        <div>
-                                            <p className="font-bold text-gray-900 dark:text-white">{getMealLabel(mealType)}</p>
-                                            <p className="text-xs text-gray-500">
-                                                {groupedLogs[mealType].reduce((sum, l) => sum + (l.calories || 0), 0)} kkal
-                                            </p>
-                                        </div>
+                                        <div className="h-6 w-16 bg-gray-200 dark:bg-gray-800 rounded-full animate-pulse" />
                                     </div>
-                                    <Link
-                                        href={`/dashboard/food-log/add?meal=${mealType}`}
-                                        className="p-2 bg-gray-100 dark:bg-gray-700 hover:bg-emerald-100 dark:hover:bg-emerald-900/30 rounded-xl text-gray-500 hover:text-emerald-600 transition-colors"
-                                    >
-                                        <Plus className="w-5 h-5" />
-                                    </Link>
+                                    <div className="h-20 bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 animate-pulse" />
+                                    <div className="h-20 bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 animate-pulse" />
                                 </div>
+                            ))}
+                        </div>
+                    ) : (
+                        (['breakfast', 'lunch', 'dinner', 'snack'] as const).map((mealType, index) => {
+                            const mealLogs = groupedLogs[mealType];
+                            const mealTotal = mealLogs.reduce((sum, l) => sum + (l.calories || 0), 0);
+                            const MealIcon = mealType === 'breakfast' ? Sunrise :
+                                mealType === 'lunch' ? Sun :
+                                    mealType === 'dinner' ? Moon : Apple;
 
-                                {/* Food Items */}
-                                {groupedLogs[mealType].length === 0 ? (
-                                    <div className="p-4 text-center text-gray-400 text-sm">
-                                        Belum ada makanan tercatat
+                            return (
+                                <motion.div
+                                    key={mealType}
+                                    initial={{ opacity: 0, y: 10 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ delay: 0.15 + index * 0.05 }}
+                                >
+                                    {/* Section Header - Clean & Simple */}
+                                    <div className="flex items-center justify-between mb-3 px-1">
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-8 h-8 rounded-full bg-emerald-100/50 dark:bg-emerald-900/20 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
+                                                <MealIcon className="w-4 h-4" />
+                                            </div>
+                                            <div>
+                                                <h3 className="font-bold text-gray-900 dark:text-white text-base capitalize">{getMealLabel(mealType)}</h3>
+                                                {mealTotal > 0 && <span className="text-xs text-emerald-600 font-medium">{mealTotal} kkal</span>}
+                                            </div>
+                                        </div>
+                                        <Link
+                                            href={`/dashboard/food-log/add?meal=${mealType}`}
+                                            className="text-xs font-semibold text-emerald-600 hover:text-emerald-700 bg-emerald-50 hover:bg-emerald-100 px-3 py-1.5 rounded-full transition-colors"
+                                        >
+                                            + Tambah
+                                        </Link>
                                     </div>
-                                ) : (
-                                    <div className="divide-y divide-gray-100 dark:divide-gray-700">
-                                        {groupedLogs[mealType].map((log) => (
-                                            <div
-                                                key={log.id}
-                                                className="flex items-center justify-between p-4 hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors"
-                                            >
-                                                <div className="flex-1">
-                                                    <p className="font-semibold text-gray-900 dark:text-white">{log.foodName}</p>
-                                                    <div className="flex items-center gap-3 text-xs text-gray-500 mt-1">
-                                                        {log.portion && <span>{log.portion}</span>}
-                                                        <span>{log.calories || 0} kkal</span>
-                                                        {log.proteinG && <span>P: {log.proteinG}g</span>}
+
+                                    {/* List Items - Flat White Blocks */}
+                                    <div className="space-y-2">
+                                        {mealLogs.length === 0 ? (
+                                            <div className="p-3 border-2 border-dashed border-gray-100 dark:border-gray-700 rounded-2xl text-center">
+                                                <p className="text-xs text-gray-400">Belum ada {getMealLabel(mealType).toLowerCase()}</p>
+                                            </div>
+                                        ) : (
+                                            mealLogs.map((log) => (
+                                                <div
+                                                    key={log.id}
+                                                    className="group relative bg-white dark:bg-gray-800 p-4 rounded-2xl shadow-[0_2px_8px_-4px_rgba(0,0,0,0.05)] border border-gray-50 dark:border-gray-700/50 flex items-start justify-between hover:border-emerald-100 transition-all"
+                                                >
+                                                    <div className="flex-1 min-w-0 mr-4">
+                                                        <p className="font-semibold text-gray-900 dark:text-white truncate">{log.foodName}</p>
+                                                        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1">
+                                                            <span className="text-xs font-medium text-emerald-600 bg-emerald-50 dark:bg-emerald-900/20 px-2 py-0.5 rounded-md">
+                                                                {log.calories} kkal
+                                                            </span>
+                                                            <span className="text-xs text-gray-500">{log.portion || '1 porsi'}</span>
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="flex items-center gap-1">
+                                                        <Link href={`/dashboard/food-log/edit/${log.id}`} className="p-2 text-gray-300 hover:text-emerald-500 transition-colors">
+                                                            <Edit2 className="w-4 h-4" />
+                                                        </Link>
+                                                        <button
+                                                            onClick={() => handleDelete(log.id)}
+                                                            className="p-2 text-gray-300 hover:text-red-500 transition-colors"
+                                                        >
+                                                            <Trash2 className="w-4 h-4" />
+                                                        </button>
                                                     </div>
                                                 </div>
-                                                <div className="flex items-center gap-1">
-                                                    <Link
-                                                        href={`/dashboard/food-log/edit/${log.id}`}
-                                                        className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg text-gray-400 hover:text-blue-500 transition-colors"
-                                                    >
-                                                        <Edit2 className="w-4 h-4" />
-                                                    </Link>
-                                                    <button
-                                                        onClick={() => handleDelete(log.id)}
-                                                        disabled={deleting === log.id}
-                                                        className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg text-gray-400 hover:text-red-500 transition-colors disabled:opacity-50"
-                                                    >
-                                                        <Trash2 className="w-4 h-4" />
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        ))}
+                                            ))
+                                        )}
                                     </div>
-                                )}
-                            </motion.div>
-                        ))}
-                    </div>
-                )}
+                                </motion.div>
+                            )
+                        })
+                    )}
+                </div>
             </div>
         </>
     )

@@ -166,12 +166,24 @@ export default function MealPlanPage() {
 
   if (loading) {
     return (
-      <div className="flex flex-col items-center justify-center py-20">
-        <div className="relative">
-          <div className="w-16 h-16 border-4 border-emerald-200 dark:border-emerald-900 rounded-full" />
-          <div className="w-16 h-16 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin absolute inset-0" />
+      <div className="max-w-4xl mx-auto pb-24 md:pb-8">
+        <div className="mb-8 animate-pulse">
+          <div className="h-8 w-48 bg-gray-200 dark:bg-gray-800 rounded-lg mb-2" />
+          <div className="h-4 w-64 bg-gray-200 dark:bg-gray-800 rounded-lg" />
         </div>
-        <p className="text-gray-500 mt-4 font-medium">Memuat rencana makan...</p>
+        <div className="space-y-4">
+          {[1, 2, 3].map(i => (
+            <div key={i} className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-4 animate-pulse">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 bg-gray-200 dark:bg-gray-700 rounded-2xl" />
+                <div className="flex-1 space-y-2">
+                  <div className="h-5 w-1/3 bg-gray-200 dark:bg-gray-700 rounded" />
+                  <div className="h-3 w-1/2 bg-gray-100 dark:bg-gray-800 rounded" />
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     )
   }
@@ -215,8 +227,8 @@ export default function MealPlanPage() {
             <button
               onClick={() => setShowForm(!showForm)}
               className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-semibold text-sm transition-all ${showForm
-                  ? 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300'
-                  : 'bg-gray-900 dark:bg-white text-white dark:text-gray-900 shadow-lg'
+                ? 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300'
+                : 'bg-gray-900 dark:bg-white text-white dark:text-gray-900 shadow-lg'
                 }`}
             >
               {showForm ? <X className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
@@ -278,8 +290,8 @@ export default function MealPlanPage() {
                         key={opt.id}
                         onClick={() => setFormData({ ...formData, dietType: opt.id })}
                         className={`p-3 rounded-xl border-2 text-left transition-all ${formData.dietType === opt.id
-                            ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20'
-                            : 'border-gray-100 dark:border-gray-700 hover:border-gray-200 dark:hover:border-gray-600'
+                          ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20'
+                          : 'border-gray-100 dark:border-gray-700 hover:border-gray-200 dark:hover:border-gray-600'
                           }`}
                       >
                         <p className={`font-semibold text-sm ${formData.dietType === opt.id ? 'text-emerald-600 dark:text-emerald-400' : 'text-gray-900 dark:text-white'}`}>
@@ -365,95 +377,87 @@ export default function MealPlanPage() {
                 transition={{ delay: index * 0.05 }}
                 className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 overflow-hidden"
               >
-                {/* Plan Header - Clickable */}
+                {/* Plan Header - Minimal */}
                 <button
                   onClick={() => setExpandedPlan(expandedPlan === plan.id ? null : plan.id)}
-                  className="w-full p-4 flex items-center gap-4 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors text-left"
+                  className="w-full p-4 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors text-left group"
                 >
-                  {/* Date Badge */}
-                  <div className="w-14 h-14 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl flex flex-col items-center justify-center text-white flex-shrink-0">
-                    <span className="text-lg font-bold leading-none">{new Date(plan.date).getDate()}</span>
-                    <span className="text-[10px] uppercase opacity-80">{new Date(plan.date).toLocaleDateString('id-ID', { month: 'short' })}</span>
-                  </div>
+                  <div className="flex items-center gap-4">
+                    {/* Date Badge - Green Theme */}
+                    <div className="w-12 h-12 bg-emerald-50 dark:bg-emerald-900/20 rounded-2xl flex flex-col items-center justify-center text-emerald-600 dark:text-emerald-400 font-bold flex-shrink-0 group-hover:scale-110 transition-transform">
+                      <span className="text-lg leading-none">{new Date(plan.date).getDate()}</span>
+                      <span className="text-[10px] uppercase">{new Date(plan.date).toLocaleDateString('id-ID', { month: 'short' })}</span>
+                    </div>
 
-                  {/* Info */}
-                  <div className="flex-1 min-w-0">
-                    <h3 className="font-bold text-gray-900 dark:text-white truncate">
-                      {formatDate(plan.date)}
-                    </h3>
-                    <div className="flex items-center gap-3 mt-1">
-                      <span className="text-xs text-gray-500 flex items-center gap-1">
-                        <Flame className="w-3 h-3 text-orange-500" />
-                        {plan.totalCalories} kkal
-                      </span>
-                      <span className="text-xs text-gray-500 flex items-center gap-1">
-                        <Beef className="w-3 h-3 text-red-500" />
-                        {plan.totalProtein}g
-                      </span>
+                    <div>
+                      <h3 className="font-bold text-gray-900 dark:text-white text-base">
+                        {formatDate(plan.date)}
+                      </h3>
+                      <div className="flex items-center gap-3 mt-1 text-xs text-gray-500">
+                        <span className="flex items-center gap-1">
+                          <Flame className="w-3 h-3 text-emerald-500" />
+                          {plan.totalCalories} kkal
+                        </span>
+                        <span className="w-1 h-1 rounded-full bg-gray-300" />
+                        <span>{plan.totalProtein}g protein</span>
+                      </div>
                     </div>
                   </div>
 
-                  {/* Expand Icon */}
-                  <ChevronDown className={`w-5 h-5 text-gray-400 transition-transform ${expandedPlan === plan.id ? 'rotate-180' : ''}`} />
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center transition-all ${expandedPlan === plan.id ? 'bg-emerald-500 text-white rotate-180' : 'bg-gray-100 text-gray-500 group-hover:bg-emerald-50 group-hover:text-emerald-500'}`}>
+                    <ChevronDown className="w-5 h-5" />
+                  </div>
                 </button>
 
                 {/* Expanded Content */}
                 <AnimatePresence>
                   {expandedPlan === plan.id && (
                     <motion.div
-                      initial={{ height: 0 }}
-                      animate={{ height: 'auto' }}
-                      exit={{ height: 0 }}
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: 'auto', opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.2 }}
                       className="overflow-hidden"
                     >
-                      <div className="px-4 pb-4 space-y-3">
-                        {/* Macros Summary */}
-                        <div className="flex gap-2 p-3 bg-gray-50 dark:bg-gray-900/50 rounded-xl">
-                          <MacroBadge icon={Flame} value={plan.totalCalories} unit="kkal" color="orange" />
-                          <MacroBadge icon={Beef} value={plan.totalProtein} unit="g protein" color="red" />
-                          <MacroBadge icon={Wheat} value={plan.totalCarbs} unit="g karbo" color="amber" />
-                          <MacroBadge icon={Droplet} value={plan.totalFat} unit="g lemak" color="blue" />
+                      <div className="px-4 pb-6 space-y-6">
+                        {/* Minimalist Macros */}
+                        <div className="grid grid-cols-4 gap-2 py-4 border-t border-gray-100 dark:border-gray-700/50 mt-2">
+                          <MacroItem label="Kalori" value={plan.totalCalories} unit="kkal" />
+                          <MacroItem label="Protein" value={plan.totalProtein} unit="g" />
+                          <MacroItem label="Karbo" value={plan.totalCarbs} unit="g" />
+                          <MacroItem label="Lemak" value={plan.totalFat} unit="g" />
                         </div>
 
-                        {/* Meals Timeline */}
-                        <div className="space-y-2">
+                        {/* Timeline - Clean List */}
+                        <div className="space-y-0 relative">
+                          {/* Connecting Line */}
+                          <div className="absolute left-[19px] top-6 bottom-6 w-0.5 bg-gray-100 dark:bg-gray-700/50 z-0" />
+
                           {plan.breakfast && (
-                            <MealCard
-                              type="breakfast"
-                              meal={plan.breakfast}
-                            />
+                            <MealItem type="breakfast" meal={plan.breakfast} />
                           )}
                           {plan.lunch && (
-                            <MealCard
-                              type="lunch"
-                              meal={plan.lunch}
-                            />
+                            <MealItem type="lunch" meal={plan.lunch} />
                           )}
                           {plan.dinner && (
-                            <MealCard
-                              type="dinner"
-                              meal={plan.dinner}
-                            />
+                            <MealItem type="dinner" meal={plan.dinner} />
                           )}
                           {plan.snacks && plan.snacks.length > 0 && (
-                            <MealCard
-                              type="snack"
-                              meal={{ name: plan.snacks.map(s => s.name).join(', '), calories: plan.snacks.reduce((sum, s) => sum + (s.calories || 0), 0) }}
-                            />
+                            <MealItem type="snack" meal={{ name: plan.snacks.map(s => s.name).join(', '), calories: plan.snacks.reduce((sum, s) => sum + (s.calories || 0), 0) }} />
                           )}
                         </div>
 
                         {/* Actions */}
-                        <div className="flex justify-end pt-2">
+                        <div className="flex justify-end pt-2 border-t border-gray-100 dark:border-gray-700/50">
                           <button
                             onClick={(e) => {
                               e.stopPropagation()
                               handleDeleteClick(plan.id)
                             }}
-                            className="flex items-center gap-2 px-3 py-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg text-sm font-medium transition-colors"
+                            className="flex items-center gap-2 px-4 py-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl text-sm font-medium transition-colors"
                           >
                             <Trash2 className="w-4 h-4" />
-                            Hapus
+                            Hapus Rencana
                           </button>
                         </div>
                       </div>
@@ -469,91 +473,45 @@ export default function MealPlanPage() {
   )
 }
 
-// Macro Badge Component
-function MacroBadge({ icon: Icon, value, unit, color }: {
-  icon: any
-  value: number
-  unit: string
-  color: 'orange' | 'red' | 'amber' | 'blue'
-}) {
-  const colors = {
-    orange: 'text-orange-500',
-    red: 'text-red-500',
-    amber: 'text-amber-500',
-    blue: 'text-blue-500'
-  }
-
+// Minimalist Macro Item
+function MacroItem({ label, value, unit }: { label: string; value: number; unit: string }) {
   return (
-    <div className="flex-1 text-center">
-      <Icon className={`w-4 h-4 ${colors[color]} mx-auto mb-1`} />
-      <p className="text-sm font-bold text-gray-900 dark:text-white">{value}</p>
-      <p className="text-[10px] text-gray-500">{unit}</p>
+    <div className="text-center">
+      <p className="text-[10px] uppercase tracking-wider text-gray-400 font-medium mb-1">{label}</p>
+      <div className="font-bold text-gray-900 dark:text-white text-base">
+        {value} <span className="text-[10px] text-gray-400 font-normal">{unit}</span>
+      </div>
     </div>
   )
 }
 
-// Meal Card Component
-function MealCard({ type, meal }: {
-  type: 'breakfast' | 'lunch' | 'dinner' | 'snack'
-  meal: { name: string; calories: number }
-}) {
+// Clean Meal List Item
+function MealItem({ type, meal }: { type: 'breakfast' | 'lunch' | 'dinner' | 'snack'; meal: { name: string; calories: number } }) {
   const config = {
-    breakfast: {
-      icon: Sunrise,
-      label: 'Sarapan',
-      time: '07:00',
-      gradient: 'from-amber-400 to-orange-500',
-      bg: 'bg-amber-50 dark:bg-amber-900/20',
-      text: 'text-amber-600 dark:text-amber-400'
-    },
-    lunch: {
-      icon: Sun,
-      label: 'Makan Siang',
-      time: '12:00',
-      gradient: 'from-orange-400 to-red-500',
-      bg: 'bg-orange-50 dark:bg-orange-900/20',
-      text: 'text-orange-600 dark:text-orange-400'
-    },
-    dinner: {
-      icon: Moon,
-      label: 'Makan Malam',
-      time: '19:00',
-      gradient: 'from-indigo-400 to-purple-500',
-      bg: 'bg-indigo-50 dark:bg-indigo-900/20',
-      text: 'text-indigo-600 dark:text-indigo-400'
-    },
-    snack: {
-      icon: Cookie,
-      label: 'Camilan',
-      time: '15:00',
-      gradient: 'from-emerald-400 to-teal-500',
-      bg: 'bg-emerald-50 dark:bg-emerald-900/20',
-      text: 'text-emerald-600 dark:text-emerald-400'
-    }
+    breakfast: { icon: Sunrise, time: '07:00' },
+    lunch: { icon: Sun, time: '12:00' },
+    dinner: { icon: Moon, time: '19:00' },
+    snack: { icon: Cookie, time: '15:00' }
   }
-
-  const { icon: Icon, label, time, gradient, bg, text } = config[type]
+  const { icon: Icon, time } = config[type]
 
   return (
-    <div className={`flex items-center gap-3 p-3 ${bg} rounded-xl`}>
-      <div className={`w-10 h-10 bg-gradient-to-br ${gradient} rounded-xl flex items-center justify-center flex-shrink-0`}>
-        <Icon className="w-5 h-5 text-white" />
+    <div className="relative z-10 flex gap-4 py-3 group">
+      {/* Icon Node */}
+      <div className="w-10 h-10 rounded-full bg-white dark:bg-gray-800 border-2 border-emerald-100 dark:border-emerald-900/30 group-hover:border-emerald-500 transition-colors flex items-center justify-center flex-shrink-0 shadow-sm">
+        <Icon className="w-4 h-4 text-emerald-500" />
       </div>
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2 mb-0.5">
-          <span className={`text-xs font-semibold ${text}`}>{label}</span>
-          <span className="text-[10px] text-gray-400 flex items-center gap-0.5">
-            <Clock className="w-2.5 h-2.5" />
-            {time}
+
+      {/* Content */}
+      <div className="flex-1 min-w-0 pt-1">
+        <div className="flex justify-between items-start mb-1">
+          <span className="text-[10px] font-bold text- emerald-600 bg-emerald-50 dark:bg-emerald-900/20 px-2 py-0.5 rounded-full uppercase tracking-wider">
+            {type === 'snack' ? 'Camilan' : type === 'breakfast' ? 'Sarapan' : type === 'lunch' ? 'Makan Siang' : 'Makan Malam'}
           </span>
+          <span className="text-[10px] text-gray-400 font-medium">{time}</span>
         </div>
-        <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
-          {meal.name}
-        </p>
-      </div>
-      <div className="text-right flex-shrink-0">
-        <p className="text-sm font-bold text-gray-900 dark:text-white">{meal.calories}</p>
-        <p className="text-[10px] text-gray-500">kkal</p>
+        <p className="text-sm font-medium text-gray-900 dark:text-white leading-relaxed">{meal.name}</p>
+        <p className="text-xs text-gray-500 mt-1">{meal.calories} kkal</p>
       </div>
     </div>
   )
