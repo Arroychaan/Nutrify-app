@@ -4,6 +4,20 @@ import { useState, useEffect, useCallback } from 'react'
 import { motion } from 'framer-motion'
 import { notificationApi } from '@/lib/api'
 import Toast from '@/components/Toast'
+import {
+  Bell,
+  Clock,
+  Zap,
+  Target,
+  Lightbulb,
+  FileText,
+  Smartphone,
+  CheckCircle2,
+  XCircle,
+  AlertTriangle,
+  Save,
+  ChevronRight
+} from 'lucide-react'
 
 interface NotificationSettingsData {
   mealReminders: boolean
@@ -45,8 +59,6 @@ export default function NotificationSettingsPage() {
     const checkPushSupport = async () => {
       if ('serviceWorker' in navigator && 'PushManager' in window) {
         setPushSupported(true)
-        
-        // Check current permission
         if ('Notification' in window) {
           setPermissionStatus(Notification.permission)
         }
@@ -55,54 +67,47 @@ export default function NotificationSettingsPage() {
         setPermissionStatus('unsupported')
       }
     }
-
     checkPushSupport()
   }, [])
 
-  // Load settings
-  useEffect(() => {
-    const loadSettings = async () => {
-      try {
-        setLoading(true)
-        const data = await notificationApi.getSettings()
+  const loadSettings = useCallback(async () => {
+    try {
+      setLoading(true)
+      const data = await notificationApi.getSettings()
+      if (data && data.settings) {
         setSettings(data.settings)
         setPushEnabled(data.pushEnabled)
-      } catch (error) {
-        console.error('Failed to load notification settings', error)
-        showToast('Gagal memuat pengaturan notifikasi', 'error')
-      } finally {
-        setLoading(false)
       }
+    } catch (error) {
+      console.error('Failed to load notification settings', error)
+      showToast('Gagal memuat pengaturan notifikasi', 'error')
+    } finally {
+      setLoading(false)
     }
-
-    loadSettings()
   }, [])
+
+  useEffect(() => {
+    loadSettings()
+  }, [loadSettings])
 
   // Subscribe to push notifications
   const subscribeToPush = useCallback(async () => {
     try {
-      // Request notification permission
       const permission = await Notification.requestPermission()
       setPermissionStatus(permission)
 
       if (permission !== 'granted') {
-        showToast('Izin notifikasi ditolak. Aktifkan di pengaturan browser.', 'warning')
+        showToast('Izin ditolak. Silakan aktifkan notifikasi di pengaturan browser Anda.', 'warning')
         return
       }
 
-      // Get VAPID public key
       const { publicKey } = await notificationApi.getVapidKey()
-
-      // Get service worker registration
       const registration = await navigator.serviceWorker.ready
-
-      // Subscribe to push
       const subscription = await registration.pushManager.subscribe({
         userVisibleOnly: true,
         applicationServerKey: urlBase64ToUint8Array(publicKey),
       })
 
-      // Send subscription to server
       const subscriptionJson = subscription.toJSON()
       await notificationApi.subscribe({
         endpoint: subscriptionJson.endpoint!,
@@ -115,7 +120,7 @@ export default function NotificationSettingsPage() {
       })
 
       setPushEnabled(true)
-      showToast('Notifikasi push berhasil diaktifkan! 🔔', 'success')
+      showToast('Notifikasi push diaktifkan! 🔔', 'success')
     } catch (error: any) {
       console.error('Failed to subscribe to push', error)
       showToast(error.message || 'Gagal mengaktifkan notifikasi push', 'error')
@@ -146,7 +151,7 @@ export default function NotificationSettingsPage() {
     try {
       setSaving(true)
       await notificationApi.updateSettings(settings)
-      showToast('Pengaturan notifikasi tersimpan! ✅', 'success')
+      showToast('Pengaturan berhasil disimpan! ✅', 'success')
     } catch (error) {
       console.error('Failed to save settings', error)
       showToast('Gagal menyimpan pengaturan', 'error')
@@ -159,14 +164,13 @@ export default function NotificationSettingsPage() {
   const sendTestNotification = async () => {
     try {
       await notificationApi.sendTest()
-      showToast('Notifikasi test dikirim! Cek notifikasi kamu.', 'success')
+      showToast('Notifikasi tes terkirim! Cek perangkat Anda.', 'success')
     } catch (error) {
       console.error('Failed to send test notification', error)
-      showToast('Gagal mengirim notifikasi test', 'error')
+      showToast('Gagal mengirim notifikasi tes', 'error')
     }
   }
 
-  // Toggle setting
   const toggleSetting = (key: keyof NotificationSettingsData) => {
     setSettings((prev) => ({
       ...prev,
@@ -174,7 +178,6 @@ export default function NotificationSettingsPage() {
     }))
   }
 
-  // Update time setting
   const updateTime = (key: 'breakfastTime' | 'lunchTime' | 'dinnerTime', value: string) => {
     setSettings((prev) => ({
       ...prev,
@@ -184,8 +187,9 @@ export default function NotificationSettingsPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-12">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#24B47E]"></div>
+      <div className="flex flex-col items-center justify-center py-20 animate-pulse">
+        <div className="w-16 h-16 bg-gray-200 dark:bg-gray-800 rounded-full mb-4"></div>
+        <div className="h-4 w-40 bg-gray-200 dark:bg-gray-800 rounded"></div>
       </div>
     )
   }
@@ -194,262 +198,302 @@ export default function NotificationSettingsPage() {
     <>
       <Toast isVisible={toast.isVisible} message={toast.message} type={toast.type} onClose={hideToast} />
 
-      <div className="max-w-2xl mx-auto space-y-6">
+      <div className="max-w-4xl mx-auto space-y-6 pb-20 md:pb-0">
         {/* Header */}
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">🔔 Pengaturan Notifikasi</h1>
-          <p className="text-gray-600 dark:text-gray-400 mt-1">
-            Atur reminder dan notifikasi untuk membantu journey sehatmu
-          </p>
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white dark:bg-gray-800 p-6 rounded-3xl border border-gray-100 dark:border-gray-700 shadow-sm">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+              <Bell className="w-6 h-6 text-emerald-500" />
+              Notifikasi
+            </h1>
+            <p className="text-gray-500 dark:text-gray-400 mt-1 text-sm md:text-base">
+              Atur preferensi pemberitahuan untuk perjalanan sehatmu.
+            </p>
+          </div>
+          <button
+            onClick={saveSettings}
+            disabled={saving}
+            className="flex items-center justify-center gap-2 px-6 py-3 bg-emerald-500 text-white rounded-xl font-bold hover:bg-emerald-600 disabled:opacity-50 transition shadow-lg shadow-emerald-500/20 active:scale-95"
+          >
+            {saving ? (
+              <span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+            ) : (
+              <Save className="w-5 h-5" />
+            )}
+            {saving ? 'Menyimpan...' : 'Simpan Perubahan'}
+          </button>
         </div>
 
-        {/* Push Notification Card */}
+        {/* Push Notification Status Card */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700"
+          className="bg-white dark:bg-gray-800 rounded-3xl p-6 shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden relative"
         >
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Push Notification</h2>
-              <p className="text-sm text-gray-500 dark:text-gray-400">
-                Terima notifikasi langsung di browser/device kamu
+          {/* Background Pattern */}
+          <div className="absolute top-0 right-0 p-6 opacity-5 pointer-events-none">
+            <Smartphone className="w-48 h-48 text-emerald-500 transform rotate-12 translate-x-12 -translate-y-6" />
+          </div>
+
+          <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 relative z-10">
+            <div className="flex-1">
+              <div className="flex items-center gap-3 mb-2">
+                <h2 className="text-lg font-bold text-gray-900 dark:text-white">
+                  Notifikasi Push
+                </h2>
+                {permissionStatus === 'granted' && pushEnabled ? (
+                  <span className="flex items-center gap-1.5 px-3 py-1 text-xs font-bold bg-emerald-100 text-emerald-700 rounded-full border border-emerald-200">
+                    <CheckCircle2 className="w-3.5 h-3.5" /> Aktif
+                  </span>
+                ) : permissionStatus === 'denied' ? (
+                  <span className="flex items-center gap-1.5 px-3 py-1 text-xs font-bold bg-red-100 text-red-700 rounded-full border border-red-200">
+                    <XCircle className="w-3.5 h-3.5" /> Diblokir
+                  </span>
+                ) : (
+                  <span className="flex items-center gap-1.5 px-3 py-1 text-xs font-bold bg-gray-100 text-gray-600 rounded-full border border-gray-200">
+                    Tidak Aktif
+                  </span>
+                )}
+              </div>
+              <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed max-w-xl">
+                Dapatkan update real-time langsung di perangkat Anda untuk pengingat makan, motivasi streak, dan tips nutrisi harian.
               </p>
             </div>
-            <div className="flex items-center gap-2">
-              {permissionStatus === 'granted' && pushEnabled ? (
-                <span className="px-2 py-1 text-xs font-medium bg-green-100 text-green-700 rounded-full">
-                  Aktif ✓
-                </span>
-              ) : permissionStatus === 'denied' ? (
-                <span className="px-2 py-1 text-xs font-medium bg-red-100 text-red-700 rounded-full">
-                  Diblokir
-                </span>
+
+            <div className="flex items-center gap-3 w-full md:w-auto">
+              {pushEnabled && (
+                <button
+                  onClick={sendTestNotification}
+                  className="flex-1 md:flex-none px-4 py-2.5 border border-gray-200 dark:border-gray-600 rounded-xl font-semibold text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition active:scale-95"
+                >
+                  Kirim Tes
+                </button>
+              )}
+              {pushEnabled ? (
+                <button
+                  onClick={unsubscribeFromPush}
+                  className="flex-1 md:flex-none px-5 py-2.5 bg-red-50 text-red-600 border border-red-100 font-bold rounded-xl text-sm hover:bg-red-100 transition active:scale-95"
+                >
+                  Nonaktifkan
+                </button>
               ) : (
-                <span className="px-2 py-1 text-xs font-medium bg-gray-100 text-gray-700 rounded-full">
-                  Nonaktif
-                </span>
+                <button
+                  onClick={subscribeToPush}
+                  className="flex-1 md:flex-none px-5 py-2.5 bg-emerald-500 text-white font-bold rounded-xl text-sm hover:bg-emerald-600 transition shadow-lg shadow-emerald-500/20 active:scale-95 flex items-center justify-center gap-2"
+                >
+                  <Bell className="w-4 h-4" /> Aktifkan Push
+                </button>
               )}
             </div>
           </div>
 
-          {!pushSupported ? (
-            <div className="p-4 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg">
-              <p className="text-sm text-yellow-700 dark:text-yellow-400">
-                ⚠️ Browser kamu tidak mendukung push notification. Coba gunakan Chrome atau Firefox.
-              </p>
-            </div>
-          ) : permissionStatus === 'denied' ? (
-            <div className="p-4 bg-red-50 dark:bg-red-900/20 rounded-lg">
-              <p className="text-sm text-red-700 dark:text-red-400">
-                ❌ Izin notifikasi diblokir. Untuk mengaktifkan, buka pengaturan browser dan izinkan notifikasi untuk situs ini.
-              </p>
-            </div>
-          ) : (
-            <div className="flex gap-3">
-              {pushEnabled ? (
-                <>
-                  <button
-                    onClick={sendTestNotification}
-                    className="flex-1 px-4 py-2 bg-[#24B47E] text-white rounded-lg font-medium hover:bg-[#1a8a5e] transition-colors"
-                  >
-                    🧪 Kirim Test
-                  </button>
-                  <button
-                    onClick={unsubscribeFromPush}
-                    className="px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg font-medium hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
-                  >
-                    Nonaktifkan
-                  </button>
-                </>
-              ) : (
-                <button
-                  onClick={subscribeToPush}
-                  className="w-full px-4 py-3 bg-[#24B47E] text-white rounded-lg font-medium hover:bg-[#1a8a5e] transition-colors"
-                >
-                  🔔 Aktifkan Push Notification
-                </button>
-              )}
+          {!pushSupported && (
+            <div className="mt-6 p-4 bg-amber-50 dark:bg-amber-900/20 rounded-xl flex items-start gap-4 text-amber-800 dark:text-amber-200 text-sm border border-amber-100 dark:border-amber-800">
+              <AlertTriangle className="w-5 h-5 flex-shrink-0 mt-0.5" />
+              <div className="space-y-1">
+                <p className="font-bold">Browser tidak didukung</p>
+                <p>Browser Anda saat ini tidak mendukung notifikasi push web. Mohon gunakan Chrome, Firefox, atau Edge terbaru.</p>
+              </div>
             </div>
           )}
         </motion.div>
 
-        {/* Notification Types Card */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700"
-        >
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Jenis Notifikasi</h2>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {/* Notification Preferences */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            className="md:col-span-2 bg-white dark:bg-gray-800 rounded-3xl border border-gray-100 dark:border-gray-700 shadow-sm flex flex-col"
+          >
+            <div className="p-6 border-b border-gray-100 dark:border-gray-700">
+              <h2 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                <Zap className="w-5 h-5 text-amber-500" />
+                Preferensi Notifikasi
+              </h2>
+            </div>
 
-          <div className="space-y-4">
-            {/* Meal Reminders */}
-            <SettingToggle
-              label="🍽️ Reminder Makan"
-              description="Ingatkan waktu sarapan, makan siang, dan makan malam"
-              checked={settings.mealReminders}
-              onChange={() => toggleSetting('mealReminders')}
-            />
+            <div className="p-4 space-y-2">
+              <SettingToggle
+                label="Pengingat Makan"
+                description="Ingatkan waktu sarapan, makan siang, dan malam."
+                icon={<Clock className="w-5 h-5 text-emerald-500" />}
+                checked={settings.mealReminders}
+                onChange={() => toggleSetting('mealReminders')}
+              />
+              <SettingToggle
+                label="Peringatan Streak"
+                description="Notifikasi agar tidak lupa mencatat dan menjaga streak."
+                icon={<Zap className="w-5 h-5 text-orange-500" />}
+                checked={settings.streakReminders}
+                onChange={() => toggleSetting('streakReminders')}
+              />
+              <SettingToggle
+                label="Progres Mingguan"
+                description="Update mingguan tentang target berat badan & kalori."
+                icon={<Target className="w-5 h-5 text-purple-500" />}
+                checked={settings.goalProgress}
+                onChange={() => toggleSetting('goalProgress')}
+              />
+              <SettingToggle
+                label="Tips Harian"
+                description="Saran nutrisi ringan setiap pagi."
+                icon={<Lightbulb className="w-5 h-5 text-yellow-500" />}
+                checked={settings.dailyTips}
+                onChange={() => toggleSetting('dailyTips')}
+              />
+              <SettingToggle
+                label="Laporan Aktivitas"
+                description="Ringkasan mingguan aktivitas dan nutrisi Anda."
+                icon={<FileText className="w-5 h-5 text-blue-500" />}
+                checked={settings.weeklyReport}
+                onChange={() => toggleSetting('weeklyReport')}
+              />
+            </div>
+          </motion.div>
 
-            {/* Streak Reminders */}
-            <SettingToggle
-              label="🔥 Reminder Streak"
-              description="Ingatkan untuk log makanan agar streak tidak putus"
-              checked={settings.streakReminders}
-              onChange={() => toggleSetting('streakReminders')}
-            />
-
-            {/* Goal Progress */}
-            <SettingToggle
-              label="🎯 Progress Goal"
-              description="Update progress menuju target kalori/berat badan"
-              checked={settings.goalProgress}
-              onChange={() => toggleSetting('goalProgress')}
-            />
-
-            {/* Daily Tips */}
-            <SettingToggle
-              label="💡 Tips Harian"
-              description="Tips nutrisi dan kesehatan setiap hari"
-              checked={settings.dailyTips}
-              onChange={() => toggleSetting('dailyTips')}
-            />
-
-            {/* Weekly Report */}
-            <SettingToggle
-              label="📊 Laporan Mingguan"
-              description="Rangkuman nutrisi dan progress setiap minggu"
-              checked={settings.weeklyReport}
-              onChange={() => toggleSetting('weeklyReport')}
-            />
-          </div>
-        </motion.div>
-
-        {/* Meal Times Card */}
-        {settings.mealReminders && (
+          {/* Meal Schedule */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
-            className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700"
+            className={`bg-white dark:bg-gray-800 rounded-3xl border border-gray-100 dark:border-gray-700 shadow-sm h-fit self-start transition-all duration-300 ${!settings.mealReminders ? 'opacity-60 pointer-events-none grayscale-[0.5]' : ''}`}
           >
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Jadwal Reminder Makan</h2>
+            <div className="p-6 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center">
+              <h2 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                <Clock className="w-5 h-5 text-emerald-600" />
+                Jadwal Makan
+              </h2>
+              {!settings.mealReminders && (
+                <span className="text-[10px] font-bold text-white bg-gray-400 px-2 py-0.5 rounded-full uppercase tracking-wide">
+                  Off
+                </span>
+              )}
+            </div>
 
-            <div className="space-y-4">
+            <div className="p-6 space-y-6 relative">
+              {/* Timeline Line */}
+              <div className="absolute left-[34px] top-10 bottom-10 w-0.5 bg-gray-100 dark:bg-gray-700 -z-10 bg-gradient-to-b from-emerald-100 via-emerald-100 to-emerald-50 dark:from-emerald-900/30 dark:to-emerald-900/10"></div>
+
               <TimeInput
-                label="🌅 Sarapan"
+                label="Sarapan"
                 value={settings.breakfastTime}
                 onChange={(value) => updateTime('breakfastTime', value)}
+                icon="🌅"
+                color="bg-orange-100 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400"
               />
-
               <TimeInput
-                label="☀️ Makan Siang"
+                label="Makan Siang"
                 value={settings.lunchTime}
                 onChange={(value) => updateTime('lunchTime', value)}
+                icon="☀️"
+                color="bg-yellow-100 text-yellow-600 dark:bg-yellow-900/30 dark:text-yellow-400"
               />
-
               <TimeInput
-                label="🌙 Makan Malam"
+                label="Makan Malam"
                 value={settings.dinnerTime}
                 onChange={(value) => updateTime('dinnerTime', value)}
+                icon="🌙"
+                color="bg-indigo-100 text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-400"
               />
             </div>
-          </motion.div>
-        )}
 
-        {/* Save Button */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-        >
-          <button
-            onClick={saveSettings}
-            disabled={saving}
-            className="w-full py-3 bg-[#24B47E] text-white rounded-xl font-semibold hover:bg-[#1a8a5e] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {saving ? 'Menyimpan...' : '💾 Simpan Pengaturan'}
-          </button>
-        </motion.div>
+            <div className="px-6 pb-6 pt-2">
+              <p className="text-xs text-gray-400 text-center italic">
+                Notifikasi akan dikirim tepat pada waktu yang ditentukan.
+              </p>
+            </div>
+          </motion.div>
+        </div>
       </div>
     </>
   )
 }
 
-// Toggle Component
+// ------ Helper Components ------
+
 function SettingToggle({
   label,
   description,
+  icon,
   checked,
   onChange,
 }: {
   label: string
   description: string
+  icon: React.ReactNode
   checked: boolean
   onChange: () => void
 }) {
   return (
-    <div className="flex items-center justify-between py-3 border-b border-gray-100 dark:border-gray-700 last:border-0">
-      <div>
-        <p className="font-medium text-gray-900 dark:text-white">{label}</p>
-        <p className="text-sm text-gray-500 dark:text-gray-400">{description}</p>
+    <div
+      onClick={onChange}
+      className="group flex items-start gap-4 p-4 rounded-2xl hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-all cursor-pointer border border-transparent hover:border-gray-100 dark:hover:border-gray-700"
+    >
+      <div className={`mt-0.5 p-2.5 rounded-xl transition-colors ${checked ? 'bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400' : 'bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400 group-hover:bg-white dark:group-hover:bg-gray-700'}`}>
+        {icon}
       </div>
-      <button
-        onClick={onChange}
-        className={`relative w-12 h-6 rounded-full transition-colors ${
-          checked ? 'bg-[#24B47E]' : 'bg-gray-300 dark:bg-gray-600'
-        }`}
-      >
-        <span
-          className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${
-            checked ? 'translate-x-6' : 'translate-x-0'
-          }`}
-        />
-      </button>
+      <div className="flex-1">
+        <div className="flex items-center justify-between mb-1.5">
+          <p className="font-bold text-sm md:text-base text-gray-900 dark:text-white group-hover:text-emerald-700 dark:group-hover:text-emerald-300 transition-colors">{label}</p>
+          <div
+            className={`relative w-11 h-6 rounded-full transition-colors duration-200 ease-in-out ${checked ? 'bg-emerald-500' : 'bg-gray-200 dark:bg-gray-600'}`}
+          >
+            <span
+              className={`absolute top-1 left-1 w-4 h-4 bg-white rounded-full shadow-sm transform transition-transform duration-200 ease-in-out ${checked ? 'translate-x-5' : 'translate-x-0'}`}
+            />
+          </div>
+        </div>
+        <p className="text-xs text-gray-500 dark:text-gray-400 leading-relaxed max-w-[90%]">{description}</p>
+      </div>
     </div>
   )
 }
 
-// Time Input Component
 function TimeInput({
   label,
   value,
   onChange,
+  icon,
+  color
 }: {
   label: string
   value: string
   onChange: (value: string) => void
+  icon: string
+  color: string
 }) {
   return (
-    <div className="flex items-center justify-between">
-      <span className="font-medium text-gray-900 dark:text-white">{label}</span>
+    <div className="relative z-10 flex items-center justify-between bg-white dark:bg-gray-800 p-3 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm hover:shadow-md transition-shadow group">
+      <div className="flex items-center gap-3">
+        <div className={`w-10 h-10 flex items-center justify-center rounded-xl text-lg ${color}`}>
+          {icon}
+        </div>
+        <span className="font-bold text-gray-700 dark:text-gray-200 text-sm group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">{label}</span>
+      </div>
       <input
         type="time"
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-[#24B47E] focus:border-transparent"
+        className="px-3 py-1.5 bg-gray-50 dark:bg-gray-900 rounded-lg text-sm font-bold text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 border border-transparent hover:border-gray-200 dark:hover:border-gray-700 transition-all cursor-pointer"
       />
     </div>
   )
 }
 
-// Helper function to convert VAPID key
 function urlBase64ToUint8Array(base64String: string): Uint8Array<ArrayBuffer> {
   const padding = '='.repeat((4 - (base64String.length % 4)) % 4)
   const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/')
-
   const rawData = window.atob(base64)
   const outputArray = new Uint8Array(rawData.length)
-
   for (let i = 0; i < rawData.length; ++i) {
     outputArray[i] = rawData.charCodeAt(i)
   }
   return outputArray as Uint8Array<ArrayBuffer>
 }
 
-// Helper function to get browser name
 function getBrowserName(): string {
+  if (typeof navigator === 'undefined') return 'unknown';
   const userAgent = navigator.userAgent
   if (userAgent.includes('Chrome')) return 'chrome'
   if (userAgent.includes('Firefox')) return 'firefox'

@@ -5,6 +5,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { authApi } from '@/lib/api'
 import { motion } from 'framer-motion'
+import { Eye, EyeOff, ArrowLeft, Loader2 } from 'lucide-react'
 
 export default function LoginPage() {
   const router = useRouter()
@@ -32,59 +33,85 @@ export default function LoginPage() {
   }
 
   return (
-    <motion.div 
-      className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 via-white to-green-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 px-4 sm:px-6 lg:px-8"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      transition={{ duration: 0.3 }}
-    >
-      <motion.div 
-        className="max-w-md w-full space-y-8"
-        initial={{ y: 20, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ delay: 0.1, duration: 0.4 }}
-      >
-        {/* Header */}
-        <div className="text-center">
-          <Link href="/" className="inline-flex items-center justify-center space-x-3">
-            <div className="w-14 h-14 sm:w-16 sm:h-16">
-              <svg viewBox="0 0 100 100" className="w-full h-full">
-                <defs>
-                  <linearGradient id="loginLogoGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" stopColor="#24B47E"/>
-                    <stop offset="100%" stopColor="#1a8f63"/>
-                  </linearGradient>
-                </defs>
-                <circle cx="50" cy="50" r="50" fill="url(#loginLogoGradient)"/>
-                <path d="M30 70 L30 30 L40 30 L60 55 L60 30 L70 30 L70 70 L60 70 L40 45 L40 70 Z" fill="white"/>
-                <ellipse cx="72" cy="28" rx="6" ry="10" fill="#86efac" transform="rotate(45, 72, 28)"/>
-              </svg>
-            </div>
-            <h1 className="text-4xl sm:text-5xl font-bold text-green-600 mb-2">
-              Nutrify
-            </h1>
-          </Link>
-          <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-2">
-            Masuk ke Akun Anda
-          </h2>
-          <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400">
-            Belum punya akun?{' '}
-            <Link href="/auth/register" className="text-green-600 dark:text-green-400 hover:text-green-700 dark:hover:text-green-300 font-semibold">
-              Daftar di sini
-            </Link>
-          </p>
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex">
+      {/* Left Panel - Branding */}
+      <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-emerald-500 via-teal-500 to-cyan-500 relative overflow-hidden">
+        <div className="absolute inset-0 opacity-20">
+          <div className="absolute inset-0" style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, white 1px, transparent 0)', backgroundSize: '32px 32px' }} />
         </div>
 
-        {/* Form */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 sm:p-8">
-          {error && (
-            <div className="mb-4 p-3 sm:p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
-              <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
+        <div className="relative z-10 flex flex-col justify-center px-12">
+          <Link href="/" className="flex items-center gap-3 mb-12">
+            <img src="/icon.svg" alt="Nutrify" className="w-12 h-12" />
+            <span className="text-2xl font-bold text-white">Nutrify</span>
+          </Link>
+
+          <h1 className="text-4xl font-bold text-white mb-4">
+            Selamat Datang Kembali!
+          </h1>
+          <p className="text-emerald-100 text-lg leading-relaxed max-w-md">
+            Lanjutkan perjalanan kesehatan Anda dengan Nutrify.
+            AI personal nutritionist yang memahami kebutuhan Anda.
+          </p>
+
+          <div className="mt-12 grid grid-cols-2 gap-4 max-w-sm">
+            <div className="bg-white/10 backdrop-blur rounded-xl p-4">
+              <div className="text-2xl font-bold text-white">1000+</div>
+              <div className="text-emerald-100 text-sm">Makanan Lokal</div>
             </div>
+            <div className="bg-white/10 backdrop-blur rounded-xl p-4">
+              <div className="text-2xl font-bold text-white">24/7</div>
+              <div className="text-emerald-100 text-sm">AI Assistance</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Right Panel - Form */}
+      <div className="w-full lg:w-1/2 flex items-center justify-center px-6 py-12">
+        <motion.div
+          className="w-full max-w-md"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4 }}
+        >
+          {/* Mobile Header */}
+          <div className="lg:hidden mb-8">
+            <Link href="/" className="inline-flex items-center gap-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 mb-6">
+              <ArrowLeft className="w-4 h-4" />
+              Kembali
+            </Link>
+            <div className="flex items-center gap-3 mb-2">
+              <img src="/icon.svg" alt="Nutrify" className="w-10 h-10" />
+              <span className="text-xl font-bold text-gray-900 dark:text-white">Nutrify</span>
+            </div>
+          </div>
+
+          <div>
+            <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-2">
+              Masuk ke Akun
+            </h2>
+            <p className="text-gray-500 dark:text-gray-400 mb-8">
+              Belum punya akun?{' '}
+              <Link href="/auth/register" className="text-emerald-600 dark:text-emerald-400 hover:underline font-semibold">
+                Daftar gratis
+              </Link>
+            </p>
+          </div>
+
+          {/* Error Message */}
+          {error && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mb-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl"
+            >
+              <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
+            </motion.div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
+          {/* Form */}
+          <form onSubmit={handleSubmit} className="space-y-5">
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Email
@@ -95,7 +122,7 @@ export default function LoginPage() {
                 required
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                className="w-full px-3 sm:px-4 py-2 sm:py-3 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm sm:text-base"
+                className="w-full px-4 py-3 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition-all text-gray-900 dark:text-white"
                 placeholder="nama@email.com"
               />
             </div>
@@ -111,24 +138,15 @@ export default function LoginPage() {
                   required
                   value={formData.password}
                   onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                  className="w-full px-3 sm:px-4 py-2 sm:py-3 pr-12 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm sm:text-base"
+                  className="w-full px-4 py-3 pr-12 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition-all text-gray-900 dark:text-white"
                   placeholder="••••••••"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
                 >
-                  {showPassword ? (
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
-                    </svg>
-                  ) : (
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                    </svg>
-                  )}
+                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                 </button>
               </div>
             </div>
@@ -136,33 +154,30 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-2 sm:py-3 px-4 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base"
+              className="w-full bg-gray-900 dark:bg-white text-white dark:text-gray-900 font-bold py-3.5 px-4 rounded-xl hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
-              {loading ? 'Memproses...' : 'Masuk'}
+              {loading ? (
+                <>
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                  Memproses...
+                </>
+              ) : (
+                'Masuk'
+              )}
             </button>
           </form>
 
-          <div className="mt-6">
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-300 dark:border-gray-600"></div>
-              </div>
-              <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400">Atau</span>
-              </div>
-            </div>
-
-            <div className="mt-6">
-              <Link
-                href="/"
-                className="w-full inline-flex justify-center items-center py-2 sm:py-3 px-4 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-sm sm:text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600 transition"
-              >
-                Kembali ke Beranda
-              </Link>
-            </div>
+          {/* Bottom Link */}
+          <div className="mt-8 text-center">
+            <Link
+              href="/"
+              className="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors"
+            >
+              ← Kembali ke Beranda
+            </Link>
           </div>
-        </div>
-      </motion.div>
-    </motion.div>
+        </motion.div>
+      </div>
+    </div>
   )
 }

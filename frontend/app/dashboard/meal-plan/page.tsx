@@ -2,10 +2,29 @@
 
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { authApi } from '@/lib/api'
 import axios from 'axios'
 import Toast from '@/components/Toast'
 import ConfirmDialog from '@/components/ConfirmDialog'
+import {
+  Utensils,
+  Trash2,
+  Plus,
+  X,
+  ChevronDown,
+  ChevronRight,
+  Flame,
+  Beef,
+  Wheat,
+  Droplet,
+  Sunrise,
+  Sun,
+  Moon,
+  Cookie,
+  Sparkles,
+  Calendar,
+  Clock,
+  Loader2
+} from 'lucide-react'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
 
@@ -28,6 +47,7 @@ export default function MealPlanPage() {
   const [generating, setGenerating] = useState(false)
   const [mealPlans, setMealPlans] = useState<MealPlan[]>([])
   const [showForm, setShowForm] = useState(false)
+  const [expandedPlan, setExpandedPlan] = useState<string | null>(null)
   const [formData, setFormData] = useState({
     targetCalories: 2000,
     dietType: 'balanced',
@@ -45,23 +65,16 @@ export default function MealPlanPage() {
     setToast({ ...toast, isVisible: false })
   }
 
-  const fadeInUp = {
-    initial: { opacity: 0, y: 20 },
-    animate: { opacity: 1, y: 0 },
-    transition: { duration: 0.5 }
-  }
-
-  const staggerContainer = {
-    animate: {
-      transition: {
-        staggerChildren: 0.1
-      }
-    }
-  }
-
   useEffect(() => {
     loadMealPlans()
   }, [])
+
+  // Auto expand first plan
+  useEffect(() => {
+    if (mealPlans.length > 0 && !expandedPlan) {
+      setExpandedPlan(mealPlans[0].id)
+    }
+  }, [mealPlans])
 
   const loadMealPlans = async () => {
     try {
@@ -89,15 +102,15 @@ export default function MealPlanPage() {
           headers: { Authorization: `Bearer ${token}` }
         }
       )
-      
+
       if (response.data.success) {
         await loadMealPlans()
         setShowForm(false)
-        showToast('Meal plan berhasil dibuat! 🎉', 'success')
+        showToast('Rencana makan berhasil dibuat! 🎉', 'success')
       }
     } catch (error: any) {
       console.error('Failed to generate meal plan', error)
-      showToast(error.response?.data?.error?.message || 'Gagal membuat meal plan', 'error')
+      showToast(error.response?.data?.error?.message || 'Gagal membuat rencana makan', 'error')
     } finally {
       setGenerating(false)
     }
@@ -110,10 +123,10 @@ export default function MealPlanPage() {
         headers: { Authorization: `Bearer ${token}` }
       })
       await loadMealPlans()
-      showToast('Meal plan berhasil dihapus', 'success')
+      showToast('Rencana makan berhasil dihapus', 'success')
     } catch (error) {
       console.error('Failed to delete meal plan', error)
-      showToast('Gagal menghapus meal plan', 'error')
+      showToast('Gagal menghapus rencana makan', 'error')
     }
   }
 
@@ -131,298 +144,417 @@ export default function MealPlanPage() {
     const date = new Date(dateString)
     return date.toLocaleDateString('id-ID', {
       weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
+      day: 'numeric',
+      month: 'long'
     })
   }
 
+  const formatShortDate = (dateString: string) => {
+    const date = new Date(dateString)
+    return date.toLocaleDateString('id-ID', {
+      day: 'numeric',
+      month: 'short'
+    })
+  }
+
+  const dietOptions = [
+    { id: 'balanced', label: 'Seimbang', desc: 'Karbo, protein, lemak seimbang' },
+    { id: 'high-protein', label: 'Tinggi Protein', desc: 'Untuk membangun otot' },
+    { id: 'low-carb', label: 'Rendah Karbo', desc: 'Keto / Low carb diet' },
+    { id: 'vegetarian', label: 'Vegetarian', desc: 'Tanpa daging' },
+  ]
+
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-12">
-        <p className="text-gray-600 dark:text-gray-400">Loading...</p>
+      <div className="flex flex-col items-center justify-center py-20">
+        <div className="relative">
+          <div className="w-16 h-16 border-4 border-emerald-200 dark:border-emerald-900 rounded-full" />
+          <div className="w-16 h-16 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin absolute inset-0" />
+        </div>
+        <p className="text-gray-500 mt-4 font-medium">Memuat rencana makan...</p>
       </div>
     )
   }
 
   return (
     <>
-      <Toast 
+      <Toast
         message={toast.message}
         type={toast.type}
         isVisible={toast.isVisible}
         onClose={hideToast}
       />
-      
+
       <ConfirmDialog
         isOpen={confirmDialog.isOpen}
-        title="Hapus Meal Plan?"
-        message="Apakah Anda yakin ingin menghapus meal plan ini? Tindakan ini tidak dapat dibatalkan."
+        title="Hapus Rencana Makan?"
+        message="Apakah Anda yakin ingin menghapus rencana makan ini? Tindakan ini tidak dapat dibatalkan."
         onConfirm={handleConfirmDelete}
         onCancel={() => setConfirmDialog({ isOpen: false, mealPlanId: '' })}
         confirmText="Ya, Hapus"
         cancelText="Batal"
         type="danger"
       />
-      
-      <motion.div
-        className="space-y-4 md:space-y-6 max-w-7xl mx-auto"
-        initial="initial"
-        animate="animate"
-        variants={staggerContainer}
-      >
-      {/* Header with Gradient */}
-      <motion.div className="relative overflow-hidden glass rounded-xl md:rounded-2xl shadow-lg p-5 md:p-8" variants={fadeInUp}>
-        <div className="absolute inset-0 bg-gradient-accent opacity-10"></div>
-        <div className="relative z-10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div>
-            <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-1 md:mb-2">
-              <span className="bg-gradient-accent bg-clip-text text-transparent">
-                Meal Plan
-              </span>
-              <svg className="inline-block w-8 h-8 md:w-10 md:h-10 ml-2 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-              </svg>
-            </h1>
-            <p className="text-gray-600 dark:text-gray-400 text-sm sm:text-base md:text-lg">
-              Rencana makan personal berbasis AI dengan makanan lokal Indonesia
-            </p>
-          </div>
-          <button
-            onClick={() => setShowForm(!showForm)}
-            className="btn-primary flex items-center justify-center gap-2 whitespace-nowrap w-full sm:w-auto"
-          >
-            {showForm ? (
-              <>
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-                <span className="hidden sm:inline">Tutup Form</span>
-                <span className="sm:hidden">Tutup</span>
-              </>
-            ) : (
-              <>
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                </svg>
-                <span className="hidden sm:inline">Buat Meal Plan Baru</span>
-                <span className="sm:hidden">Buat Baru</span>
-              </>
-            )}
-          </button>
-        </div>
-      </motion.div>
 
-      {/* Form Generate Meal Plan */}
-      <AnimatePresence>
-        {showForm && (
-          <motion.div 
-            className="glass rounded-xl md:rounded-2xl shadow-lg p-5 md:p-8"
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: 0.3 }}
-          >
-            <h2 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white mb-4 md:mb-6 flex items-center gap-2">
-              <div className="w-9 h-9 md:w-10 md:h-10 bg-gradient-primary rounded-xl flex items-center justify-center flex-shrink-0">
-                <svg className="w-5 h-5 md:w-6 md:h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                </svg>
-              </div>
-              <span className="text-base md:text-2xl">Buat Meal Plan Baru</span>
-            </h2>
-            
-            <div className="grid sm:grid-cols-2 gap-4 md:gap-6">
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                  Target Kalori (per hari)
-                </label>
-                <div className="relative">
-                  <input
-                    type="number"
-                    value={formData.targetCalories}
-                    onChange={(e) => setFormData({ ...formData, targetCalories: parseInt(e.target.value) })}
-                    className="input-field w-full text-base"
-                    min="1000"
-                    max="5000"
-                  />
-                  <span className="absolute right-3 md:right-4 top-1/2 -translate-y-1/2 text-gray-500 text-sm">kkal</span>
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                  Tipe Diet
-                </label>
-                <select
-                  value={formData.dietType}
-                  onChange={(e) => setFormData({ ...formData, dietType: e.target.value })}
-                  className="input-field w-full text-base"
-                >
-                  <option value="balanced">⚖️ Seimbang</option>
-                  <option value="high-protein">💪 Tinggi Protein</option>
-                  <option value="low-carb">🥗 Rendah Karbo</option>
-                  <option value="vegetarian">🌱 Vegetarian</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                  Jumlah Makan Utama
-                </label>
-                <select
-                  value={formData.meals}
-                  onChange={(e) => setFormData({ ...formData, meals: parseInt(e.target.value) })}
-                  className="input-field w-full text-base"
-                >
-                  <option value="2">2x Makan</option>
-                  <option value="3">3x Makan</option>
-                  <option value="4">4x Makan</option>
-                </select>
-              </div>
-
-              <div className="flex items-center pt-0 sm:pt-8">
-                <input
-                  type="checkbox"
-                  checked={formData.includeSnacks}
-                  onChange={(e) => setFormData({ ...formData, includeSnacks: e.target.checked })}
-                  className="w-5 h-5 text-green-600 border-gray-300 rounded focus:ring-green-500"
-                />
-                <label className="ml-3 text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Sertakan Snack Sehat 🍎
-                </label>
-              </div>
-            </div>
-
-            <div className="mt-6 md:mt-8 flex flex-col sm:flex-row gap-3">
-              <button
-                onClick={generateMealPlan}
-                disabled={generating}
-                className="btn-primary flex-1 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-              >
-                {generating ? (
-                  <>
-                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                    Generating...
-                  </>
-                ) : (
-                  <>
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                    </svg>
-                    Generate dengan AI
-                  </>
-                )}
-              </button>
-              <button
-                onClick={() => setShowForm(false)}
-                className="btn-secondary px-6 md:px-8"
-              >
-                Batal
-              </button>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Meal Plans List */}
-      {mealPlans.length === 0 ? (
-        <motion.div 
-          className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-8 md:p-12 text-center"
-          variants={fadeInUp}
+      <div className="max-w-4xl mx-auto pb-24 md:pb-8">
+        {/* Header Section */}
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-8"
         >
-          <div className="text-5xl md:text-6xl mb-3 md:mb-4">🍽️</div>
-          <h3 className="text-lg md:text-xl font-bold text-gray-900 dark:text-white mb-2">
-            Belum Ada Meal Plan
-          </h3>
-          <p className="text-sm md:text-base text-gray-600 dark:text-gray-400 mb-5 md:mb-6 max-w-2xl mx-auto">
-            Buat meal plan pertama Anda dengan AI untuk mendapatkan rekomendasi makanan lokal Indonesia yang sesuai dengan kebutuhan nutrisi Anda
-          </p>
-          <button
-            onClick={() => setShowForm(true)}
-            className="bg-green-600 hover:bg-green-700 text-white font-semibold py-2.5 md:py-3 px-6 md:px-8 rounded-lg transition active:scale-95 w-full sm:w-auto"
-          >
-            Buat Meal Plan Sekarang
-          </button>
-        </motion.div>
-      ) : (
-        <div className="grid gap-4 md:gap-6">
-          {mealPlans.map((plan) => (
-            <motion.div
-              key={plan.id}
-              className="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-4 md:p-6"
-              variants={fadeInUp}
+          <div className="flex items-start justify-between">
+            <div>
+              <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">
+                Rencana Makan
+              </h1>
+              <p className="text-gray-500 dark:text-gray-400 mt-1 text-sm md:text-base">
+                Menu harian yang dipersonalisasi untuk Anda
+              </p>
+            </div>
+            <button
+              onClick={() => setShowForm(!showForm)}
+              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-semibold text-sm transition-all ${showForm
+                  ? 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300'
+                  : 'bg-gray-900 dark:bg-white text-white dark:text-gray-900 shadow-lg'
+                }`}
             >
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 md:gap-4 mb-4 md:mb-6">
-                <div className="flex-1 min-w-0">
-                  <h3 className="text-base md:text-xl font-bold text-gray-900 dark:text-white truncate">
-                    {formatDate(plan.date)}
-                  </h3>
-                  <p className="text-xs md:text-sm text-gray-600 dark:text-gray-400 mt-1 break-words">
-                    Total: {plan.totalCalories} kkal | Protein: {plan.totalProtein}g | Karbo: {plan.totalCarbs}g | Lemak: {plan.totalFat}g
-                  </p>
+              {showForm ? <X className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
+              <span className="hidden sm:inline">{showForm ? 'Tutup' : 'Rencana Baru'}</span>
+            </button>
+          </div>
+        </motion.div>
+
+        {/* Generator Form */}
+        <AnimatePresence>
+          {showForm && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              className="mb-8 overflow-hidden"
+            >
+              <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-6">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-10 h-10 bg-gradient-to-br from-violet-500 to-purple-600 rounded-xl flex items-center justify-center">
+                    <Sparkles className="w-5 h-5 text-white" />
+                  </div>
+                  <div>
+                    <h2 className="font-bold text-gray-900 dark:text-white">Buat Rencana Baru</h2>
+                    <p className="text-xs text-gray-500">AI akan menyesuaikan dengan profil kesehatan Anda</p>
+                  </div>
                 </div>
-                <button
-                  onClick={() => handleDeleteClick(plan.id)}
-                  className="text-red-600 hover:text-red-700 font-medium text-sm self-start sm:self-auto active:scale-95"
-                >
-                  🗑️ Hapus
-                </button>
-              </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
-                {/* Breakfast */}
-                {plan.breakfast && (
-                  <div className="bg-yellow-50 dark:bg-yellow-900/20 rounded-lg p-3 md:p-4">
-                    <h4 className="font-semibold text-sm md:text-base text-gray-900 dark:text-white mb-2 flex items-center gap-2">
-                      🌅 Sarapan
-                    </h4>
-                    <p className="text-xs md:text-sm text-gray-700 dark:text-gray-300 line-clamp-2">{plan.breakfast.name || 'Menu sarapan'}</p>
-                    <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">{plan.breakfast.calories || 0} kkal</p>
+                {/* Calorie Target */}
+                <div className="mb-6">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+                    Target Kalori Harian
+                  </label>
+                  <div className="flex items-center gap-4">
+                    <input
+                      type="range"
+                      min="1200"
+                      max="3500"
+                      step="100"
+                      value={formData.targetCalories}
+                      onChange={(e) => setFormData({ ...formData, targetCalories: parseInt(e.target.value) })}
+                      className="flex-1 h-2 bg-gray-200 dark:bg-gray-700 rounded-full appearance-none cursor-pointer accent-emerald-500"
+                    />
+                    <div className="w-24 text-center">
+                      <span className="text-2xl font-bold text-gray-900 dark:text-white">{formData.targetCalories}</span>
+                      <span className="text-xs text-gray-500 block">kkal</span>
+                    </div>
                   </div>
-                )}
+                </div>
 
-                {/* Lunch */}
-                {plan.lunch && (
-                  <div className="bg-orange-50 dark:bg-orange-900/20 rounded-lg p-3 md:p-4">
-                    <h4 className="font-semibold text-sm md:text-base text-gray-900 dark:text-white mb-2 flex items-center gap-2">
-                      ☀️ Makan Siang
-                    </h4>
-                    <p className="text-xs md:text-sm text-gray-700 dark:text-gray-300 line-clamp-2">{plan.lunch.name || 'Menu makan siang'}</p>
-                    <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">{plan.lunch.calories || 0} kkal</p>
-                  </div>
-                )}
-
-                {/* Dinner */}
-                {plan.dinner && (
-                  <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-3 md:p-4">
-                    <h4 className="font-semibold text-sm md:text-base text-gray-900 dark:text-white mb-2 flex items-center gap-2">
-                      🌙 Makan Malam
-                    </h4>
-                    <p className="text-xs md:text-sm text-gray-700 dark:text-gray-300 line-clamp-2">{plan.dinner.name || 'Menu makan malam'}</p>
-                    <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">{plan.dinner.calories || 0} kkal</p>
-                  </div>
-                )}
-              </div>
-
-              {/* Snacks */}
-              {plan.snacks && plan.snacks.length > 0 && (
-                <div className="mt-3 md:mt-4 bg-green-50 dark:bg-green-900/20 rounded-lg p-3 md:p-4">
-                  <h4 className="font-semibold text-sm md:text-base text-gray-900 dark:text-white mb-2">🍎 Snack</h4>
-                  <div className="flex flex-wrap gap-2">
-                    {plan.snacks.map((snack: any, idx: number) => (
-                      <span key={idx} className="text-xs md:text-sm bg-white dark:bg-gray-700 px-2.5 md:px-3 py-1 rounded-full text-gray-700 dark:text-gray-300">
-                        {snack.name || `Snack ${idx + 1}`}
-                      </span>
+                {/* Diet Type */}
+                <div className="mb-6">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+                    Jenis Diet
+                  </label>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                    {dietOptions.map((opt) => (
+                      <button
+                        key={opt.id}
+                        onClick={() => setFormData({ ...formData, dietType: opt.id })}
+                        className={`p-3 rounded-xl border-2 text-left transition-all ${formData.dietType === opt.id
+                            ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20'
+                            : 'border-gray-100 dark:border-gray-700 hover:border-gray-200 dark:hover:border-gray-600'
+                          }`}
+                      >
+                        <p className={`font-semibold text-sm ${formData.dietType === opt.id ? 'text-emerald-600 dark:text-emerald-400' : 'text-gray-900 dark:text-white'}`}>
+                          {opt.label}
+                        </p>
+                        <p className="text-[10px] text-gray-500 mt-0.5">{opt.desc}</p>
+                      </button>
                     ))}
                   </div>
                 </div>
-              )}
+
+                {/* Options Row */}
+                <div className="flex flex-wrap gap-4 mb-6">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all ${formData.includeSnacks ? 'bg-emerald-500 border-emerald-500' : 'border-gray-300 dark:border-gray-600'
+                      }`}>
+                      {formData.includeSnacks && <Plus className="w-3 h-3 text-white" />}
+                    </div>
+                    <input
+                      type="checkbox"
+                      checked={formData.includeSnacks}
+                      onChange={(e) => setFormData({ ...formData, includeSnacks: e.target.checked })}
+                      className="hidden"
+                    />
+                    <span className="text-sm text-gray-700 dark:text-gray-300">Sertakan camilan</span>
+                  </label>
+                </div>
+
+                {/* Generate Button */}
+                <button
+                  onClick={generateMealPlan}
+                  disabled={generating}
+                  className="w-full bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white py-3.5 rounded-xl font-bold shadow-lg shadow-emerald-500/25 disabled:opacity-70 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
+                >
+                  {generating ? (
+                    <>
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                      AI sedang membuat rencana...
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="w-5 h-5" />
+                      Generate dengan AI
+                    </>
+                  )}
+                </button>
+              </div>
             </motion.div>
-          ))}
+          )}
+        </AnimatePresence>
+
+        {/* Meal Plans */}
+        <div className="space-y-4">
+          {mealPlans.length === 0 ? (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="text-center py-16"
+            >
+              <div className="w-24 h-24 bg-gradient-to-br from-gray-100 to-gray-50 dark:from-gray-800 dark:to-gray-900 rounded-full flex items-center justify-center mx-auto mb-6">
+                <Utensils className="w-10 h-10 text-gray-300 dark:text-gray-600" />
+              </div>
+              <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
+                Belum ada rencana makan
+              </h3>
+              <p className="text-gray-500 dark:text-gray-400 mb-6 max-w-sm mx-auto text-sm">
+                Buat rencana makan pertama Anda dan AI akan menyesuaikan dengan preferensi dan kondisi kesehatan Anda
+              </p>
+              <button
+                onClick={() => setShowForm(true)}
+                className="inline-flex items-center gap-2 bg-gray-900 dark:bg-white text-white dark:text-gray-900 px-6 py-3 rounded-xl font-semibold hover:opacity-90 transition-all"
+              >
+                <Plus className="w-5 h-5" />
+                Buat Rencana Pertama
+              </button>
+            </motion.div>
+          ) : (
+            mealPlans.map((plan, index) => (
+              <motion.div
+                key={plan.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.05 }}
+                className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 overflow-hidden"
+              >
+                {/* Plan Header - Clickable */}
+                <button
+                  onClick={() => setExpandedPlan(expandedPlan === plan.id ? null : plan.id)}
+                  className="w-full p-4 flex items-center gap-4 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors text-left"
+                >
+                  {/* Date Badge */}
+                  <div className="w-14 h-14 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl flex flex-col items-center justify-center text-white flex-shrink-0">
+                    <span className="text-lg font-bold leading-none">{new Date(plan.date).getDate()}</span>
+                    <span className="text-[10px] uppercase opacity-80">{new Date(plan.date).toLocaleDateString('id-ID', { month: 'short' })}</span>
+                  </div>
+
+                  {/* Info */}
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-bold text-gray-900 dark:text-white truncate">
+                      {formatDate(plan.date)}
+                    </h3>
+                    <div className="flex items-center gap-3 mt-1">
+                      <span className="text-xs text-gray-500 flex items-center gap-1">
+                        <Flame className="w-3 h-3 text-orange-500" />
+                        {plan.totalCalories} kkal
+                      </span>
+                      <span className="text-xs text-gray-500 flex items-center gap-1">
+                        <Beef className="w-3 h-3 text-red-500" />
+                        {plan.totalProtein}g
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Expand Icon */}
+                  <ChevronDown className={`w-5 h-5 text-gray-400 transition-transform ${expandedPlan === plan.id ? 'rotate-180' : ''}`} />
+                </button>
+
+                {/* Expanded Content */}
+                <AnimatePresence>
+                  {expandedPlan === plan.id && (
+                    <motion.div
+                      initial={{ height: 0 }}
+                      animate={{ height: 'auto' }}
+                      exit={{ height: 0 }}
+                      className="overflow-hidden"
+                    >
+                      <div className="px-4 pb-4 space-y-3">
+                        {/* Macros Summary */}
+                        <div className="flex gap-2 p-3 bg-gray-50 dark:bg-gray-900/50 rounded-xl">
+                          <MacroBadge icon={Flame} value={plan.totalCalories} unit="kkal" color="orange" />
+                          <MacroBadge icon={Beef} value={plan.totalProtein} unit="g protein" color="red" />
+                          <MacroBadge icon={Wheat} value={plan.totalCarbs} unit="g karbo" color="amber" />
+                          <MacroBadge icon={Droplet} value={plan.totalFat} unit="g lemak" color="blue" />
+                        </div>
+
+                        {/* Meals Timeline */}
+                        <div className="space-y-2">
+                          {plan.breakfast && (
+                            <MealCard
+                              type="breakfast"
+                              meal={plan.breakfast}
+                            />
+                          )}
+                          {plan.lunch && (
+                            <MealCard
+                              type="lunch"
+                              meal={plan.lunch}
+                            />
+                          )}
+                          {plan.dinner && (
+                            <MealCard
+                              type="dinner"
+                              meal={plan.dinner}
+                            />
+                          )}
+                          {plan.snacks && plan.snacks.length > 0 && (
+                            <MealCard
+                              type="snack"
+                              meal={{ name: plan.snacks.map(s => s.name).join(', '), calories: plan.snacks.reduce((sum, s) => sum + (s.calories || 0), 0) }}
+                            />
+                          )}
+                        </div>
+
+                        {/* Actions */}
+                        <div className="flex justify-end pt-2">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              handleDeleteClick(plan.id)
+                            }}
+                            className="flex items-center gap-2 px-3 py-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg text-sm font-medium transition-colors"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                            Hapus
+                          </button>
+                        </div>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </motion.div>
+            ))
+          )}
         </div>
-      )}
-      </motion.div>
+      </div>
     </>
+  )
+}
+
+// Macro Badge Component
+function MacroBadge({ icon: Icon, value, unit, color }: {
+  icon: any
+  value: number
+  unit: string
+  color: 'orange' | 'red' | 'amber' | 'blue'
+}) {
+  const colors = {
+    orange: 'text-orange-500',
+    red: 'text-red-500',
+    amber: 'text-amber-500',
+    blue: 'text-blue-500'
+  }
+
+  return (
+    <div className="flex-1 text-center">
+      <Icon className={`w-4 h-4 ${colors[color]} mx-auto mb-1`} />
+      <p className="text-sm font-bold text-gray-900 dark:text-white">{value}</p>
+      <p className="text-[10px] text-gray-500">{unit}</p>
+    </div>
+  )
+}
+
+// Meal Card Component
+function MealCard({ type, meal }: {
+  type: 'breakfast' | 'lunch' | 'dinner' | 'snack'
+  meal: { name: string; calories: number }
+}) {
+  const config = {
+    breakfast: {
+      icon: Sunrise,
+      label: 'Sarapan',
+      time: '07:00',
+      gradient: 'from-amber-400 to-orange-500',
+      bg: 'bg-amber-50 dark:bg-amber-900/20',
+      text: 'text-amber-600 dark:text-amber-400'
+    },
+    lunch: {
+      icon: Sun,
+      label: 'Makan Siang',
+      time: '12:00',
+      gradient: 'from-orange-400 to-red-500',
+      bg: 'bg-orange-50 dark:bg-orange-900/20',
+      text: 'text-orange-600 dark:text-orange-400'
+    },
+    dinner: {
+      icon: Moon,
+      label: 'Makan Malam',
+      time: '19:00',
+      gradient: 'from-indigo-400 to-purple-500',
+      bg: 'bg-indigo-50 dark:bg-indigo-900/20',
+      text: 'text-indigo-600 dark:text-indigo-400'
+    },
+    snack: {
+      icon: Cookie,
+      label: 'Camilan',
+      time: '15:00',
+      gradient: 'from-emerald-400 to-teal-500',
+      bg: 'bg-emerald-50 dark:bg-emerald-900/20',
+      text: 'text-emerald-600 dark:text-emerald-400'
+    }
+  }
+
+  const { icon: Icon, label, time, gradient, bg, text } = config[type]
+
+  return (
+    <div className={`flex items-center gap-3 p-3 ${bg} rounded-xl`}>
+      <div className={`w-10 h-10 bg-gradient-to-br ${gradient} rounded-xl flex items-center justify-center flex-shrink-0`}>
+        <Icon className="w-5 h-5 text-white" />
+      </div>
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-2 mb-0.5">
+          <span className={`text-xs font-semibold ${text}`}>{label}</span>
+          <span className="text-[10px] text-gray-400 flex items-center gap-0.5">
+            <Clock className="w-2.5 h-2.5" />
+            {time}
+          </span>
+        </div>
+        <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
+          {meal.name}
+        </p>
+      </div>
+      <div className="text-right flex-shrink-0">
+        <p className="text-sm font-bold text-gray-900 dark:text-white">{meal.calories}</p>
+        <p className="text-[10px] text-gray-500">kkal</p>
+      </div>
+    </div>
   )
 }

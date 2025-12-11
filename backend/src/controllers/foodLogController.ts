@@ -62,6 +62,9 @@ export async function createFoodLog(req: Request, res: Response) {
       },
     });
 
+    // Update user streak
+    await updateUserStreak(userId);
+
     logger.info('Food log created', { userId, foodLogId: foodLog.id });
 
     return res.status(201).json({
@@ -74,6 +77,85 @@ export async function createFoodLog(req: Request, res: Response) {
       success: false,
       error: { message: 'Gagal menyimpan log makanan' },
     });
+  }
+}
+
+/**
+ * Update user streak based on food logging activity
+ */
+async function updateUserStreak(userId: string) {
+  try {
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { streakDays: true, lastActiveAt: true },
+    });
+
+    if (!user) return;
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+
+    // Check if user already logged food today
+    const todayStart = new Date(today);
+    const todayEnd = new Date(today);
+    todayEnd.setHours(23, 59, 59, 999);
+
+    const todayLogsCount = await db.foodLog.count({
+      where: {
+        userId,
+        loggedAt: {
+          gte: todayStart,
+          lte: todayEnd,
+        },
+      },
+    });
+
+    // If this is the first food log today, update streak
+    if (todayLogsCount === 1) {
+      // Check if user logged food yesterday
+      const yesterdayStart = new Date(yesterday);
+      const yesterdayEnd = new Date(yesterday);
+      yesterdayEnd.setHours(23, 59, 59, 999);
+
+      const yesterdayLogsCount = await db.foodLog.count({
+        where: {
+          userId,
+          loggedAt: {
+            gte: yesterdayStart,
+            lte: yesterdayEnd,
+          },
+        },
+      });
+
+      let newStreak = 1;
+      if (yesterdayLogsCount > 0) {
+        // Continue streak
+        newStreak = (user.streakDays || 0) + 1;
+      }
+      // else: streak resets to 1 (no log yesterday)
+
+      await prisma.user.update({
+        where: { id: userId },
+        data: {
+          streakDays: newStreak,
+          lastActiveAt: new Date(),
+        },
+      });
+
+      logger.info('User streak updated', { userId, newStreak });
+    } else {
+      // Just update lastActiveAt
+      await prisma.user.update({
+        where: { id: userId },
+        data: { lastActiveAt: new Date() },
+      });
+    }
+  } catch (error) {
+    logger.error('Error updating user streak:', error);
+    // Don't throw - streak update failure shouldn't break food logging
   }
 }
 
@@ -310,14 +392,14 @@ export async function getTodaySummary(req: Request, res: Response) {
     if (user) {
       const weight = Number(user.currentWeightKg);
       const height = Number(user.heightCm);
-      const age = user.dateOfBirth 
+      const age = user.dateOfBirth
         ? Math.floor((Date.now() - user.dateOfBirth.getTime()) / (365.25 * 24 * 60 * 60 * 1000))
         : 30;
-      
+
       // Mifflin-St Jeor Equation
       let bmr = 10 * weight + 6.25 * height - 5 * age;
       bmr = user.gender === 'female' ? bmr - 161 : bmr + 5;
-      
+
       // Activity multiplier
       const activityMultipliers: Record<string, number> = {
         sedentary: 1.2,
@@ -374,12 +456,17 @@ export async function getTodaySummary(req: Request, res: Response) {
         caloriesConsumed: Math.round(totals.calories),
         caloriesRemaining: Math.max(0, calorieTarget - Math.round(totals.calories)),
         percentageUsed: Math.round((totals.calories / calorieTarget) * 100),
+        totalCalories: Math.round(totals.calories),
+        totalProtein: Math.round(totals.proteinG),
+        totalCarbs: Math.round(totals.carbsG),
+        totalFat: Math.round(totals.fatG),
         macros: {
           protein: Math.round(totals.proteinG),
           carbs: Math.round(totals.carbsG),
           fat: Math.round(totals.fatG),
         },
         mealsLogged: foodLogs.length,
+        logs: foodLogs, // Include full logs for dashboard display
         byMealType: {
           breakfast: byMealType.breakfast.length,
           lunch: byMealType.lunch.length,

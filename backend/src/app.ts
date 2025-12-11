@@ -35,80 +35,103 @@ export async function createApp(): Promise<Application> {
     // Security headers
     app.use(helmet());
 
-  // CORS
-  app.use(
-    cors({
-      origin: config.cors.allowedOrigins,
-      credentials: true,
-    })
-  );
+    // CORS
+    app.use(
+      cors({
+        origin: config.cors.allowedOrigins,
+        credentials: true,
+      })
+    );
 
-  // Body parsing
-  app.use(express.json({ limit: '10mb' }));
-  app.use(express.urlencoded({ limit: '10mb', extended: true }));
+    // Body parsing
+    app.use(express.json({ limit: '10mb' }));
+    app.use(express.urlencoded({ limit: '10mb', extended: true }));
 
-  // Rate limiting
-  const limiter = rateLimit({
-    windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 100, // limit each IP to 100 requests per windowMs
-    message: 'Too many requests from this IP, please try again later.',
-  });
-  app.use('/api/', limiter);
-
-  // Request logging
-  app.use(requestLogger);
-
-  // ============================================================================
-  // Health Check
-  // ============================================================================
-  app.get('/health', (req: Request, res: Response) => {
-    res.json({
-      status: 'OK',
-      timestamp: new Date(),
-      uptime: process.uptime(),
-      environment: config.nodeEnv,
-    });
-  });
-
-  app.get('/api/v1/health', (req: Request, res: Response) => {
-    res.json({
-      status: 'OK',
-      timestamp: new Date(),
-      uptime: process.uptime(),
-      environment: config.nodeEnv,
-    });
-  });
-
-  // ============================================================================
-  // API Routes
-  // ============================================================================
-  app.use('/api/v1/auth', authRoutes);
-  app.use('/api/v1/chat', chatRoutes);
-  app.use('/api/v1/meal-plans', mealPlanRoutes);
-  app.use('/api/v1/food-logs', foodLogRoutes);
-  app.use('/api/v1/foods', foodRoutes);
-  app.use('/api/v1/notifications', notificationRoutes);
-
-  // ============================================================================
-  // 404 Handler
-  // ============================================================================
-  app.use((req: Request, res: Response) => {
-    res.status(404).json({
-      success: false,
-      error: {
-        code: 'NOT_FOUND',
-        message: `Route ${req.path} not found`,
+    // Rate limiting - more lenient in development
+    const isDevelopment = process.env.NODE_ENV === 'development';
+    const limiter = rateLimit({
+      windowMs: isDevelopment ? 1 * 60 * 1000 : 15 * 60 * 1000, // 1 min in dev, 15 min in prod
+      max: isDevelopment ? 1000 : 100, // 1000 requests in dev, 100 in prod
+      message: 'Too many requests from this IP, please try again later.',
+      standardHeaders: true,
+      legacyHeaders: false,
+      // Skip rate limiting for localhost in development
+      skip: (req) => {
+        if (isDevelopment) {
+          const ip = req.ip || req.socket.remoteAddress || '';
+          return ip === '127.0.0.1' || ip === '::1' || ip === '::ffff:127.0.0.1';
+        }
+        return false;
       },
     });
-  });
+    app.use('/api/', limiter);
 
-  // ============================================================================
-  // Error Handler
-  // ============================================================================
-  app.use(errorHandler);
+    // Disable caching for API responses in development
+    if (isDevelopment) {
+      app.use('/api/', (req: Request, res: Response, next: NextFunction) => {
+        res.set({
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0',
+        });
+        next();
+      });
+    }
 
-  logger.info('Express application created successfully');
-  return app;
+    // Request logging
+    app.use(requestLogger);
+
+    // ============================================================================
+    // Health Check
+    // ============================================================================
+    app.get('/health', (req: Request, res: Response) => {
+      res.json({
+        status: 'OK',
+        timestamp: new Date(),
+        uptime: process.uptime(),
+        environment: config.nodeEnv,
+      });
+    });
+
+    app.get('/api/v1/health', (req: Request, res: Response) => {
+      res.json({
+        status: 'OK',
+        timestamp: new Date(),
+        uptime: process.uptime(),
+        environment: config.nodeEnv,
+      });
+    });
+
+    // ============================================================================
+    // API Routes
+    // ============================================================================
+    app.use('/api/v1/auth', authRoutes);
+    app.use('/api/v1/chat', chatRoutes);
+    app.use('/api/v1/meal-plans', mealPlanRoutes);
+    app.use('/api/v1/food-logs', foodLogRoutes);
+    app.use('/api/v1/foods', foodRoutes);
+    app.use('/api/v1/notifications', notificationRoutes);
+
+    // ============================================================================
+    // 404 Handler
+    // ============================================================================
+    app.use((req: Request, res: Response) => {
+      res.status(404).json({
+        success: false,
+        error: {
+          code: 'NOT_FOUND',
+          message: `Route ${req.path} not found`,
+        },
+      });
+    });
+
+    // ============================================================================
+    // Error Handler
+    // ============================================================================
+    app.use(errorHandler);
+
+    logger.info('Express application created successfully');
+    return app;
   } catch (error) {
     logger.error('Failed to create Express application:', error);
     throw error;

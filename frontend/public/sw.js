@@ -1,26 +1,45 @@
-const CACHE_NAME = 'nutrify-v3';
-const APP_VERSION = '2.1.0';
+// Service Worker for Nutrify
+const CACHE_NAME = 'nutrify-v4';
+const APP_VERSION = '2.2.0';
 
+// Only cache static assets, NOT pages
 const urlsToCache = [
-  '/',
+  '/icons/icon-192x192.png',
+  '/icons/icon-512x512.png',
+  '/favicon.svg',
+];
+
+// Paths that should NEVER be cached (always fetch from network)
+const NEVER_CACHE = [
   '/dashboard',
-  '/dashboard/chat',
-  '/dashboard/meal-plan',
-  '/dashboard/profile',
+  '/auth',
+  '/api',
+  '/_next',
 ];
 
 // ============================================================================
-// Cache Management
+// Installation - Skip waiting immediately for faster updates
 // ============================================================================
 
 self.addEventListener('install', (event) => {
-  console.log('[SW] Installing new version:', APP_VERSION);
+  console.log('[SW] Installing version:', APP_VERSION);
+  // Skip waiting to activate immediately
+  self.skipWaiting();
+  
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(urlsToCache);
+    caches.open(CACHE_NAME).then(async (cache) => {
+      // Add files one by one to avoid failing on missing files
+      for (const url of urlsToCache) {
+        try {
+          await cache.add(url);
+        } catch (err) {
+          console.warn('[SW] Failed to cache:', url, err);
+        }
+      }
+    }).catch(err => {
+      console.warn('[SW] Cache open failed:', err);
     })
   );
-  // Don't skip waiting - let the app control when to update
 });
 
 // Listen for skip waiting message from client
@@ -31,7 +50,44 @@ self.addEventListener('message', (event) => {
   }
 });
 
+// ============================================================================
+// Fetch Handler - Network First for HTML, Cache First for assets
+// ============================================================================
+
 self.addEventListener('fetch', (event) => {
+  const url = new URL(event.request.url);
+  
+  // Skip non-GET requests
+  if (event.request.method !== 'GET') {
+    return;
+  }
+  
+  // Skip non-http(s) requests
+  if (!url.protocol.startsWith('http')) {
+    return;
+  }
+  
+  // Check if this path should never be cached
+  const shouldNeverCache = NEVER_CACHE.some(path => url.pathname.startsWith(path));
+  
+  // For HTML pages and dashboard routes - ALWAYS use network first
+  if (event.request.mode === 'navigate' || 
+      event.request.headers.get('accept')?.includes('text/html') ||
+      shouldNeverCache) {
+    event.respondWith(
+      fetch(event.request)
+        .then((response) => {
+          return response;
+        })
+        .catch(() => {
+          // Only fallback to cache if network fails
+          return caches.match(event.request);
+        })
+    );
+    return;
+  }
+  
+  // For static assets - use cache first
   event.respondWith(
     caches.match(event.request).then((response) => {
       if (response) {
@@ -41,31 +97,44 @@ self.addEventListener('fetch', (event) => {
         if (!response || response.status !== 200 || response.type !== 'basic') {
           return response;
         }
-        const responseToCache = response.clone();
-        caches.open(CACHE_NAME).then((cache) => {
-          cache.put(event.request, responseToCache);
-        });
+
+        // Only cache static assets
+        if (url.pathname.match(/\.(png|jpg|jpeg|svg|gif|woff|woff2|ttf|eot|ico)$/)) {
+          const responseToCache = response.clone();
+          caches.open(CACHE_NAME).then((cache) => {
+            cache.put(event.request, responseToCache);
+          });
+        }
+        
         return response;
       });
     })
   );
 });
 
+// ============================================================================
+// Activation - Clean up old caches
+// ============================================================================
+
 self.addEventListener('activate', (event) => {
-  const cacheWhitelist = [CACHE_NAME];
+  console.log('[SW] Activating version:', APP_VERSION);
+  
   event.waitUntil(
     caches.keys().then((cacheNames) => {
       return Promise.all(
         cacheNames.map((cacheName) => {
-          if (cacheWhitelist.indexOf(cacheName) === -1) {
+          // Delete all caches that don't match current version
+          if (cacheName !== CACHE_NAME) {
+            console.log('[SW] Deleting old cache:', cacheName);
             return caches.delete(cacheName);
           }
         })
       );
+    }).then(() => {
+      // Take control immediately
+      return clients.claim();
     })
   );
-  // Take control immediately
-  clients.claim();
 });
 
 // ============================================================================
@@ -129,7 +198,7 @@ self.addEventListener('notificationclick', (event) => {
   } else if (action === 'view-stats' || data.type === 'weekly_summary') {
     url = '/dashboard';
   } else if (data.type === 'badge_earned') {
-    url = '/dashboard/profile';
+    url = '/dashboard/settings/profile';
   }
 
   event.waitUntil(

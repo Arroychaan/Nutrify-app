@@ -18,17 +18,41 @@ export const api = axios.create({
   baseURL: API_URL,
   headers: {
     'Content-Type': 'application/json',
+    'Cache-Control': 'no-cache, no-store, must-revalidate',
+    'Pragma': 'no-cache',
+    'Expires': '0',
   },
 })
 
 // Add token to requests if exists
+// Add token to requests if exists
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('token')
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`
+  if (typeof window !== 'undefined') {
+    const token = localStorage.getItem('token')
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`
+    }
   }
   return config
 })
+
+// Add response interceptor to handle 401 Unauthorized
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    // If 401 Unauthorized, clear token and redirect to login
+    if (error.response?.status === 401) {
+      if (typeof window !== 'undefined') {
+        // Prevent infinite loops if already on auth pages
+        if (!window.location.pathname.startsWith('/auth/')) {
+          localStorage.removeItem('token')
+          window.location.href = '/auth/login'
+        }
+      }
+    }
+    return Promise.reject(error)
+  }
+)
 
 // Auth API
 export const authApi = {
