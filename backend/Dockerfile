@@ -14,6 +14,10 @@ RUN npm ci
 # Copy all source code including prisma
 COPY . .
 
+# Debug: List files to verify copy
+RUN ls -la
+RUN ls -la prisma/ || echo "Prisma folder not found"
+
 # Generate Prisma client
 RUN npx prisma generate
 
