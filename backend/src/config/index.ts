@@ -26,10 +26,16 @@ export const config = {
     refreshExpiresIn: process.env.REFRESH_TOKEN_EXPIRE_TIME || '7d',
   },
 
-  // Gemini AI LLM
-  gemini: {
-    apiKey: process.env.GEMINI_API_KEY,
-    model: process.env.GEMINI_MODEL || 'gemini-2.0-flash',
+  // LLM Configuration (Gemini with key rotation)
+  llm: {
+    gemini: {
+      // Comma-separated keys for rotation: GEMINI_API_KEYS=key1,key2,key3
+      apiKeys: (process.env.GEMINI_API_KEYS || process.env.GEMINI_API_KEY || '')
+        .split(',')
+        .map((k) => k.trim())
+        .filter(Boolean),
+      model: process.env.GEMINI_MODEL || 'gemini-2.0-flash',
+    },
   },
 
   // CORS
@@ -60,8 +66,8 @@ export const config = {
 };
 
 // Validate critical configs
-if (!config.gemini.apiKey && config.isProduction) {
-  throw new Error('GEMINI_API_KEY is required in production');
+if (config.llm.gemini.apiKeys.length === 0 && config.isProduction) {
+  throw new Error('GEMINI_API_KEY (or GEMINI_API_KEYS) is required in production');
 }
 
 if (!config.jwt.secret && config.isProduction) {

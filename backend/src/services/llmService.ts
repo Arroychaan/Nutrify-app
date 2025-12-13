@@ -3,18 +3,140 @@ import config from '@config/index.js';
 import logger from '@config/logger.js';
 import prisma from '@config/prisma.js';
 
-let geminiClient: GoogleGenerativeAI;
+type ChatMessage = { role: 'user' | 'assistant'; content: string };
 
-export function getGeminiInstance(): GoogleGenerativeAI {
-  if (!geminiClient) {
-    if (!config.gemini.apiKey) {
-      throw new Error('GEMINI_API_KEY is not configured');
-    }
+const RATE_LIMIT_COOLDOWN_MS = 60_000;
+const rateLimitedGeminiKeys = new Map<string, number>();
+let geminiKeyIndex = 0;
 
-    geminiClient = new GoogleGenerativeAI(config.gemini.apiKey);
-  }
-  return geminiClient;
+function isRateLimitError(err: any): boolean {
+  const status = err?.status || err?.response?.status;
+  const message = String(err?.message || '').toLowerCase();
+  return (
+    status === 429 ||
+    message.includes('429') ||
+    message.includes('rate limit') ||
+    message.includes('quota') ||
+    message.includes('resource has been exhausted')
+  );
 }
+
+function getNextGeminiKey(): string | null {
+  const keys = config.llm.gemini.apiKeys;
+  if (!keys || keys.length === 0) return null;
+
+  const now = Date.now();
+
+  for (let attempt = 0; attempt < keys.length; attempt++) {
+    const idx = (geminiKeyIndex + attempt) % keys.length;
+    const key = keys[idx];
+    const limitedUntil = rateLimitedGeminiKeys.get(key);
+
+    if (!limitedUntil || now >= limitedUntil) {
+      geminiKeyIndex = (idx + 1) % keys.length;
+      return key;
+    }
+  }
+
+  // All keys in cooldown; still return one so we can surface a real error
+  return keys[0];
+}
+
+function markGeminiKeyRateLimited(apiKey: string): void {
+  rateLimitedGeminiKeys.set(apiKey, Date.now() + RATE_LIMIT_COOLDOWN_MS);
+  logger.warn('Gemini key rate-limited; cooldown started', {
+    keyPrefix: `${apiKey.slice(0, 8)}...`,
+    cooldownMs: RATE_LIMIT_COOLDOWN_MS,
+  });
+}
+
+async function geminiChatWithRotation(
+  messages: ChatMessage[],
+  systemPrompt: string
+): Promise<string> {
+  const keys = config.llm.gemini.apiKeys;
+  if (!keys || keys.length === 0) {
+    throw new Error('Gemini not configured');
+  }
+
+  const attempts = Math.max(1, keys.length);
+  let lastError: unknown = null;
+
+  for (let i = 0; i < attempts; i++) {
+    const apiKey = getNextGeminiKey();
+    if (!apiKey) break;
+
+    try {
+      const client = new GoogleGenerativeAI(apiKey);
+      const model = client.getGenerativeModel({
+        model: config.llm.gemini.model,
+        systemInstruction: systemPrompt,
+      });
+
+      const history = messages.slice(0, -1).map((m) => ({
+        role: m.role === 'assistant' ? 'model' : 'user',
+        parts: [{ text: m.content }],
+      }));
+
+      const lastMessage = messages[messages.length - 1]?.content || '';
+      const chat = model.startChat({ history });
+      const result = await chat.sendMessage(lastMessage);
+      return result.response.text();
+    } catch (err: any) {
+      lastError = err;
+      if (isRateLimitError(err)) {
+        markGeminiKeyRateLimited(apiKey);
+        continue;
+      }
+      throw err;
+    }
+  }
+
+  throw lastError instanceof Error
+    ? lastError
+    : new Error('Gemini rate limit reached for all keys');
+}
+
+async function geminiGenerateWithRotation(prompt: string, systemPrompt: string): Promise<string> {
+  const keys = config.llm.gemini.apiKeys;
+  if (!keys || keys.length === 0) {
+    throw new Error('Gemini not configured');
+  }
+
+  const attempts = Math.max(1, keys.length);
+  let lastError: unknown = null;
+
+  for (let i = 0; i < attempts; i++) {
+    const apiKey = getNextGeminiKey();
+    if (!apiKey) break;
+
+    try {
+      const client = new GoogleGenerativeAI(apiKey);
+      const model = client.getGenerativeModel({
+        model: config.llm.gemini.model,
+        systemInstruction: systemPrompt,
+      });
+
+      const result = await model.generateContent(prompt);
+      return result.response.text();
+    } catch (err: any) {
+      lastError = err;
+      if (isRateLimitError(err)) {
+        markGeminiKeyRateLimited(apiKey);
+        continue;
+      }
+      throw err;
+    }
+  }
+
+  throw lastError instanceof Error
+    ? lastError
+    : new Error('Gemini rate limit reached for all keys');
+}
+
+// ============================================
+// Public API
+// ============================================
 
 export interface MealPlanGenerationRequest {
   userId: string;
@@ -28,26 +150,12 @@ export interface MealPlanGenerationRequest {
   preferences?: Record<string, any>;
 }
 
-/**
- * Generate meal plan using Gemini AI
- */
-export async function generateMealPlan(
-  request: MealPlanGenerationRequest
-): Promise<any> {
-  try {
-    const client = getGeminiInstance();
-    
-    // Using the model from config (default: gemini-2.0-flash)
-    const modelName = config.gemini.model;
-    const model = client.getGenerativeModel({ model: modelName });
+export async function generateMealPlan(request: MealPlanGenerationRequest): Promise<any> {
+  const prompt = buildMealPlanPrompt(request);
+  const foodDatabaseContext = await getFoodDatabaseContext(request);
 
-    const prompt = buildMealPlanPrompt(request);
-    
-    // Get food database context
-    const foodDatabaseContext = await getFoodDatabaseContext(request);
-    
-    const systemPrompt = `You are Nutrify, an expert AI Dietician specializing in Indonesian nutrition and traditional medicine.
-      
+  const systemPrompt = `You are Nutrify, an expert AI Dietician specializing in Indonesian nutrition and traditional medicine.
+
 Your responsibilities:
 1. Provide personalized meal plans using LOCAL Indonesian foods
 2. Ensure ALL recommendations comply with AKG (Angka Kecukupan Gizi) - Indonesian Dietary Guidelines
@@ -65,101 +173,67 @@ When generating meal plans, return ONLY a JSON object with this exact structure:
     "dinner": {"name": "", "portion": "", "nutrition": {}},
     "dayNotes": ""
   }
+}`;
+
+  const text = await geminiGenerateWithRotation(prompt, systemPrompt);
+
+  const cleanText = text.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+  const mealPlanData = JSON.parse(cleanText);
+
+  return {
+    mealPlan: mealPlanData,
+    model: config.llm.gemini.model,
+  };
 }
 
-${prompt}`;
-
-    logger.info('Calling Gemini AI for meal plan generation', {
-      userId: request.userId,
-      duration: request.duration,
-      model: modelName,
-    });
-
-    const result = await model.generateContent(systemPrompt);
-    const response = result.response;
-    const text = response.text();
-
-    // Remove markdown code blocks if present
-    const cleanText = text.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
-
-    // Parse the JSON response
-    const mealPlanData = JSON.parse(cleanText);
-
-    logger.info('Meal plan generated successfully', {
-      userId: request.userId,
-      model: modelName,
-    });
-
-    return {
-      mealPlan: mealPlanData,
-      model: modelName,
-    };
-  } catch (error) {
-    logger.error('Error generating meal plan:', error);
-    throw error;
-  }
-}
-
-/**
- * Chat with Gemini AI for nutrition Q&A
- */
 export async function chatWithGemini(
-  messages: Array<{ role: 'user' | 'assistant'; content: string }>,
+  messages: ChatMessage[],
   systemContext?: Record<string, any>
-): Promise<any> {
+): Promise<{ message: string; model: string }> {
+  const systemPrompt = buildSystemPrompt(systemContext);
+  const text = await geminiChatWithRotation(messages, systemPrompt);
+
+  return {
+    message: text,
+    model: config.llm.gemini.model,
+  };
+}
+
+export async function generateNutritionEstimate(
+  foodName: string,
+  portion: string
+): Promise<{ calories: number; proteinG: number; carbsG: number; fatG: number }> {
   try {
-    const client = getGeminiInstance();
-    
-    // Using the model from config (default: gemini-2.0-flash)
-    const modelName = config.gemini.model;
-    const model = client.getGenerativeModel({
-      model: modelName,
-      systemInstruction: buildSystemPrompt(systemContext),
-    });
+    const prompt = `Estimate the nutrition for this Indonesian food:\nFood: ${foodName}\nPortion: ${portion}\n\nReturn ONLY a JSON object with this exact structure (no markdown, no extra text):\n{"calories": number, "proteinG": number, "carbsG": number, "fatG": number}\n\nUse realistic values based on Indonesian food composition data.\nIf unsure, provide reasonable estimates for typical Indonesian portions.`;
 
-    const conversationHistory = messages.map((msg) => ({
-      role: msg.role === 'assistant' ? 'model' : 'user',
-      parts: [{ text: msg.content }],
-    }));
+    const text = await geminiGenerateWithRotation(prompt, 'You are a nutrition expert. Respond with JSON only.');
 
-    const chat = model.startChat({
-      history: conversationHistory.slice(0, -1),
-    });
-
-    const lastMessage = messages[messages.length - 1].content;
-
-    const result = await chat.sendMessage(lastMessage);
-    const response = result.response;
-    const text = response.text();
+    const cleanText = text.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+    const nutrition = JSON.parse(cleanText);
 
     return {
-      message: text,
-      model: modelName,
+      calories: Number(nutrition.calories) || 0,
+      proteinG: Number(nutrition.proteinG) || 0,
+      carbsG: Number(nutrition.carbsG) || 0,
+      fatG: Number(nutrition.fatG) || 0,
     };
   } catch (error) {
-    logger.error('Error in Gemini chat:', error);
-    throw error;
+    logger.error('Error estimating nutrition:', error);
+    return {
+      calories: 250,
+      proteinG: 10,
+      carbsG: 35,
+      fatG: 8,
+    };
   }
 }
+
+// ============================================
+// Prompts & Context Helpers
+// ============================================
 
 function buildMealPlanPrompt(request: MealPlanGenerationRequest): string {
-  return `Generate a meal plan for:
-- Culture: ${request.culture}
-- Medical conditions: ${request.medicalConditions.join(', ') || 'None'}
-- Allergies: ${request.allergies.join(', ') || 'None'}
-- Dietary restrictions: ${request.dietaryRestrictions.join(', ') || 'None'}
-- Daily calorie target: ${request.calorieTarget} kcal
-- Duration: ${request.duration}
-- Budget: ${request.budget ? `Rp ${request.budget}/day` : 'No limit'}
-
-Requirements:
-1. Use 60%+ local Indonesian foods
-2. Comply with AKG guidelines
-3. Respect medical conditions and allergies
-4. Stay within budget if provided
-5. Include cultural significance
-
-Generate meal plan with detailed nutrition information per meal.`;
+  return `Generate a meal plan for:\n- Culture: ${request.culture}\n- Medical conditions: ${request.medicalConditions.join(', ') || 'None'}\n- Allergies: ${request.allergies.join(', ') || 'None'}\n- Dietary restrictions: ${request.dietaryRestrictions.join(', ') || 'None'}\n- Daily calorie target: ${request.calorieTarget} kcal\n- Duration: ${request.duration}\n- Budget: ${request.budget ? `Rp ${request.budget}/day` : 'No limit'}\n\nRequirements:\n1. Use 60%+ local Indonesian foods\n2. Comply with AKG guidelines\n3. Respect medical conditions and allergies\n4. Stay within budget if provided\n5. Include cultural significance\n\nGenerate meal plan with detailed nutrition information per meal.`;
 }
 
 function buildSystemPrompt(context?: Record<string, any>): string {
@@ -184,7 +258,6 @@ Guidelines:
 `;
 
   if (context) {
-    // User Identity
     if (context.userName) {
       prompt += `\n\n=== PROFIL PENGGUNA ===`;
       prompt += `\nNama: ${context.userName}`;
@@ -196,7 +269,6 @@ Guidelines:
       prompt += `\nUsia: ${context.age} tahun`;
     }
 
-    // Physical Metrics
     if (context.heightCm || context.currentWeightKg) {
       prompt += `\n\n=== METRIK FISIK ===`;
       if (context.heightCm) prompt += `\nTinggi: ${context.heightCm} cm`;
@@ -206,7 +278,6 @@ Guidelines:
       if (context.activityLevel) prompt += `\nLevel aktivitas: ${context.activityLevel}`;
     }
 
-    // Health Conditions
     if (context.medicalConditions?.length > 0 || context.allergies?.length > 0 || context.medications?.length > 0) {
       prompt += `\n\n=== KONDISI KESEHATAN ===`;
       if (context.medicalConditions?.length > 0) {
@@ -220,7 +291,6 @@ Guidelines:
       }
     }
 
-    // Preferences
     if (context.culture || context.religion || context.dietaryRestrictions?.length > 0 || context.dislikes?.length > 0) {
       prompt += `\n\n=== PREFERENSI ===`;
       if (context.culture) prompt += `\nBudaya: ${context.culture}`;
@@ -233,7 +303,6 @@ Guidelines:
       }
     }
 
-    // Today's Progress
     if (context.calorieTarget) {
       prompt += `\n\n=== PROGRESS HARI INI ===`;
       prompt += `\nTarget kalori harian: ${context.calorieTarget} kcal`;
@@ -245,7 +314,6 @@ Guidelines:
       }
     }
 
-    // Latest Biomarkers
     if (context.latestBiomarker) {
       prompt += `\n\n=== BIOMARKER TERAKHIR ===`;
       if (context.latestBiomarker.bloodGlucose) {
@@ -259,7 +327,6 @@ Guidelines:
       }
     }
 
-    // Engagement
     if (context.streakDays > 0) {
       prompt += `\n\nStreak pengguna: ${context.streakDays} hari berturut-turut 🔥`;
     }
@@ -268,65 +335,10 @@ Guidelines:
   return prompt;
 }
 
-/**
- * Generate nutrition estimate for a food item using AI
- */
-export async function generateNutritionEstimate(
-  foodName: string,
-  portion: string
-): Promise<{ calories: number; proteinG: number; carbsG: number; fatG: number }> {
-  try {
-    const client = getGeminiInstance();
-    const modelName = config.gemini.model;
-    const model = client.getGenerativeModel({ model: modelName });
-
-    const prompt = `Estimate the nutrition for this Indonesian food:
-Food: ${foodName}
-Portion: ${portion}
-
-Return ONLY a JSON object with this exact structure (no markdown, no extra text):
-{"calories": number, "proteinG": number, "carbsG": number, "fatG": number}
-
-Use realistic values based on Indonesian food composition data.
-If unsure, provide reasonable estimates for typical Indonesian portions.`;
-
-    const result = await model.generateContent(prompt);
-    const response = result.response;
-    const text = response.text();
-
-    // Clean and parse JSON
-    const cleanText = text.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
-    const nutrition = JSON.parse(cleanText);
-
-    logger.info('Nutrition estimated for food', { foodName, portion, nutrition });
-
-    return {
-      calories: Number(nutrition.calories) || 0,
-      proteinG: Number(nutrition.proteinG) || 0,
-      carbsG: Number(nutrition.carbsG) || 0,
-      fatG: Number(nutrition.fatG) || 0,
-    };
-  } catch (error) {
-    logger.error('Error estimating nutrition:', error);
-    // Return default estimates based on common Indonesian food
-    return {
-      calories: 250,
-      proteinG: 10,
-      carbsG: 35,
-      fatG: 8,
-    };
-  }
-}
-
-/**
- * Get food database context for LLM prompt
- * Fetches relevant foods from database based on user requirements
- */
 async function getFoodDatabaseContext(request: MealPlanGenerationRequest): Promise<string> {
   try {
-    // Build where clause based on user's dietary restrictions
     const whereClause: any = {};
-    
+
     if (request.dietaryRestrictions?.includes('vegetarian')) {
       whereClause.isVegetarian = true;
     }
@@ -336,19 +348,17 @@ async function getFoodDatabaseContext(request: MealPlanGenerationRequest): Promi
     if (request.dietaryRestrictions?.includes('halal')) {
       whereClause.isHalal = true;
     }
-    
-    // Apply medical condition filters
+
     if (request.medicalConditions?.includes('Hipertensi')) {
       whereClause.sodiumMg = { lt: 600 };
     }
     if (request.medicalConditions?.includes('Diabetes')) {
       whereClause.sugarG = { lt: 15 };
     }
-    
-    // Get foods from each category
+
     const categories = ['proteins', 'grains', 'vegetables', 'fruits'];
     const foodsByCategory: Record<string, any[]> = {};
-    
+
     for (const category of categories) {
       const foods = await prisma.localFood.findMany({
         where: {
@@ -368,11 +378,10 @@ async function getFoodDatabaseContext(request: MealPlanGenerationRequest): Promi
           benefits: true,
         },
       });
-      
+
       foodsByCategory[category] = foods;
     }
-    
-    // Get prepared dishes
+
     const preparedDishes = await prisma.localFood.findMany({
       where: {
         ...whereClause,
@@ -390,27 +399,29 @@ async function getFoodDatabaseContext(request: MealPlanGenerationRequest): Promi
         sugarG: true,
       },
     });
-    
+
     foodsByCategory['prepared_dishes'] = preparedDishes;
-    
-    // Build context string
+
     let context = `\n=== DATABASE MAKANAN INDONESIA ===\n`;
     context += `Database ini berisi data nutrisi akurat untuk 1346 makanan Indonesia.\n`;
     context += `GUNAKAN data nutrisi dari database ini untuk rekomendasi yang akurat.\n\n`;
-    
+
     for (const [category, foods] of Object.entries(foodsByCategory)) {
       if (foods.length > 0) {
         const categoryName = getCategoryName(category);
         context += `\n${categoryName}:\n`;
-        context += foods.map(f => 
-          `- ${f.name}: ${f.calories}kcal, P:${f.proteinG}g, K:${f.carbsG}g, L:${f.fatG}g` +
-          (f.sodiumMg ? `, Na:${f.sodiumMg}mg` : '') +
-          (f.sugarG ? `, Gula:${f.sugarG}g` : '')
-        ).join('\n');
+        context += foods
+          .map(
+            (f) =>
+              `- ${f.name}: ${f.calories}kcal, P:${f.proteinG}g, K:${f.carbsG}g, L:${f.fatG}g` +
+              (f.sodiumMg ? `, Na:${f.sodiumMg}mg` : '') +
+              (f.sugarG ? `, Gula:${f.sugarG}g` : '')
+          )
+          .join('\n');
         context += '\n';
       }
     }
-    
+
     return context;
   } catch (error) {
     logger.error('Error getting food database context:', error);
@@ -418,40 +429,32 @@ async function getFoodDatabaseContext(request: MealPlanGenerationRequest): Promi
   }
 }
 
-/**
- * Get Indonesian category name
- */
 function getCategoryName(category: string): string {
   const names: Record<string, string> = {
-    'proteins': '🥩 PROTEIN (per 100g)',
-    'grains': '🍚 KARBOHIDRAT (per 100g)',
-    'vegetables': '🥬 SAYURAN (per 100g)',
-    'fruits': '🍌 BUAH-BUAHAN (per 100g)',
-    'prepared_dishes': '🍛 MASAKAN SIAP SAJI (per porsi)',
-    'spices': '🌶️ BUMBU & REMPAH',
-    'dairy': '🥛 SUSU & OLAHAN',
-    'snacks': '🍘 CEMILAN',
-    'beverages': '🥤 MINUMAN',
+    proteins: '🥩 PROTEIN (per 100g)',
+    grains: '🍚 KARBOHIDRAT (per 100g)',
+    vegetables: '🥬 SAYURAN (per 100g)',
+    fruits: '🍌 BUAH-BUAHAN (per 100g)',
+    prepared_dishes: '🍛 MASAKAN SIAP SAJI (per porsi)',
+    spices: '🌶️ BUMBU & REMPAH',
+    dairy: '🥛 SUSU & OLAHAN',
+    snacks: '🍘 CEMILAN',
+    beverages: '🥤 MINUMAN',
   };
-  
+
   return names[category] || category.toUpperCase();
 }
 
-/**
- * Find food in database by name and return nutrition data
- */
 export async function findFoodInDatabase(foodName: string): Promise<any | null> {
   try {
     const searchName = foodName.toLowerCase().trim();
-    
-    // Try exact match first
+
     let food = await prisma.localFood.findFirst({
       where: {
         name: { equals: searchName, mode: 'insensitive' },
       },
     });
-    
-    // Try contains match
+
     if (!food) {
       food = await prisma.localFood.findFirst({
         where: {
@@ -459,21 +462,20 @@ export async function findFoodInDatabase(foodName: string): Promise<any | null> 
         },
       });
     }
-    
-    // Try word-based search
+
     if (!food) {
-      const words = searchName.split(' ').filter(w => w.length > 2);
+      const words = searchName.split(' ').filter((w) => w.length > 2);
       if (words.length > 0) {
         food = await prisma.localFood.findFirst({
           where: {
-            OR: words.map(word => ({
+            OR: words.map((word) => ({
               name: { contains: word, mode: 'insensitive' },
             })),
           },
         });
       }
     }
-    
+
     return food;
   } catch (error) {
     logger.error('Error finding food in database:', error);

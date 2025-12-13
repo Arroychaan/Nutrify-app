@@ -1,0 +1,58 @@
+name: nutrify_app
+description: "Nutrify - AI Dietician untuk Indonesia"
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.10.3
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # State Management
+  flutter_riverpod: ^2.6.1
+  
+  # Networking
+  dio: ^5.7.0
+  
+  # Local Storage
+  shared_preferences: ^2.3.3
+  flutter_secure_storage: ^9.2.2
+  
+  # UI Components
+  google_fonts: ^6.2.1
+  flutter_svg: ^2.0.16
+  cached_network_image: ^3.4.1
+  shimmer: ^3.0.0
+  fl_chart: ^0.69.2
+  
+  # Navigation
+  go_router: ^14.6.2
+  
+  # Utils
+  intl: ^0.20.2
+  
+  # Icons
+  cupertino_icons: ^1.0.8
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+  flutter_launcher_icons: ^0.14.3
+
+flutter:
+  uses-material-design: true
+  
+  assets:
+    - assets/images/
+    - assets/icons/
+
+# App Icon Configuration
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "iconaplikasi.png"
+  adaptive_icon_background: "#FFFFFF"
+  adaptive_icon_foreground: "iconaplikasi.png"
