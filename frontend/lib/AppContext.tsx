@@ -16,13 +16,13 @@ interface AppContextType {
   // Settings
   settings: AppSettings
   updateSettings: (newSettings: Partial<AppSettings>) => void
-  
+
   // Theme
   isDarkMode: boolean
-  
+
   // Translation helper
   t: (key: string) => string
-  
+
   // Units conversion helpers
   formatWeight: (kg: number) => string
   formatHeight: (cm: number) => string
@@ -75,7 +75,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     if (settings.theme === 'system') {
       const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
       applyTheme(mediaQuery.matches)
-      
+
       const handler = (e: MediaQueryListEvent) => applyTheme(e.matches)
       mediaQuery.addEventListener('change', handler)
       return () => mediaQuery.removeEventListener('change', handler)
@@ -136,10 +136,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     return value
   }
 
-  // Prevent hydration mismatch
-  if (!mounted) {
-    return <>{children}</>
-  }
+
 
   return (
     <AppContext.Provider
