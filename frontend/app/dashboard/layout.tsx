@@ -1,4 +1,6 @@
 'use client'
+// Force redeploy - Auth Layout Fixes
+
 
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
