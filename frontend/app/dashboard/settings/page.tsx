@@ -26,9 +26,11 @@ import {
 } from 'lucide-react'
 import { authApi } from '@/lib/api'
 import Toast from '@/components/Toast'
+import { useSettings } from '@/lib/AppContext'
 
 export default function SettingsPage() {
     const router = useRouter()
+    const { settings: userSettings } = useSettings()
     const [user, setUser] = useState<any>(null)
     const [loading, setLoading] = useState(true)
     const [isDarkMode, setIsDarkMode] = useState(false)
@@ -227,7 +229,7 @@ export default function SettingsPage() {
                             href="/dashboard/settings/language"
                             icon={<Globe className="w-5 h-5 text-teal-600" />}
                             title="Bahasa"
-                            description="Indonesia"
+                            description={userSettings.language === 'id' ? 'Indonesia' : 'English'}
                         />
                     </div>
                 </div>

@@ -145,14 +145,21 @@ class AuthNotifier extends StateNotifier<AuthState> {
         final data = response.data['data'];
 
         // Save tokens
+        // Backend returns: {userId, email, fullName, accessToken, refreshToken}
+        // NOT nested in 'user' object (same as login response)
         await _apiClient.saveTokens(
           accessToken: data['accessToken'] ?? data['token'],
           refreshToken: data['refreshToken'],
-          userId: data['user']?['id'],
+          userId: data['userId'],
         );
 
-        // Get user data
-        final user = UserModel.fromJson(data['user']);
+        // Create user from the response data directly (like login does)
+        final userJson = {
+          'id': data['userId'],
+          'email': data['email'],
+          'fullName': data['fullName'],
+        };
+        final user = UserModel.fromJson(userJson);
         state = state.copyWith(
           isLoading: false,
           isAuthenticated: true,

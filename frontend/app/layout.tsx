@@ -1,8 +1,14 @@
 import type { Metadata, Viewport } from 'next'
-import { Inter } from 'next/font/google'
+import { Outfit, Inter } from 'next/font/google'
 import './globals.css'
 import { AppProvider } from '@/lib/AppContext'
 import UpdatePrompt from '@/components/UpdatePrompt'
+
+const outfit = Outfit({
+  subsets: ['latin'],
+  display: 'swap',
+  variable: '--font-outfit',
+})
 
 const inter = Inter({
   subsets: ['latin'],
@@ -34,7 +40,7 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="id" suppressHydrationWarning className={inter.variable}>
+    <html lang="id" suppressHydrationWarning className={outfit.variable}>
       <head>
         <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
         <link rel="manifest" href="/manifest.json" />
@@ -87,7 +93,7 @@ export default function RootLayout({
           `
         }} />
       </head>
-      <body className={`${inter.className} bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 transition-colors duration-300`}>
+      <body className={`${outfit.variable} ${inter.variable} font-sans bg-neutral-50 dark:bg-gray-900 text-neutral-900 dark:text-gray-100 transition-colors duration-300 antialiased`}>
         <AppProvider>
           {children}
           <UpdatePrompt />

@@ -63,6 +63,14 @@ export const config = {
     level: process.env.LOG_LEVEL || 'info',
     format: process.env.LOG_FORMAT || 'json',
   },
+  // Email
+  email: {
+    host: process.env.SMTP_HOST,
+    port: parseInt(process.env.SMTP_PORT || '587', 10),
+    user: process.env.SMTP_USER,
+    pass: process.env.SMTP_PASS,
+    from: process.env.SMTP_FROM || '"Nutrify App" <noreply@nutrify.id>',
+  },
 };
 
 // Validate critical configs

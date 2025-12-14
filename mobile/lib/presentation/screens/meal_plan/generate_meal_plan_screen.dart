@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../../../core/network/api_client.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../providers/router_provider.dart';
-import '../../widgets/common/app_button.dart';
+import '../../widgets/gradient_button.dart';
 
 class GenerateMealPlanScreen extends ConsumerStatefulWidget {
   const GenerateMealPlanScreen({super.key});
@@ -65,18 +66,30 @@ class _GenerateMealPlanScreenState
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Generate Meal Plan')),
+      appBar: AppBar(
+        title: Text(
+          'Buat Rencana Makan',
+          style: GoogleFonts.outfit(fontWeight: FontWeight.bold),
+        ),
+      ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Header
             Container(
-              padding: const EdgeInsets.all(20),
+              padding: const EdgeInsets.all(24),
               decoration: BoxDecoration(
-                gradient: AppColors.primaryGradient,
-                borderRadius: BorderRadius.circular(20),
+                gradient: AppGradients.primary,
+                borderRadius: BorderRadius.circular(24),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.primary.withValues(alpha: 0.3),
+                    blurRadius: 15,
+                    offset: const Offset(0, 8),
+                  ),
+                ],
               ),
               child: Row(
                 children: [
@@ -84,18 +97,18 @@ class _GenerateMealPlanScreenState
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
-                          'AI Meal Plan Generator',
-                          style: TextStyle(
+                        Text(
+                          'AI Meal Planner',
+                          style: GoogleFonts.outfit(
                             color: Colors.white,
-                            fontSize: 20,
+                            fontSize: 22,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
                         const SizedBox(height: 8),
                         Text(
-                          'Meal plan personal sesuai kebutuhan kalori, kondisi kesehatan, dan preferensi budayamu.',
-                          style: TextStyle(
+                          'Dapatkan rencana makan yang dipersonalisasi khusus untuk kebutuhan tubuhmu.',
+                          style: GoogleFonts.inter(
                             color: Colors.white.withValues(alpha: 0.9),
                             fontSize: 14,
                           ),
@@ -104,16 +117,29 @@ class _GenerateMealPlanScreenState
                     ),
                   ),
                   const SizedBox(width: 16),
-                  const Text('🤖', style: TextStyle(fontSize: 48)),
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.2),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Text('🤖', style: TextStyle(fontSize: 32)),
+                  ),
                 ],
               ),
             ),
 
-            const SizedBox(height: 24),
+            const SizedBox(height: 32),
 
             // Duration selection
-            Text('Pilih Durasi', style: Theme.of(context).textTheme.titleLarge),
-            const SizedBox(height: 12),
+            Text(
+              'Pilih Durasi Program',
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                fontFamily: GoogleFonts.outfit().fontFamily,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 16),
 
             ..._durations.entries.map(
               (entry) => _DurationOption(
@@ -131,21 +157,23 @@ class _GenerateMealPlanScreenState
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
                 color: AppColors.info.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(16),
                 border: Border.all(
                   color: AppColors.info.withValues(alpha: 0.3),
                 ),
               ),
               child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Icon(Icons.info_outline, color: AppColors.info),
+                  Icon(Icons.info_outline, color: AppColors.info, size: 20),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(
-                      'Meal plan akan disesuaikan dengan data profil kamu (tinggi, berat, kondisi kesehatan, alergi, preferensi budaya).',
-                      style: TextStyle(
-                        color: AppColors.info.withValues(alpha: 0.9),
+                      'AI akan menganalisa profil kesehatanmu (BMI, alergi, preferensi) untuk menyusun menu terbaik.',
+                      style: GoogleFonts.inter(
+                        color: AppColors.textSecondary,
                         fontSize: 13,
+                        height: 1.4,
                       ),
                     ),
                   ),
@@ -183,12 +211,13 @@ class _GenerateMealPlanScreenState
             const SizedBox(height: 32),
 
             // Generate button
-            AppButton(
-              text: 'Generate Meal Plan',
+            GradientButton(
+              text: 'Generate Rencana Makan',
               icon: Icons.auto_awesome,
               onPressed: _isLoading ? null : _generateMealPlan,
               isLoading: _isLoading,
             ),
+            const SizedBox(height: 32),
           ],
         ),
       ),
@@ -213,18 +242,20 @@ class _DurationOption extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: onTap,
-      child: Container(
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
         margin: const EdgeInsets.only(bottom: 12),
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
           color: isSelected
-              ? AppColors.primary.withValues(alpha: 0.1)
-              : AppColors.surface,
-          borderRadius: BorderRadius.circular(12),
+              ? AppColors.primary.withValues(alpha: 0.05)
+              : Colors.white,
+          borderRadius: BorderRadius.circular(16),
           border: Border.all(
             color: isSelected ? AppColors.primary : AppColors.border,
             width: isSelected ? 2 : 1,
           ),
+          boxShadow: isSelected ? [] : AppShadows.small,
         ),
         child: Row(
           children: [
@@ -242,13 +273,13 @@ class _DurationOption extends StatelessWidget {
                 color: isSelected ? AppColors.primary : Colors.transparent,
               ),
               child: isSelected
-                  ? const Icon(Icons.check, size: 16, color: Colors.white)
+                  ? const Icon(Icons.check, size: 14, color: Colors.white)
                   : null,
             ),
             const SizedBox(width: 16),
             Text(
               label,
-              style: TextStyle(
+              style: GoogleFonts.outfit(
                 fontSize: 16,
                 fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
                 color: isSelected ? AppColors.primary : AppColors.textPrimary,

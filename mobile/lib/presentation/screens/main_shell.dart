@@ -133,7 +133,7 @@ class _NavItem extends StatelessWidget {
           width: 56,
           height: 56,
           decoration: BoxDecoration(
-            gradient: AppColors.primaryGradient,
+            gradient: AppGradients.primary,
             shape: BoxShape.circle,
             boxShadow: [
               BoxShadow(

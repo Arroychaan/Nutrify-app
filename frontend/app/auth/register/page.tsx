@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import { authApi } from '@/lib/api'
 import { motion } from 'framer-motion'
 import { Eye, EyeOff, ArrowLeft, Loader2, Leaf, Check } from 'lucide-react'
+import { GradientButton } from '@/components/ui/GradientButton'
 
 export default function RegisterPage() {
   const router = useRouter()
@@ -43,12 +44,8 @@ export default function RegisterPage() {
         currentWeightKg: parseFloat(formData.currentWeightKg),
       })
 
-      await authApi.login({
-        email: formData.email,
-        password: formData.password,
-      })
-
-      router.push('/dashboard')
+      // Don't login automatically, show verification step
+      setStep(3)
     } catch (err: any) {
       setError(err.response?.data?.message || 'Registrasi gagal. Silakan coba lagi.')
     } finally {
@@ -96,10 +93,10 @@ export default function RegisterPage() {
             <div className="w-12 h-12 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-2xl flex items-center justify-center shadow-lg shadow-emerald-500/20">
               <Leaf className="w-6 h-6 text-white" />
             </div>
-            <span className="text-2xl font-bold text-gray-900 dark:text-white">Nutrify</span>
+            <span className="text-2xl font-display font-bold text-gray-900 dark:text-white">Nutrify</span>
           </Link>
 
-          <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4 leading-tight">
+          <h1 className="text-4xl font-display font-bold text-gray-900 dark:text-white mb-4 leading-tight">
             Mulai Perjalanan
             <span className="block text-emerald-500">Sehatmu! 🌱</span>
           </h1>
@@ -115,7 +112,7 @@ export default function RegisterPage() {
                 <div className="w-6 h-6 bg-emerald-100 dark:bg-emerald-900/30 rounded-full flex items-center justify-center">
                   <Check className="w-4 h-4 text-emerald-500" />
                 </div>
-                <span className="text-gray-700 dark:text-gray-300">{benefit}</span>
+                <span className="text-gray-700 dark:text-gray-300 font-medium">{benefit}</span>
               </div>
             ))}
           </div>
@@ -147,32 +144,36 @@ export default function RegisterPage() {
           {/* Form Card */}
           <div className="bg-white dark:bg-gray-800 rounded-3xl p-8 shadow-xl shadow-gray-200/50 dark:shadow-none border border-gray-100 dark:border-gray-700">
             {/* Progress Steps */}
-            <div className="flex items-center gap-3 mb-8">
-              <div className={`flex items-center gap-2 ${step >= 1 ? 'text-emerald-600' : 'text-gray-400'}`}>
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${step >= 1 ? 'bg-emerald-500 text-white' : 'bg-gray-100 dark:bg-gray-700'}`}>
-                  {step > 1 ? <Check className="w-4 h-4" /> : '1'}
+            {step < 3 && (
+              <div className="flex items-center gap-3 mb-8">
+                <div className={`flex items-center gap-2 ${step >= 1 ? 'text-emerald-600' : 'text-gray-400'}`}>
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${step >= 1 ? 'bg-emerald-500 text-white' : 'bg-gray-100 dark:bg-gray-700'}`}>
+                    {step > 1 ? <Check className="w-4 h-4" /> : '1'}
+                  </div>
+                  <span className="text-sm font-medium hidden sm:inline">Akun</span>
                 </div>
-                <span className="text-sm font-medium hidden sm:inline">Akun</span>
-              </div>
-              <div className={`flex-1 h-1 rounded ${step >= 2 ? 'bg-emerald-500' : 'bg-gray-100 dark:bg-gray-700'}`} />
-              <div className={`flex items-center gap-2 ${step >= 2 ? 'text-emerald-600' : 'text-gray-400'}`}>
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${step >= 2 ? 'bg-emerald-500 text-white' : 'bg-gray-100 dark:bg-gray-700 text-gray-500'}`}>
-                  2
+                <div className={`flex-1 h-1 rounded ${step >= 2 ? 'bg-emerald-500' : 'bg-gray-100 dark:bg-gray-700'}`} />
+                <div className={`flex items-center gap-2 ${step >= 2 ? 'text-emerald-600' : 'text-gray-400'}`}>
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${step >= 2 ? 'bg-emerald-500 text-white' : 'bg-gray-100 dark:bg-gray-700 text-gray-500'}`}>
+                    {step > 2 ? <Check className="w-4 h-4" /> : '2'}
+                  </div>
+                  <span className="text-sm font-medium hidden sm:inline">Profil</span>
                 </div>
-                <span className="text-sm font-medium hidden sm:inline">Profil</span>
               </div>
-            </div>
+            )}
 
             <div className="mb-6">
               <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-                {step === 1 ? 'Buat Akun' : 'Data Diri'}
+                {step === 1 ? 'Buat Akun' : step === 2 ? 'Data Diri' : 'Cek Email Anda 📧'}
               </h2>
-              <p className="text-gray-500 dark:text-gray-400">
-                Sudah punya akun?{' '}
-                <Link href="/auth/login" className="text-emerald-600 dark:text-emerald-400 hover:underline font-semibold">
-                  Masuk
-                </Link>
-              </p>
+              {step < 3 && (
+                <p className="text-gray-500 dark:text-gray-400">
+                  Sudah punya akun?{' '}
+                  <Link href="/auth/login" className="text-emerald-600 dark:text-emerald-400 hover:underline font-semibold">
+                    Masuk
+                  </Link>
+                </p>
+              )}
             </div>
 
             {/* Error Message */}
@@ -188,6 +189,30 @@ export default function RegisterPage() {
 
             {/* Form */}
             <form onSubmit={handleSubmit} className="space-y-5">
+              {step === 3 && (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  className="text-center py-8"
+                >
+                  <div className="w-20 h-20 bg-emerald-100 dark:bg-emerald-900/30 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <span className="text-4xl">✉️</span>
+                  </div>
+                  <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-3">Verifikasi Email Dikirim</h3>
+                  <p className="text-gray-600 dark:text-gray-400 mb-8 leading-relaxed">
+                    Kami telah mengirimkan link verifikasi ke <strong>{formData.email}</strong>.<br />
+                    Klik link tersebut untuk mengaktifkan akun Anda.
+                  </p>
+
+                  <Link
+                    href="/auth/login"
+                    className="inline-block w-full bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-4 px-4 rounded-2xl transition-colors"
+                  >
+                    Ke Halaman Login
+                  </Link>
+                </motion.div>
+              )}
+
               {step === 1 && (
                 <motion.div
                   initial={{ opacity: 0, x: 20 }}
@@ -257,13 +282,9 @@ export default function RegisterPage() {
                     </div>
                   </div>
 
-                  <button
-                    type="button"
-                    onClick={nextStep}
-                    className="w-full bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-bold py-4 px-4 rounded-2xl hover:shadow-lg hover:shadow-emerald-500/25 transition-all"
-                  >
+                  <GradientButton type="button" onClick={nextStep} className="w-full">
                     Lanjut
-                  </button>
+                  </GradientButton>
                 </motion.div>
               )}
 
@@ -336,20 +357,9 @@ export default function RegisterPage() {
                     >
                       Kembali
                     </button>
-                    <button
-                      type="submit"
-                      disabled={loading}
-                      className="flex-1 bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-bold py-4 px-4 rounded-2xl hover:shadow-lg hover:shadow-emerald-500/25 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                    >
-                      {loading ? (
-                        <>
-                          <Loader2 className="w-5 h-5 animate-spin" />
-                          Memproses...
-                        </>
-                      ) : (
-                        'Daftar'
-                      )}
-                    </button>
+                    <GradientButton type="submit" isLoading={loading} className="flex-1">
+                      Daftar
+                    </GradientButton>
                   </div>
                 </motion.div>
               )}

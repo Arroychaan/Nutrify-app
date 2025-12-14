@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { registerController, loginController, refreshTokenController, logoutController, getMeController, updateProfileController, changePasswordController, deleteAccountController } from '@controllers/authController.js';
+import { registerController, loginController, refreshTokenController, logoutController, getMeController, updateProfileController, changePasswordController, deleteAccountController, verifyEmailController } from '@controllers/authController.js';
 import { authenticateToken } from '@middlewares/auth.js';
 
 const router = Router();
@@ -8,6 +8,7 @@ const router = Router();
 router.post('/register', registerController);
 router.post('/login', loginController);
 router.post('/refresh', refreshTokenController);
+router.get('/verify-email', verifyEmailController);
 
 // Protected routes
 router.post('/logout', authenticateToken, logoutController);

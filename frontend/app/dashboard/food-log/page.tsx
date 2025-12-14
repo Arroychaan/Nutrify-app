@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { motion } from 'framer-motion'
 import Link from 'next/link'
+import Image from 'next/image'
 import {
     ArrowLeft,
     Utensils,
@@ -22,6 +23,7 @@ import {
 } from 'lucide-react'
 import { foodLogApi } from '@/lib/api'
 import Toast from '@/components/Toast'
+import { useTranslation } from '@/lib/AppContext'
 
 interface FoodLog {
     id: string
@@ -36,6 +38,7 @@ interface FoodLog {
 }
 
 export default function FoodLogPage() {
+    const { t } = useTranslation()
     const router = useRouter()
     const searchParams = useSearchParams()
     const [logs, setLogs] = useState<FoodLog[]>([])
@@ -79,14 +82,14 @@ export default function FoodLogPage() {
     }
 
     const handleDelete = async (id: string) => {
-        if (!confirm('Hapus log makanan ini?')) return
+        if (!confirm(t('foodLog.deleteConfirm'))) return
         try {
             setDeleting(id)
             await foodLogApi.delete(id)
-            setToast({ isVisible: true, message: 'Log makanan berhasil dihapus', type: 'success' })
+            setToast({ isVisible: true, message: t('foodLog.deleteSuccess'), type: 'success' })
             loadLogs()
         } catch (error) {
-            setToast({ isVisible: true, message: 'Gagal menghapus log makanan', type: 'error' })
+            setToast({ isVisible: true, message: t('foodLog.deleteError'), type: 'error' })
         } finally {
             setDeleting(null)
         }
@@ -104,10 +107,10 @@ export default function FoodLogPage() {
 
     const getMealLabel = (mealType: string) => {
         switch (mealType) {
-            case 'breakfast': return 'Sarapan'
-            case 'lunch': return 'Makan Siang'
-            case 'dinner': return 'Makan Malam'
-            case 'snack': return 'Camilan'
+            case 'breakfast': return t('foodLog.breakfast')
+            case 'lunch': return t('foodLog.lunch')
+            case 'dinner': return t('foodLog.dinner')
+            case 'snack': return t('foodLog.snack')
             default: return mealType
         }
     }
@@ -131,8 +134,8 @@ export default function FoodLogPage() {
             <div className="max-w-3xl mx-auto space-y-6 pb-24 md:pb-8">
                 {/* Header - Minimalist */}
                 <div className="pt-2 pb-2">
-                    <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Log Makanan</h1>
-                    <p className="text-sm text-gray-500">Catat asupan harianmu</p>
+                    <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{t('foodLog.title')}</h1>
+                    <p className="text-sm text-gray-500">{t('foodLog.subtitle')}</p>
                 </div>
 
                 {/* Date Selector - Floating & Clean */}
@@ -150,10 +153,10 @@ export default function FoodLogPage() {
 
                     <div className="text-center">
                         <p className="font-bold text-gray-900 dark:text-white text-sm">
-                            {isToday ? 'Hari Ini' : selectedDate.toLocaleDateString('id-ID', { weekday: 'long' })}
+                            {isToday ? t('common.today') : selectedDate.toLocaleDateString(t('settings.language') === 'id' ? 'id-ID' : 'en-US', { weekday: 'long' })}
                         </p>
                         <p className="text-xs text-gray-500">
-                            {selectedDate.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}
+                            {selectedDate.toLocaleDateString(t('settings.language') === 'id' ? 'id-ID' : 'en-US', { day: 'numeric', month: 'long', year: 'numeric' })}
                         </p>
                     </div>
 
@@ -176,21 +179,21 @@ export default function FoodLogPage() {
                     <div className="flex items-center justify-between mb-4">
                         <div className="flex items-center gap-2">
                             <Flame className="w-5 h-5 text-emerald-100" />
-                            <span className="font-medium text-emerald-50">Total Kalori</span>
+                            <span className="font-medium text-emerald-50">{t('foodLog.totalCalories')}</span>
                         </div>
                         <span className="text-3xl font-bold tracking-tight">{summary.calories}</span>
                     </div>
                     <div className="grid grid-cols-3 gap-3">
                         <div className="bg-white/10 backdrop-blur-md rounded-2xl p-3 text-center border border-white/10">
-                            <p className="text-[10px] uppercase tracking-wider text-emerald-100 mb-1">Protein</p>
+                            <p className="text-[10px] uppercase tracking-wider text-emerald-100 mb-1">{t('dashboard.protein')}</p>
                             <p className="font-bold text-lg">{summary.protein}g</p>
                         </div>
                         <div className="bg-white/10 backdrop-blur-md rounded-2xl p-3 text-center border border-white/10">
-                            <p className="text-[10px] uppercase tracking-wider text-emerald-100 mb-1">Karbo</p>
+                            <p className="text-[10px] uppercase tracking-wider text-emerald-100 mb-1">{t('dashboard.carbs')}</p>
                             <p className="font-bold text-lg">{summary.carbs}g</p>
                         </div>
                         <div className="bg-white/10 backdrop-blur-md rounded-2xl p-3 text-center border border-white/10">
-                            <p className="text-[10px] uppercase tracking-wider text-emerald-100 mb-1">Lemak</p>
+                            <p className="text-[10px] uppercase tracking-wider text-emerald-100 mb-1">{t('dashboard.fat')}</p>
                             <p className="font-bold text-lg">{summary.fat}g</p>
                         </div>
                     </div>
@@ -237,36 +240,45 @@ export default function FoodLogPage() {
                                             </div>
                                             <div>
                                                 <h3 className="font-bold text-gray-900 dark:text-white text-base capitalize">{getMealLabel(mealType)}</h3>
-                                                {mealTotal > 0 && <span className="text-xs text-emerald-600 font-medium">{mealTotal} kkal</span>}
+                                                {mealTotal > 0 && <span className="text-xs text-emerald-600 font-medium">{mealTotal} {t('units.kcal') || 'kcal'}</span>}
                                             </div>
                                         </div>
                                         <Link
                                             href={`/dashboard/food-log/add?meal=${mealType}`}
                                             className="text-xs font-semibold text-emerald-600 hover:text-emerald-700 bg-emerald-50 hover:bg-emerald-100 px-3 py-1.5 rounded-full transition-colors"
                                         >
-                                            + Tambah
+                                            + {t('dashboard.add')}
                                         </Link>
                                     </div>
 
                                     {/* List Items - Flat White Blocks */}
                                     <div className="space-y-2">
                                         {mealLogs.length === 0 ? (
-                                            <div className="p-3 border-2 border-dashed border-gray-100 dark:border-gray-700 rounded-2xl text-center">
-                                                <p className="text-xs text-gray-400">Belum ada {getMealLabel(mealType).toLowerCase()}</p>
+                                            <div className="flex flex-col items-center justify-center py-8 text-center bg-white/50 dark:bg-gray-800/50 rounded-2xl border border-dashed border-gray-200 dark:border-gray-700">
+                                                <div className="w-24 h-24 mb-3 relative grayscale-[20%] opacity-90 hover:grayscale-0 hover:scale-110 transition-all duration-500">
+                                                    <Image
+                                                        src="/illustrations/empty-state.png"
+                                                        alt="Empty Plate"
+                                                        fill
+                                                        className="object-contain drop-shadow-lg"
+                                                    />
+                                                </div>
+                                                <p className="text-sm font-medium text-gray-600 dark:text-gray-300">{t('foodLog.noLogs')} {getMealLabel(mealType).toLowerCase()}</p>
+                                                <p className="text-xs text-gray-400 mt-1">Tap + to add your meal</p>
                                             </div>
                                         ) : (
                                             mealLogs.map((log) => (
                                                 <div
                                                     key={log.id}
-                                                    className="group relative bg-white dark:bg-gray-800 p-4 rounded-2xl shadow-[0_2px_8px_-4px_rgba(0,0,0,0.05)] border border-gray-50 dark:border-gray-700/50 flex items-start justify-between hover:border-emerald-100 transition-all"
+                                                    className="group relative bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm p-4 rounded-2xl shadow-sm border border-white/40 dark:border-gray-700/50 flex items-start justify-between hover:border-emerald-200 dark:hover:border-emerald-800 hover:shadow-md transition-all duration-300"
                                                 >
                                                     <div className="flex-1 min-w-0 mr-4">
                                                         <p className="font-semibold text-gray-900 dark:text-white truncate">{log.foodName}</p>
                                                         <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1">
                                                             <span className="text-xs font-medium text-emerald-600 bg-emerald-50 dark:bg-emerald-900/20 px-2 py-0.5 rounded-md">
-                                                                {log.calories} kkal
+                                                                {log.calories} {t('units.kcal') || 'kcal'}
                                                             </span>
-                                                            <span className="text-xs text-gray-500">{log.portion || '1 porsi'}</span>
+                                                            <span className="text-xs text-gray-500">{log.portion || `1 ${t('foodLog.portion') || 'porsi'}`}</span>
                                                         </div>
                                                     </div>
 

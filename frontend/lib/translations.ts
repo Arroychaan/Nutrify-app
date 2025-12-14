@@ -13,7 +13,7 @@ export const translations = {
   success: { id: 'Berhasil', en: 'Success' },
   error: { id: 'Error', en: 'Error' },
   confirm: { id: 'Konfirmasi', en: 'Confirm' },
-  
+
   // Navigation
   nav: {
     dashboard: { id: 'Dashboard', en: 'Dashboard' },
@@ -24,7 +24,7 @@ export const translations = {
     settings: { id: 'Pengaturan', en: 'Settings' },
     logout: { id: 'Keluar', en: 'Logout' },
   },
-  
+
   // Dashboard
   dashboard: {
     welcome: { id: 'Selamat datang', en: 'Welcome' },
@@ -39,8 +39,45 @@ export const translations = {
     logFood: { id: 'Catat Makanan', en: 'Log Food' },
     askAI: { id: 'Tanya AI', en: 'Ask AI' },
     viewMealPlan: { id: 'Lihat Meal Plan', en: 'View Meal Plan' },
+    remaining: { id: 'Sisa', en: 'Remaining' },
+    caloriesToday: { id: 'Kalori Hari Ini', en: "Calories Today" },
+    water: { id: 'Air Minum', en: 'Water Intake' },
+    achieved: { id: 'Tercapai', en: 'Achieved' },
+    add: { id: 'Tambah', en: 'Add' },
+    log: { id: 'Catat', en: 'Log' },
+    photo: { id: 'Foto', en: 'Photo' },
+    weigh: { id: 'Timbang', en: 'Weigh' },
+    viewAll: { id: 'Lihat Semua', en: 'View All' },
+    empty: { id: 'Belum ada', en: 'Empty' },
+    item: { id: 'item', en: 'item' },
+    slogan: { id: 'Partner Kesehatanmu', en: 'Your Health Partner' },
+    greetings: {
+      morning: { id: 'Selamat Pagi', en: 'Good Morning' },
+      afternoon: { id: 'Selamat Siang', en: 'Good Afternoon' },
+      evening: { id: 'Selamat Sore', en: 'Good Evening' },
+      night: { id: 'Selamat Malam', en: 'Good Night' },
+    },
+    streakMessages: {
+      beginner: { id: 'Mulai langkah sehatmu hari ini!', en: 'Start your healthy journey today!' },
+      active: { id: 'Konsistensi adalah kunci! Pertahankan!', en: 'Consistency is key! Keep it up!' },
+      consistent: { id: 'Luar biasa! 3 hari berturut-turut!', en: 'Amazing! 3 days in a row!' },
+      onFire: { id: 'Wow! Seminggu penuh hidup sehat!', en: 'Wow! A full week of healthy living!' },
+      legend: { id: 'Anda legend! Satu bulan konsisten!', en: 'You are a legend! One month consistent!' },
+    },
+    share: {
+      title: { id: 'Bagikan Prestasi', en: 'Share Achievement' },
+      subtitle: { id: 'Tunjukkan konsistensi dan pencapaianmu kepada teman-teman!', en: 'Show off your consistency and achievements to your friends!' },
+      preparing: { id: 'Menyiapkan Gambar...', en: 'Preparing Image...' },
+      shareNow: { id: 'Bagikan Sekarang', en: 'Share Now' },
+      download: { id: 'Unduh Gambar', en: 'Download Image' },
+      greatJob: { id: 'Kerja Bagus', en: 'Great Job' },
+      quote: { id: 'Konsistensi adalah jembatan antara tujuan dan pencapaian.', en: 'Consistency is the bridge between goals and accomplishment.' },
+      join: { id: 'Bergabunglah di Nutrify App 🚀', en: 'Join us on Nutrify App 🚀' },
+      dailySummary: { id: 'Ringkasan Harian', en: 'Daily Summary' },
+      totalIntake: { id: 'Total Asupan', en: 'Total Intake' },
+    },
   },
-  
+
   // Food Log
   foodLog: {
     title: { id: 'Catatan Makanan', en: 'Food Log' },
@@ -53,8 +90,20 @@ export const translations = {
     portion: { id: 'Porsi', en: 'Portion' },
     notes: { id: 'Catatan', en: 'Notes' },
     noFoodLogged: { id: 'Belum ada makanan dicatat', en: 'No food logged yet' },
+    subtitle: { id: 'Catat asupan harianmu', en: 'Log your daily intake' },
+    totalCalories: { id: 'Total Kalori', en: 'Total Calories' },
+    deleteConfirm: { id: 'Hapus log makanan ini?', en: 'Delete this food log?' },
+    deleteSuccess: { id: 'Log makanan berhasil dihapus', en: 'Food log deleted successfully' },
+    deleteError: { id: 'Gagal menghapus log makanan', en: 'Failed to delete food log' },
+    noLogs: { id: 'Belum ada', en: 'No' },
   },
-  
+  common: {
+    today: { id: 'Hari Ini', en: 'Today' },
+    save: { id: 'Simpan', en: 'Save' },
+    cancel: { id: 'Batal', en: 'Cancel' },
+    delete: { id: 'Hapus', en: 'Delete' },
+  },
+
   // Meal Plan
   mealPlan: {
     title: { id: 'Rencana Makan', en: 'Meal Plan' },
@@ -62,7 +111,7 @@ export const translations = {
     today: { id: 'Hari Ini', en: 'Today' },
     thisWeek: { id: 'Minggu Ini', en: 'This Week' },
   },
-  
+
   // Chat
   chat: {
     title: { id: 'Chat dengan AI Dietician', en: 'Chat with AI Dietician' },
@@ -70,7 +119,7 @@ export const translations = {
     send: { id: 'Kirim', en: 'Send' },
     thinking: { id: 'Sedang berpikir...', en: 'Thinking...' },
   },
-  
+
   // Profile
   profile: {
     title: { id: 'Profil Saya', en: 'My Profile' },
@@ -83,12 +132,12 @@ export const translations = {
     activityLevel: { id: 'Tingkat Aktivitas', en: 'Activity Level' },
     badges: { id: 'Lencana', en: 'Badges' },
   },
-  
+
   // Settings
   settings: {
     title: { id: 'Pengaturan', en: 'Settings' },
     subtitle: { id: 'Kelola akun dan preferensi aplikasi Anda', en: 'Manage your account and app preferences' },
-    
+
     // Tabs
     account: { id: 'Akun', en: 'Account' },
     health: { id: 'Kesehatan', en: 'Health' },
@@ -97,28 +146,28 @@ export const translations = {
     app: { id: 'Aplikasi', en: 'App' },
     privacy: { id: 'Privasi', en: 'Privacy' },
     about: { id: 'Tentang', en: 'About' },
-    
+
     // Account
     accountInfo: { id: 'Informasi Akun', en: 'Account Information' },
     changePassword: { id: 'Ubah Password', en: 'Change Password' },
     currentPassword: { id: 'Password Saat Ini', en: 'Current Password' },
     newPassword: { id: 'Password Baru', en: 'New Password' },
     confirmPassword: { id: 'Konfirmasi Password', en: 'Confirm Password' },
-    
+
     // Health
     healthProfile: { id: 'Profil Kesehatan', en: 'Health Profile' },
     dateOfBirth: { id: 'Tanggal Lahir', en: 'Date of Birth' },
     gender: { id: 'Jenis Kelamin', en: 'Gender' },
     male: { id: 'Laki-laki', en: 'Male' },
     female: { id: 'Perempuan', en: 'Female' },
-    
+
     // Activity levels
     sedentary: { id: 'Tidak Aktif (jarang olahraga)', en: 'Sedentary (rarely exercise)' },
     light: { id: 'Ringan (1-2x/minggu)', en: 'Light (1-2x/week)' },
     moderate: { id: 'Sedang (3-4x/minggu)', en: 'Moderate (3-4x/week)' },
     active: { id: 'Aktif (5-6x/minggu)', en: 'Active (5-6x/week)' },
     veryActive: { id: 'Sangat Aktif (setiap hari)', en: 'Very Active (daily)' },
-    
+
     // Diet
     culturalPreferences: { id: 'Preferensi Budaya', en: 'Cultural Preferences' },
     culture: { id: 'Budaya', en: 'Culture' },
@@ -129,7 +178,7 @@ export const translations = {
     medicalConditions: { id: 'Kondisi Medis', en: 'Medical Conditions' },
     addAllergy: { id: 'Tambah alergi (enter untuk menambah)', en: 'Add allergy (press enter)' },
     addDislike: { id: 'Tambah makanan (enter untuk menambah)', en: 'Add food (press enter)' },
-    
+
     // App Settings
     appSettings: { id: 'Pengaturan Aplikasi', en: 'App Settings' },
     language: { id: 'Bahasa', en: 'Language' },
@@ -141,7 +190,7 @@ export const translations = {
     metric: { id: 'Metrik (kg, cm)', en: 'Metric (kg, cm)' },
     imperial: { id: 'Imperial (lb, ft)', en: 'Imperial (lb, ft)' },
     darkModeNote: { id: '* Mode gelap akan tersedia di update selanjutnya', en: '* Dark mode coming in next update' },
-    
+
     // Privacy
     exportData: { id: 'Ekspor Data', en: 'Export Data' },
     exportDataDesc: { id: 'Unduh semua data Anda dalam format JSON. Ini termasuk profil, log makanan, dan pengaturan.', en: 'Download all your data in JSON format. This includes profile, food logs, and settings.' },
@@ -153,7 +202,7 @@ export const translations = {
     deleteMyAccount: { id: 'Hapus Akun Saya', en: 'Delete My Account' },
     deleteConfirmText: { id: 'Ketik "HAPUS AKUN" untuk konfirmasi:', en: 'Type "DELETE ACCOUNT" to confirm:' },
     deleteConfirmPlaceholder: { id: 'HAPUS AKUN', en: 'DELETE ACCOUNT' },
-    
+
     // About
     aiDietician: { id: 'AI Dietician untuk Indonesia', en: 'AI Dietician for Indonesia' },
     version: { id: 'Versi', en: 'Version' },
@@ -167,7 +216,7 @@ export const translations = {
     termsConditions: { id: 'Syarat & Ketentuan', en: 'Terms & Conditions' },
     madeWith: { id: 'Dibuat dengan ❤️ di Indonesia', en: 'Made with ❤️ in Indonesia' },
   },
-  
+
   // Notifications
   notifications: {
     title: { id: 'Pengaturan Notifikasi', en: 'Notification Settings' },
@@ -179,7 +228,7 @@ export const translations = {
     weeklyReport: { id: 'Laporan Mingguan', en: 'Weekly Report' },
     testNotification: { id: 'Kirim Notifikasi Test', en: 'Send Test Notification' },
   },
-  
+
   // Toast messages
   toast: {
     profileUpdated: { id: 'Profil berhasil diperbarui! 🎉', en: 'Profile updated successfully! 🎉' },
@@ -200,7 +249,7 @@ export const translations = {
 export function t(key: string, lang: Language): string {
   const keys = key.split('.')
   let result: any = translations
-  
+
   for (const k of keys) {
     if (result[k] === undefined) {
       console.warn(`Translation not found: ${key}`)
@@ -208,10 +257,10 @@ export function t(key: string, lang: Language): string {
     }
     result = result[k]
   }
-  
+
   if (typeof result === 'object' && result[lang]) {
     return result[lang]
   }
-  
+
   return key
 }

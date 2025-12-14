@@ -1,10 +1,16 @@
 import prisma from '../config/prisma.js';
 import logger from '../config/logger.js';
 import { generateNutritionEstimate } from '../services/llmService.js';
+import {
+  validateNutritionEstimate,
+  logValidationMetric,
+  type ValidationResult
+} from '../services/groundTruthService.js';
 
 /**
  * Nutrition Lookup Service
  * Provides nutrition data from local database with AI fallback
+ * Enhanced with Ground Truth validation for LLM estimates
  */
 
 export interface NutritionData {
@@ -16,12 +22,14 @@ export interface NutritionData {
   fiberG?: number;
   sodiumMg?: number;
   sugarG?: number;
-  source: 'database' | 'ai_estimated';
+  source: 'database' | 'ai_estimated' | 'ai_validated' | 'ai_corrected';
+  confidenceScore?: number; // 0-100 confidence in the data accuracy
   foodId?: string;
   isVegetarian?: boolean;
   isVegan?: boolean;
   isHalal?: boolean;
   contraindications?: any[];
+  validation?: ValidationResult; // Detailed validation info
 }
 
 /**
@@ -30,14 +38,14 @@ export interface NutritionData {
  */
 export async function findFoodByName(name: string): Promise<NutritionData | null> {
   const searchName = name.toLowerCase().trim();
-  
+
   // Try exact match first
   let food = await prisma.localFood.findFirst({
     where: {
       name: { equals: searchName, mode: 'insensitive' },
     },
   });
-  
+
   // Try contains match
   if (!food) {
     food = await prisma.localFood.findFirst({
@@ -46,7 +54,7 @@ export async function findFoodByName(name: string): Promise<NutritionData | null
       },
     });
   }
-  
+
   // Try word-based search
   if (!food) {
     const words = searchName.split(' ').filter(w => w.length > 2);
@@ -60,7 +68,7 @@ export async function findFoodByName(name: string): Promise<NutritionData | null
       });
     }
   }
-  
+
   if (food) {
     return {
       name: food.name,
@@ -79,48 +87,93 @@ export async function findFoodByName(name: string): Promise<NutritionData | null
       contraindications: food.contraindications as any[],
     };
   }
-  
+
   return null;
 }
 
 /**
  * Get nutrition data for a food, using database first then AI fallback
+ * Enhanced with Ground Truth validation for AI estimates
  */
 export async function getNutritionData(
   foodName: string,
   portion: string = '1 porsi'
 ): Promise<NutritionData> {
   try {
-    // First try database lookup
+    // First try database lookup (Ground Truth)
     const dbFood = await findFoodByName(foodName);
-    
+
     if (dbFood) {
-      logger.info(`Found food in database: ${dbFood.name}`, {
+      logger.info(`Found food in database (Ground Truth): ${dbFood.name}`, {
         originalQuery: foodName,
         foundName: dbFood.name,
       });
-      
-      // Adjust for portion if needed (database is per 100g)
-      // For now return as-is, portion adjustment can be added later
-      return dbFood;
+
+      // Database is our ground truth - highest confidence
+      return {
+        ...dbFood,
+        confidenceScore: 100,
+      };
     }
-    
-    // Fallback to AI estimation
-    logger.info(`Food not found in database, using AI estimate: ${foodName}`);
-    
+
+    // Fallback to AI estimation with Ground Truth validation
+    logger.info(`Food not found in database, using AI estimate with validation: ${foodName}`);
+
     const aiEstimate = await generateNutritionEstimate(foodName, portion);
-    
-    return {
+
+    // Validate AI estimate against ground truth
+    const validation = await validateNutritionEstimate({
       name: foodName,
       calories: aiEstimate.calories,
       proteinG: aiEstimate.proteinG,
       carbsG: aiEstimate.carbsG,
       fatG: aiEstimate.fatG,
-      source: 'ai_estimated',
+    });
+
+    // Log validation metrics for monitoring
+    await logValidationMetric(validation);
+
+    // Determine source based on validation result
+    let source: NutritionData['source'] = 'ai_estimated';
+    if (validation.source === 'ground_truth') {
+      source = 'ai_corrected'; // AI was corrected by ground truth
+    } else if (validation.source === 'llm_validated') {
+      source = 'ai_validated'; // AI was validated against ground truth
+    }
+
+    // Use corrected estimate if available, otherwise original
+    const finalEstimate = validation.correctedEstimate || validation.originalEstimate;
+
+    const result: NutritionData = {
+      name: validation.matchedFoodName || foodName,
+      calories: finalEstimate.calories,
+      proteinG: finalEstimate.proteinG,
+      carbsG: finalEstimate.carbsG,
+      fatG: finalEstimate.fatG,
+      source,
+      confidenceScore: validation.confidenceScore,
+      validation,
     };
+
+    // Log if AI was corrected
+    if (validation.correctedEstimate) {
+      logger.info('AI estimate corrected by ground truth', {
+        original: {
+          calories: aiEstimate.calories,
+          proteinG: aiEstimate.proteinG,
+        },
+        corrected: {
+          calories: finalEstimate.calories,
+          proteinG: finalEstimate.proteinG,
+        },
+        confidenceScore: validation.confidenceScore,
+      });
+    }
+
+    return result;
   } catch (error) {
     logger.error('Error getting nutrition data:', error);
-    
+
     // Return conservative estimate on error
     return {
       name: foodName,
@@ -129,6 +182,7 @@ export async function getNutritionData(
       carbsG: 25,
       fatG: 8,
       source: 'ai_estimated',
+      confidenceScore: 30, // Low confidence for fallback
     };
   }
 }
@@ -140,12 +194,12 @@ export async function getBulkNutritionData(
   foods: Array<{ name: string; portion?: string }>
 ): Promise<NutritionData[]> {
   const results: NutritionData[] = [];
-  
+
   for (const food of foods) {
     const nutrition = await getNutritionData(food.name, food.portion);
     results.push(nutrition);
   }
-  
+
   return results;
 }
 
@@ -170,22 +224,22 @@ export async function getRecommendedFoods(
     minProtein,
     limit = 10,
   } = options;
-  
+
   // Build where clause
   const whereClause: any = {};
-  
+
   if (category) {
     whereClause.category = category;
   }
-  
+
   if (maxCalories) {
     whereClause.calories = { lte: maxCalories };
   }
-  
+
   if (minProtein) {
     whereClause.proteinG = { gte: minProtein };
   }
-  
+
   // Apply dietary restrictions
   if (dietaryRestrictions.includes('vegetarian')) {
     whereClause.isVegetarian = true;
@@ -196,7 +250,7 @@ export async function getRecommendedFoods(
   if (dietaryRestrictions.includes('halal')) {
     whereClause.isHalal = true;
   }
-  
+
   // Apply medical condition filters
   if (medicalConditions.includes('Hipertensi')) {
     whereClause.sodiumMg = { lt: 500 };
@@ -204,7 +258,7 @@ export async function getRecommendedFoods(
   if (medicalConditions.includes('Diabetes')) {
     whereClause.sugarG = { lt: 10 };
   }
-  
+
   const foods = await prisma.localFood.findMany({
     where: whereClause,
     take: limit,
@@ -225,7 +279,7 @@ export async function getRecommendedFoods(
       isHalal: true,
     },
   });
-  
+
   return foods;
 }
 
@@ -237,14 +291,14 @@ export async function isFoodSafe(
   medicalConditions: string[]
 ): Promise<{ safe: boolean; warnings: string[] }> {
   const food = await findFoodByName(foodName);
-  
+
   if (!food) {
     return { safe: true, warnings: ['Makanan tidak ditemukan dalam database, periksa manual'] };
   }
-  
+
   const warnings: string[] = [];
   let safe = true;
-  
+
   // Check contraindications
   if (food.contraindications && Array.isArray(food.contraindications)) {
     for (const contraindication of food.contraindications) {
@@ -258,7 +312,7 @@ export async function isFoodSafe(
       }
     }
   }
-  
+
   // Check sodium for hypertension
   if (medicalConditions.includes('Hipertensi') && food.sodiumMg && food.sodiumMg > 600) {
     warnings.push(`⚠️ ${food.name} tinggi sodium (${food.sodiumMg}mg) - tidak disarankan untuk hipertensi`);
@@ -266,7 +320,7 @@ export async function isFoodSafe(
       safe = false;
     }
   }
-  
+
   // Check sugar for diabetes
   if (medicalConditions.includes('Diabetes') && food.sugarG && food.sugarG > 15) {
     warnings.push(`⚠️ ${food.name} tinggi gula (${food.sugarG}g) - tidak disarankan untuk diabetes`);
@@ -274,7 +328,7 @@ export async function isFoodSafe(
       safe = false;
     }
   }
-  
+
   return { safe, warnings };
 }
 
@@ -286,25 +340,25 @@ export async function getSimilarFoods(
   medicalConditions: string[] = []
 ): Promise<any[]> {
   const originalFood = await findFoodByName(foodName);
-  
+
   if (!originalFood || !originalFood.foodId) {
     return [];
   }
-  
+
   const original = await prisma.localFood.findUnique({
     where: { id: originalFood.foodId },
   });
-  
+
   if (!original) {
     return [];
   }
-  
+
   // Find foods in same category with similar macros
   const whereClause: any = {
     category: original.category,
     id: { not: original.id },
   };
-  
+
   // Apply medical condition filters
   if (medicalConditions.includes('Hipertensi')) {
     whereClause.sodiumMg = { lt: 500 };
@@ -312,7 +366,7 @@ export async function getSimilarFoods(
   if (medicalConditions.includes('Diabetes')) {
     whereClause.sugarG = { lt: 10 };
   }
-  
+
   const similarFoods = await prisma.localFood.findMany({
     where: whereClause,
     take: 5,
@@ -328,7 +382,7 @@ export async function getSimilarFoods(
       benefits: true,
     },
   });
-  
+
   return similarFoods;
 }
 
@@ -350,10 +404,10 @@ export async function getFoodListForLLM(
       fatG: true,
     },
   });
-  
-  const foodList = foods.map(f => 
+
+  const foodList = foods.map(f =>
     `${f.name} (${f.category}): ${f.calories}kcal, P:${f.proteinG}g, K:${f.carbsG}g, L:${f.fatG}g`
   ).join('\n');
-  
+
   return foodList;
 }

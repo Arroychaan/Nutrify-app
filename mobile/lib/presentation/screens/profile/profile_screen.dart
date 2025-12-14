@@ -38,7 +38,7 @@ class ProfileScreen extends ConsumerWidget {
               width: 100,
               height: 100,
               decoration: BoxDecoration(
-                gradient: AppColors.primaryGradient,
+                gradient: AppGradients.primary,
                 shape: BoxShape.circle,
               ),
               child: Center(

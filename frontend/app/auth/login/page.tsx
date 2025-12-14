@@ -6,6 +6,8 @@ import { useRouter } from 'next/navigation'
 import { authApi } from '@/lib/api'
 import { motion } from 'framer-motion'
 import { Eye, EyeOff, ArrowLeft, Loader2, Leaf, Sparkles } from 'lucide-react'
+import { GradientButton } from '@/components/ui/GradientButton'
+import { GlassCard } from '@/components/ui/GlassCard'
 
 export default function LoginPage() {
   const router = useRouter()
@@ -46,10 +48,10 @@ export default function LoginPage() {
             <div className="w-12 h-12 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-2xl flex items-center justify-center shadow-lg shadow-emerald-500/20">
               <Leaf className="w-6 h-6 text-white" />
             </div>
-            <span className="text-2xl font-bold text-gray-900 dark:text-white">Nutrify</span>
+            <span className="text-2xl font-bold font-display text-gray-900 dark:text-white">Nutrify</span>
           </Link>
 
-          <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4 leading-tight">
+          <h1 className="text-4xl font-display font-bold text-gray-900 dark:text-white mb-4 leading-tight">
             Selamat Datang
             <span className="block text-emerald-500">Kembali! 👋</span>
           </h1>
@@ -60,17 +62,17 @@ export default function LoginPage() {
 
           {/* Stats */}
           <div className="grid grid-cols-2 gap-4">
-            <div className="bg-white/60 dark:bg-gray-800/60 backdrop-blur rounded-2xl p-4 border border-white/50 dark:border-gray-700">
-              <div className="text-2xl font-bold text-gray-900 dark:text-white">1000+</div>
+            <GlassCard className="!p-4 bg-white/40 dark:bg-gray-800/40">
+              <div className="text-2xl font-bold text-gray-900 dark:text-white mb-1">1000+</div>
               <div className="text-gray-500 text-sm">Makanan Lokal</div>
-            </div>
-            <div className="bg-white/60 dark:bg-gray-800/60 backdrop-blur rounded-2xl p-4 border border-white/50 dark:border-gray-700">
-              <div className="flex items-center gap-1 text-2xl font-bold text-gray-900 dark:text-white">
+            </GlassCard>
+            <GlassCard className="!p-4 bg-white/40 dark:bg-gray-800/40">
+              <div className="flex items-center gap-1 text-2xl font-bold text-gray-900 dark:text-white mb-1">
                 <Sparkles className="w-5 h-5 text-emerald-500" />
                 AI
               </div>
               <div className="text-gray-500 text-sm">Powered</div>
-            </div>
+            </GlassCard>
           </div>
         </div>
       </div>
@@ -163,20 +165,9 @@ export default function LoginPage() {
                 </div>
               </div>
 
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-bold py-4 px-4 rounded-2xl hover:shadow-lg hover:shadow-emerald-500/25 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-              >
-                {loading ? (
-                  <>
-                    <Loader2 className="w-5 h-5 animate-spin" />
-                    Memproses...
-                  </>
-                ) : (
-                  'Masuk'
-                )}
-              </button>
+              <GradientButton type="submit" isLoading={loading} className="w-full">
+                Masuk
+              </GradientButton>
             </form>
           </div>
 

@@ -6,11 +6,20 @@ import '../../../data/models/meal_plan_model.dart';
 import '../../providers/router_provider.dart';
 import '../../widgets/common/app_button.dart';
 
-// Simple provider for meal plans
+import '../../../core/network/api_client.dart';
+
+// Meal plans provider
 final mealPlansProvider = FutureProvider<List<MealPlanModel>>((ref) async {
-  // TODO: Implement actual API call
-  await Future.delayed(const Duration(seconds: 1));
-  return []; // Return empty for now
+  try {
+    final response = await ApiClient.instance.getMealPlans();
+    if (response.statusCode == 200) {
+      final List<dynamic> data = response.data['data'] ?? [];
+      return data.map((json) => MealPlanModel.fromJson(json)).toList();
+    }
+    throw Exception('Gagal memuat meal plans');
+  } catch (e) {
+    throw Exception('Terjadi kesalahan: $e');
+  }
 });
 
 class MealPlanListScreen extends ConsumerWidget {

@@ -204,9 +204,29 @@ export async function generateNutritionEstimate(
   portion: string
 ): Promise<{ calories: number; proteinG: number; carbsG: number; fatG: number }> {
   try {
-    const prompt = `Estimate the nutrition for this Indonesian food:\nFood: ${foodName}\nPortion: ${portion}\n\nReturn ONLY a JSON object with this exact structure (no markdown, no extra text):\n{"calories": number, "proteinG": number, "carbsG": number, "fatG": number}\n\nUse realistic values based on Indonesian food composition data.\nIf unsure, provide reasonable estimates for typical Indonesian portions.`;
+    // Enhanced prompt with ground truth reference
+    const prompt = `Estimate the nutrition for this Indonesian food:
+Food: ${foodName}
+Portion: ${portion}
 
-    const text = await geminiGenerateWithRotation(prompt, 'You are a nutrition expert. Respond with JSON only.');
+IMPORTANT: Use values aligned with Indonesian food composition data (DKBM - Daftar Komposisi Bahan Makanan Indonesia).
+For reference, typical Indonesian foods per 100g:
+- Nasi putih: ~130 kcal, 2.7g protein, 28g carbs, 0.3g fat
+- Ayam goreng: ~287 kcal, 32g protein, 1g carbs, 16g fat  
+- Tempe goreng: ~212 kcal, 17g protein, 13g carbs, 11g fat
+- Tahu: ~76 kcal, 8g protein, 2g carbs, 4.8g fat
+- Nasi goreng: ~180 kcal, 4g protein, 25g carbs, 7g fat
+
+Return ONLY a JSON object with this exact structure (no markdown, no extra text):
+{"calories": number, "proteinG": number, "carbsG": number, "fatG": number}
+
+Provide realistic values based on Indonesian food composition data.`;
+
+    const systemPrompt = `You are a certified Indonesian nutrition expert with deep knowledge of DKBM (Daftar Komposisi Bahan Makanan Indonesia). 
+Your estimates must be accurate and consistent with official Indonesian food composition databases.
+Always respond with valid JSON only, no explanations.`;
+
+    const text = await geminiGenerateWithRotation(prompt, systemPrompt);
 
     const cleanText = text.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
     const nutrition = JSON.parse(cleanText);

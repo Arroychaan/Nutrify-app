@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../constants/constants.dart';
 
@@ -48,11 +49,11 @@ class ApiClient {
         },
         onError: (error, handler) async {
           // Log error for debugging
-          print(
+          debugPrint(
             'API ERROR: ${error.message} - ${error.response?.statusCode} - ${error.requestOptions.uri}',
           );
           if (error.response?.data != null) {
-            print('ERROR DATA: ${error.response?.data}');
+            debugPrint('ERROR DATA: ${error.response?.data}');
           }
 
           // Handle 401 - Token expired

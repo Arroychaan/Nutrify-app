@@ -1,3 +1,5 @@
+import crypto from 'crypto';
+import { sendVerificationEmail } from '@services/emailService.js';
 import { Request, Response } from 'express';
 import { asyncHandler } from '@middlewares/errorHandler.js';
 import { generateAccessToken, generateRefreshToken } from '@utils/jwt.js';
@@ -46,6 +48,10 @@ export const registerController = asyncHandler(
     // Hash password
     const hashedPassword = await hashPassword(password);
 
+    // Generate verification token
+    const verificationToken = crypto.randomBytes(32).toString('hex');
+    const verificationExpires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+
     // Create user in database
     const user = await prisma.user.create({
       data: {
@@ -57,8 +63,19 @@ export const registerController = asyncHandler(
         gender: gender || null,
         dateOfBirth: dateOfBirth ? new Date(dateOfBirth) : null,
         activityLevel: activityLevel || 'moderate',
+        isVerified: false,
+        verificationToken,
+        verificationExpires,
       },
     });
+
+    // Send verification email
+    try {
+      await sendVerificationEmail(email, verificationToken);
+    } catch (error) {
+      logger.error('Failed to send verification email', { error, userId: user.id });
+      // Proceed but log error. User can resend verification later.
+    }
 
     // Generate tokens
     const accessToken = generateAccessToken(user.id, email);
@@ -75,6 +92,7 @@ export const registerController = asyncHandler(
         accessToken,
         refreshToken,
         expiresIn: 86400, // 24 hours
+        message: 'Registration successful. Please check your email to verify your account.',
       },
     });
   }
@@ -451,6 +469,55 @@ export const deleteAccountController = asyncHandler(
     res.json({
       success: true,
       message: 'Account deleted successfully',
+    });
+  }
+);
+
+/**
+ * Verify email
+ * GET /api/v1/auth/verify-email
+ */
+export const verifyEmailController = asyncHandler(
+  async (req: Request, res: Response) => {
+    const { token } = req.query;
+
+    if (!token || typeof token !== 'string') {
+      res.status(400).json({
+        success: false,
+        error: { code: 'INVALID_TOKEN', message: 'Token is required' },
+      });
+      return;
+    }
+
+    const user = await prisma.user.findFirst({
+      where: {
+        verificationToken: token,
+        verificationExpires: { gt: new Date() },
+      },
+    });
+
+    if (!user) {
+      res.status(400).json({
+        success: false,
+        error: { code: 'INVALID_TOKEN', message: 'Invalid or expired verification token' },
+      });
+      return;
+    }
+
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        isVerified: true,
+        verificationToken: null,
+        verificationExpires: null,
+      },
+    });
+
+    logger.info('User email verified successfully', { userId: user.id });
+
+    res.json({
+      success: true,
+      message: 'Email verified successfully. You can now login.',
     });
   }
 );

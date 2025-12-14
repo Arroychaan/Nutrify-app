@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../screens/onboarding/onboarding_screen.dart';
 import '../screens/splash_screen.dart';
 import '../screens/auth/login_screen.dart';
 import '../screens/auth/register_screen.dart';
@@ -30,6 +31,7 @@ class AppRoutes {
   static const String addFoodLog = '/food-log/add';
   static const String profile = '/profile';
   static const String editProfile = '/profile/edit';
+  static const String onboarding = '/onboarding';
 }
 
 /// Router refresh notifier for Riverpod integration
@@ -76,7 +78,9 @@ final routerProvider = Provider<GoRouter>((ref) {
 
       // If not logged in and not on auth route, go to login
       if (!isLoggedIn && !isAuthRoute) {
-        return AppRoutes.login;
+        // If not logged in, go to onboarding (which leads to login)
+        if (currentPath == AppRoutes.onboarding) return null;
+        return AppRoutes.onboarding;
       }
 
       return null;
@@ -96,6 +100,12 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.register,
         builder: (context, state) => const RegisterScreen(),
+      ),
+
+      // Onboarding
+      GoRoute(
+        path: AppRoutes.onboarding,
+        builder: (context, state) => const OnboardingScreen(),
       ),
 
       // Main app with shell (bottom nav)

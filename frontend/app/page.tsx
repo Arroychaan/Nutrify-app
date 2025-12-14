@@ -13,6 +13,7 @@ import {
   Leaf,
   ArrowRight
 } from 'lucide-react'
+import { GradientButton } from '@/components/ui/GradientButton'
 
 export default function Home() {
   return (
@@ -79,16 +80,14 @@ export default function Home() {
 
               {/* CTA Buttons */}
               <div className="flex flex-col sm:flex-row justify-center gap-4 mb-16">
-                <Link
-                  href="/auth/register"
-                  className="group inline-flex items-center justify-center gap-2 bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-bold py-4 px-8 rounded-2xl hover:shadow-xl hover:shadow-emerald-500/25 transition-all text-lg"
-                >
-                  Mulai Sekarang
-                  <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                <Link href="/auth/register">
+                  <GradientButton className="text-lg px-8 py-4 w-full sm:w-auto" icon={ArrowRight}>
+                    Mulai Sekarang
+                  </GradientButton>
                 </Link>
                 <Link
                   href="#features"
-                  className="inline-flex items-center justify-center gap-2 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 font-semibold py-4 px-8 rounded-2xl border border-gray-200 dark:border-gray-700 hover:border-emerald-300 dark:hover:border-emerald-700 transition-all text-lg shadow-sm"
+                  className="inline-flex items-center justify-center gap-2 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 font-semibold py-4 px-8 rounded-xl border border-gray-200 dark:border-gray-700 hover:border-emerald-300 dark:hover:border-emerald-700 transition-all text-lg shadow-sm w-full sm:w-auto"
                 >
                   Lihat Fitur
                 </Link>

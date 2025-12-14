@@ -6,6 +6,7 @@ import '../../../core/network/api_client.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../widgets/common/app_button.dart';
 import '../../widgets/common/app_text_field.dart';
+import '../../providers/streak_provider.dart';
 
 class AddFoodLogScreen extends ConsumerStatefulWidget {
   const AddFoodLogScreen({super.key});
@@ -63,6 +64,8 @@ class _AddFoodLogScreenState extends ConsumerState<AddFoodLogScreen> {
               backgroundColor: AppColors.success,
             ),
           );
+          // Refresh streak
+          ref.read(streakProvider.notifier).refreshStreak();
           context.pop();
         }
       } else {

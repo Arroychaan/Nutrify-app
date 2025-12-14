@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { useState, useEffect } from 'react'
 import { authApi } from '@/lib/api'
+import { useTranslation } from '@/lib/AppContext'
 import { motion } from 'framer-motion'
 import {
   LayoutDashboard,
@@ -101,18 +102,21 @@ export default function DashboardLayout({
     )
   }
 
+  /* ... inside component ... */
+  const { t } = useTranslation()
+
   const navigation = [
-    { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
-    { name: 'Log Makan', href: '/dashboard/food-log', icon: ClipboardList },
-    { name: 'Rencana Makan', href: '/dashboard/meal-plan', icon: CalendarDays },
-    { name: 'Pengaturan', href: '/dashboard/settings', icon: Settings },
+    { name: t('nav.dashboard'), href: '/dashboard', icon: LayoutDashboard },
+    { name: t('nav.foodLog'), href: '/dashboard/food-log', icon: ClipboardList },
+    { name: t('nav.mealPlan'), href: '/dashboard/meal-plan', icon: CalendarDays },
+    { name: t('nav.settings'), href: '/dashboard/settings', icon: Settings },
   ]
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-300 font-sans">
 
       {/* DESKTOP SIDEBAR */}
-      <aside className="hidden md:flex fixed inset-y-0 left-0 w-72 bg-white dark:bg-gray-800 border-r border-gray-100 dark:border-gray-700/50 shadow-[4px_0_24px_-12px_rgba(0,0,0,0.1)] z-50 flex-col transition-all duration-300">
+      <aside className="hidden md:flex fixed inset-y-0 left-0 w-72 bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl border-r border-gray-200/50 dark:border-gray-700/50 shadow-[4px_0_24px_-12px_rgba(0,0,0,0.1)] z-50 flex-col transition-all duration-300">
         <div className="p-6">
           <Link href="/dashboard" className="flex items-center gap-3 mb-8 group">
             <div className="relative w-10 h-10 flex items-center justify-center rounded-xl shadow-lg shadow-emerald-200 dark:shadow-emerald-900/20 transition-transform group-hover:scale-110 overflow-hidden">
@@ -120,7 +124,7 @@ export default function DashboardLayout({
             </div>
             <div>
               <h1 className="text-xl font-bold text-gray-900 dark:text-white tracking-tight">Nutrify</h1>
-              <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">Partner Kesehatanmu</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">{t('dashboard.slogan')}</p>
             </div>
           </Link>
 
@@ -139,7 +143,7 @@ export default function DashboardLayout({
               const isActive = pathname === item.href
               return (
                 <Link
-                  key={item.name}
+                  key={item.href} // Changed key to href as name might change
                   href={item.href}
                   className={`relative flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 group ${isActive
                     ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/25'
@@ -161,7 +165,7 @@ export default function DashboardLayout({
             className="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700/50 rounded-xl transition-all"
           >
             {isDarkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
-            {isDarkMode ? 'Mode Terang' : 'Mode Gelap'}
+            {isDarkMode ? t('settings.themeLight') : t('settings.themeDark')}
           </button>
 
           <button
@@ -169,7 +173,7 @@ export default function DashboardLayout({
             className="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-red-600 hover:bg-red-50 dark:hover:bg-red-900/10 rounded-xl transition-all"
           >
             <LogOut className="w-5 h-5" />
-            Keluar
+            {t('nav.logout')}
           </button>
         </div>
       </aside>

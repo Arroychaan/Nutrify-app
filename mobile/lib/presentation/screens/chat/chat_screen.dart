@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/network/api_client.dart';
 import '../../../core/theme/app_colors.dart';
+import 'package:google_fonts/google_fonts.dart'; // Added import
 import '../../../data/models/chat_model.dart';
 
 // Chat state
@@ -151,7 +152,10 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('AI Dietician'),
+        title: Text(
+          'Coach Nutrify',
+          style: GoogleFonts.outfit(fontWeight: FontWeight.bold),
+        ),
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
@@ -232,7 +236,11 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                   child: TextField(
                     controller: _messageController,
                     decoration: InputDecoration(
-                      hintText: 'Tanya seputar gizi...',
+                      hintText: 'Ceritakan tujuan sehatmu...',
+                      hintStyle: GoogleFonts.inter(
+                        fontSize: 14,
+                        color: AppColors.textTertiary,
+                      ),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(24),
                         borderSide: BorderSide.none,
@@ -257,7 +265,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                     decoration: BoxDecoration(
                       gradient: chatState.isSending
                           ? null
-                          : AppColors.primaryGradient,
+                          : AppGradients.primary,
                       color: chatState.isSending ? AppColors.border : null,
                       shape: BoxShape.circle,
                     ),
@@ -296,19 +304,25 @@ class _EmptyChat extends StatelessWidget {
                 shape: BoxShape.circle,
               ),
               child: const Center(
-                child: Text('🤖', style: TextStyle(fontSize: 50)),
+                child: Text('👋', style: TextStyle(fontSize: 50)),
               ),
             ),
             const SizedBox(height: 24),
             Text(
-              'Halo! Saya AI Dietician',
-              style: Theme.of(context).textTheme.titleLarge,
+              'Halo! Saya Coach Nutrify',
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.bold,
+                fontFamily: GoogleFonts.outfit().fontFamily,
+              ),
             ),
             const SizedBox(height: 8),
             Text(
-              'Tanyakan apa saja seputar gizi, diet, atau makanan sehat Indonesia!',
+              'Saya di sini untuk bantu kamu capai target sehatmu. Bingung mau makan apa hari ini?',
               textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.bodyMedium,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: AppColors.textSecondary,
+                height: 1.5,
+              ),
             ),
             const SizedBox(height: 24),
             Wrap(
@@ -316,9 +330,9 @@ class _EmptyChat extends StatelessWidget {
               runSpacing: 8,
               alignment: WrapAlignment.center,
               children: [
-                _SuggestionChip(text: 'Menu sarapan sehat'),
-                _SuggestionChip(text: 'Makanan untuk diabetes'),
-                _SuggestionChip(text: 'Cara menurunkan BB'),
+                _SuggestionChip(text: 'Rekomendasi makan siang 🍳'),
+                _SuggestionChip(text: 'Saya lagi diet karbo 📉'),
+                _SuggestionChip(text: 'Camilan sehat apa ya? 🍎'),
               ],
             ),
           ],

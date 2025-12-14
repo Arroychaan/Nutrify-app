@@ -90,6 +90,11 @@ export const authApi = {
     const response = await api.delete('/api/v1/auth/account')
     return response.data
   },
+
+  verifyEmail: async (token: string) => {
+    const response = await api.get('/api/v1/auth/verify-email', { params: { token } })
+    return response.data
+  },
 }
 
 // Meal Plan API

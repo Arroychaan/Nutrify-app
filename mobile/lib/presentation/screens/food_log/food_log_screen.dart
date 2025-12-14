@@ -5,11 +5,24 @@ import '../../../core/constants/constants.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../data/models/food_log_model.dart';
 import '../../providers/router_provider.dart';
+import '../../providers/share_provider.dart';
+import '../../widgets/sharing/daily_summary_share_card.dart';
 
-// Simple food logs provider
+import '../../../core/network/api_client.dart';
+
+// Food logs provider
 final foodLogsProvider = FutureProvider<List<FoodLogModel>>((ref) async {
-  await Future.delayed(const Duration(seconds: 1));
-  return []; // Return empty for now
+  try {
+    final response = await ApiClient.instance.getFoodLogs();
+
+    if (response.statusCode == 200) {
+      final List<dynamic> data = response.data['data'] ?? [];
+      return data.map((json) => FoodLogModel.fromJson(json)).toList();
+    }
+    throw Exception('Gagal memuat food logs');
+  } catch (e) {
+    throw Exception('Terjadi kesalahan: $e');
+  }
 });
 
 class FoodLogScreen extends ConsumerWidget {
@@ -122,13 +135,59 @@ class _FoodLogList extends StatelessWidget {
   }
 }
 
-class _DailySummaryCard extends StatelessWidget {
+class _DailySummaryCard extends ConsumerWidget {
   final List<FoodLogModel> logs;
 
   const _DailySummaryCard({required this.logs});
 
+  Future<void> _onShare(BuildContext context, WidgetRef ref) async {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Menyiapkan ringkasan nutrisi... 📊'),
+        duration: Duration(seconds: 1),
+      ),
+    );
+
+    try {
+      // Calculate totals
+      double calories = 0, protein = 0, carbs = 0, fat = 0;
+      for (var log in logs) {
+        calories += log.calories ?? 0;
+        protein += log.proteinG ?? 0;
+        carbs += log.carbsG ?? 0;
+        fat += log.fatG ?? 0;
+      }
+
+      final shareWidget = DailySummaryShareCard(
+        calories: calories,
+        protein: protein,
+        carbs: carbs,
+        fat: fat,
+        date: DateTime.now(),
+      );
+
+      await ref
+          .read(socialShareServiceProvider)
+          .shareWidget(
+            widget: shareWidget,
+            context: context,
+            text:
+                'Nutrisi harian saya hari ini di Nutrify! 🥗 Tetap sehat, tetap semangat! #NutrifyDaily',
+          );
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Gagal membagikan.'),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      }
+    }
+  }
+
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final totalCalories = logs.fold<double>(
       0,
       (sum, log) => sum + (log.calories ?? 0),
@@ -137,22 +196,35 @@ class _DailySummaryCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        gradient: AppColors.primaryGradient,
+        gradient: AppGradients.primary,
         borderRadius: BorderRadius.circular(20),
       ),
-      child: Column(
+      child: Stack(
         children: [
-          const Text(
-            'Total Hari Ini',
-            style: TextStyle(color: Colors.white70, fontSize: 14),
+          Column(
+            children: [
+              const Text(
+                'Total Hari Ini',
+                style: TextStyle(color: Colors.white70, fontSize: 14),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                '${totalCalories.toInt()} kcal',
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 36,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
           ),
-          const SizedBox(height: 8),
-          Text(
-            '${totalCalories.toInt()} kcal',
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 36,
-              fontWeight: FontWeight.bold,
+          Positioned(
+            right: 0,
+            top: 0,
+            child: IconButton(
+              onPressed: () => _onShare(context, ref),
+              icon: const Icon(Icons.share, color: Colors.white70),
+              tooltip: 'Bagikan Ringkasan',
             ),
           ),
         ],

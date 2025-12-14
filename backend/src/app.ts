@@ -20,6 +20,7 @@ import mealPlanRoutes from './routes/mealPlanRoutes.js';
 import foodLogRoutes from './routes/foodLogRoutes.js';
 import foodRoutes from './routes/foodRoutes.js';
 import notificationRoutes from './routes/notificationRoutes.js';
+import nutritionRoutes from './routes/nutritionRoutes.js';
 import { initializeSchedulers, stopSchedulers } from './services/schedulerService.js';
 
 export async function createApp(): Promise<Application> {
@@ -132,6 +133,7 @@ export async function createApp(): Promise<Application> {
     app.use('/api/v1/food-logs', foodLogRoutes);
     app.use('/api/v1/foods', foodRoutes);
     app.use('/api/v1/notifications', notificationRoutes);
+    app.use('/api/v1/nutrition', nutritionRoutes);
 
     // ============================================================================
     // 404 Handler
