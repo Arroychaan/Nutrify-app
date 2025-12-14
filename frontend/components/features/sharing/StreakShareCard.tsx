@@ -45,7 +45,7 @@ export default function StreakShareCard({ id, userName, streakDays }: StreakShar
 
                     <h2 className="text-3xl font-bold mb-2">{t('dashboard.share.greatJob')}, {userName}!</h2>
                     <p className="text-emerald-100 text-xl italic text-center max-w-md">
-                        "{t('dashboard.share.quote')}"
+                        &quot;{t('dashboard.share.quote')}&quot;
                     </p>
                 </div>
 

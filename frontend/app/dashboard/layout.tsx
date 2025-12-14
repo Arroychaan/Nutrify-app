@@ -31,6 +31,7 @@ export default function DashboardLayout({
   const [user, setUser] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [isDarkMode, setIsDarkMode] = useState(false)
+  const { t } = useTranslation()
 
   const toggleDarkMode = () => {
     const newDarkMode = !isDarkMode
@@ -65,6 +66,7 @@ export default function DashboardLayout({
 
   useEffect(() => {
     checkAuth()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const checkAuth = async () => {
@@ -103,7 +105,7 @@ export default function DashboardLayout({
   }
 
   /* ... inside component ... */
-  const { t } = useTranslation()
+
 
   const navigation = [
     { name: t('nav.dashboard'), href: '/dashboard', icon: LayoutDashboard },
