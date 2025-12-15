@@ -5,6 +5,25 @@ import { getBestNutritionData } from '../services/groundTruthService.js';
 
 const router = Router();
 
+router.post('/validation/rag', async (req: Request, res: Response) => {
+    try {
+        const { userProfile, mealPlan } = req.body;
+
+        if (!userProfile || !mealPlan) {
+            return res.status(400).json({ success: false, error: 'Missing userProfile or mealPlan' });
+        }
+
+        const result = await validateWithKnowledge(userProfile, mealPlan);
+        res.json({
+            success: true,
+            message: 'RAG Validation Result',
+            result
+        });
+    } catch (error: any) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
 router.get('/validation/rag', async (req: Request, res: Response) => {
     try {
         const mockUser = {

@@ -203,7 +203,8 @@ export default function MealPlanPage() {
     return date.toLocaleDateString('id-ID', {
       weekday: 'long',
       day: 'numeric',
-      month: 'long'
+      month: 'long',
+      year: 'numeric'
     })
   }
 

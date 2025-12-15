@@ -375,7 +375,7 @@ function SidebarContent({ history, conversationId, onNewChat, onSelect, onDelete
             >
               <div className="min-w-0 flex-1 mr-2">
                 <p className={`font-medium truncate ${conversationId === conv.id ? 'text-emerald-700 dark:text-emerald-400' : 'text-gray-700 dark:text-gray-300'}`}>
-                  {conv.topic || 'Percakapan Baru'}
+                  {conv.topic === 'nutrition_education' ? 'Percakapan Baru' : (conv.topic || 'Percakapan Baru')}
                 </p>
                 <p className="text-xs text-gray-400 truncate mt-0.5">{conv.lastMessage || '...'}</p>
               </div>

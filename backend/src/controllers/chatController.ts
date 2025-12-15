@@ -46,7 +46,7 @@ export const sendChatMessageController = asyncHandler(
         data: {
           userId,
           currentMealPlanId: latestMealPlan?.id ?? null,
-          topic: 'nutrition_education',
+          topic: message ? message.substring(0, 50) : 'Percakapan Baru',
         },
       });
     }

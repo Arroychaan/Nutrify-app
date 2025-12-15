@@ -50,7 +50,7 @@ export default function RootLayout({
           __html: `
             (function() {
               // Version checker - increment this when deploying breaking changes
-              var APP_VERSION = '2.2.0';
+              var APP_VERSION = '1.0.0';
               var storedVersion = localStorage.getItem('appVersion');
               
               // If version mismatch, clear old data
