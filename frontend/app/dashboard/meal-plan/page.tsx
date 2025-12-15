@@ -23,8 +23,12 @@ import {
   Sparkles,
   Calendar,
   Clock,
-  Loader2
+  Loader2,
+  RefreshCw,
+  ShoppingCart,
+  Check
 } from 'lucide-react'
+import { mealPlanApi } from '@/lib/api'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
 
@@ -40,6 +44,7 @@ interface MealPlan {
   totalCarbs: number
   totalFat: number
   createdAt: string
+  days: any[]
 }
 
 export default function MealPlanPage() {
@@ -56,6 +61,7 @@ export default function MealPlanPage() {
   })
   const [toast, setToast] = useState({ isVisible: false, message: '', type: 'info' as 'success' | 'error' | 'info' | 'warning' })
   const [confirmDialog, setConfirmDialog] = useState({ isOpen: false, mealPlanId: '' })
+  const [shoppingListModal, setShoppingListModal] = useState({ isOpen: false, mealPlanId: '' })
 
   const showToast = (message: string, type: 'success' | 'error' | 'info' | 'warning' = 'info') => {
     setToast({ isVisible: true, message, type })
@@ -66,7 +72,7 @@ export default function MealPlanPage() {
   }
 
   useEffect(() => {
-    loadMealPlans()
+    loadData()
   }, [])
 
   // Auto expand first plan
@@ -76,19 +82,52 @@ export default function MealPlanPage() {
     }
   }, [mealPlans])
 
-  const loadMealPlans = async () => {
+  const loadData = async () => {
     try {
       setLoading(true)
+      const token = localStorage.getItem('token')
+
+      // Load Plans & User Profile concurrently
+      const [plansRes, userRes] = await Promise.all([
+        axios.get(`${API_URL}/api/v1/meal-plans`, { headers: { Authorization: `Bearer ${token}` } }),
+        axios.get(`${API_URL}/api/v1/auth/me`, { headers: { Authorization: `Bearer ${token}` } }).catch(() => null)
+      ])
+
+      setMealPlans(plansRes.data.data || [])
+
+      // Pre-fill form with user data if available
+      if (userRes?.data?.data) {
+        const user = userRes.data.data
+        // Simple BMR/TDEE fallback or use saved target
+        // Assuming average sedentary multiplier 1.2 * BMR (roughly weight * 24)
+        // Or better yet, if the backend provides calculated target.
+        // Let's use a safe estimate: (Height - 100) * 24 roughly, OR currentWeight * 30 (maintenance)
+        // Ideally backend adds 'dailyCalorieTarget' to User model.
+        // For now, let's try to match the logic from dashboard: 
+        const weight = Number(user.currentWeightKg) || 60
+        const calculatedTarget = Math.round(weight * 30) // Crude maintenance estimation
+
+        setFormData(prev => ({
+          ...prev,
+          targetCalories: calculatedTarget > 1200 ? calculatedTarget : 2000
+        }))
+      }
+    } catch (error) {
+      console.error('Failed to load data', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const loadMealPlans = async () => {
+    // Legacy single loader kept for specialized reloading if needed, but normally use loadData
+    try {
       const token = localStorage.getItem('token')
       const response = await axios.get(`${API_URL}/api/v1/meal-plans`, {
         headers: { Authorization: `Bearer ${token}` }
       })
       setMealPlans(response.data.data || [])
-    } catch (error) {
-      console.error('Failed to load meal plans', error)
-    } finally {
-      setLoading(false)
-    }
+    } catch (e) { console.error(e) }
   }
 
   const generateMealPlan = async () => {
@@ -127,6 +166,25 @@ export default function MealPlanPage() {
     } catch (error) {
       console.error('Failed to delete meal plan', error)
       showToast('Gagal menghapus rencana makan', 'error')
+    }
+  }
+
+  const handleSwapMeal = async (mealPlanId: string, mealPlanDayId: string, mealType: string, currentMealId: string) => {
+    try {
+      const token = localStorage.getItem('token')
+      const response = await axios.put(
+        `${API_URL}/api/v1/meal-plans/${mealPlanId}/swap`,
+        { mealPlanDayId, mealType, currentMealId },
+        { headers: { Authorization: `Bearer ${token}` } }
+      )
+
+      if (response.data.success) {
+        await loadMealPlans()
+        showToast('Menu berhasil ditukar! 🔄', 'success')
+      }
+    } catch (error) {
+      console.error('Failed to swap meal', error)
+      showToast('Gagal menukar menu', 'error')
     }
   }
 
@@ -206,6 +264,12 @@ export default function MealPlanPage() {
         confirmText="Ya, Hapus"
         cancelText="Batal"
         type="danger"
+      />
+
+      <ShoppingListModal
+        isOpen={shoppingListModal.isOpen}
+        mealPlanId={shoppingListModal.mealPlanId}
+        onClose={() => setShoppingListModal({ isOpen: false, mealPlanId: '' })}
       />
 
       <div className="max-w-4xl mx-auto pb-24 md:pb-8">
@@ -434,31 +498,63 @@ export default function MealPlanPage() {
                           <div className="absolute left-[19px] top-6 bottom-6 w-0.5 bg-gray-100 dark:bg-gray-700/50 z-0" />
 
                           {plan.breakfast && (
-                            <MealItem type="breakfast" meal={plan.breakfast} />
+                            <MealItem
+                              type="breakfast"
+                              meal={plan.breakfast}
+                              onSwap={() => handleSwapMeal(plan.id, plan.days?.[0]?.id, 'breakfast', plan.breakfast.id)}
+                            />
                           )}
                           {plan.lunch && (
-                            <MealItem type="lunch" meal={plan.lunch} />
+                            <MealItem
+                              type="lunch"
+                              meal={plan.lunch}
+                              onSwap={() => handleSwapMeal(plan.id, plan.days?.[0]?.id, 'lunch', plan.lunch.id)}
+                            />
                           )}
                           {plan.dinner && (
-                            <MealItem type="dinner" meal={plan.dinner} />
+                            <MealItem
+                              type="dinner"
+                              meal={plan.dinner}
+                              onSwap={() => handleSwapMeal(plan.id, plan.days?.[0]?.id, 'dinner', plan.dinner.id)}
+                            />
                           )}
-                          {plan.snacks && plan.snacks.length > 0 && (
-                            <MealItem type="snack" meal={{ name: plan.snacks.map(s => s.name).join(', '), calories: plan.snacks.reduce((sum, s) => sum + (s.calories || 0), 0) }} />
-                          )}
+                          {plan.snacks && plan.snacks.length > 0 && plan.snacks.map((snack: any, idx: number) => (
+                            <MealItem
+                              key={idx}
+                              type="snack"
+                              meal={snack}
+                              // Note: Swap logic for snacks might need specific ID targeting if multiple snacks exist
+                              // checking if plan.days[0] exists is needed as it might not be populated in the minimalist interface if not fetched.
+                              // However, checking the controller getMealPlansController, it includes days.
+                              onSwap={() => handleSwapMeal(plan.id, plan.days?.[0]?.id, 'snack', snack.id)}
+                            />
+                          ))}
                         </div>
 
                         {/* Actions */}
                         <div className="flex justify-end pt-2 border-t border-gray-100 dark:border-gray-700/50">
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation()
-                              handleDeleteClick(plan.id)
-                            }}
-                            className="flex items-center gap-2 px-4 py-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl text-sm font-medium transition-colors"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                            Hapus Rencana
-                          </button>
+                          <div className="flex justify-end pt-2 border-t border-gray-100 dark:border-gray-700/50 gap-2">
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                setShoppingListModal({ isOpen: true, mealPlanId: plan.id })
+                              }}
+                              className="flex items-center gap-2 px-4 py-2 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-100 rounded-xl text-sm font-medium transition-colors"
+                            >
+                              <ShoppingCart className="w-4 h-4" />
+                              Shopping List
+                            </button>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                handleDeleteClick(plan.id)
+                              }}
+                              className="flex items-center gap-2 px-4 py-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl text-sm font-medium transition-colors"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                              Hapus Rencana
+                            </button>
+                          </div>
                         </div>
                       </div>
                     </motion.div>
@@ -486,7 +582,7 @@ function MacroItem({ label, value, unit }: { label: string; value: number; unit:
 }
 
 // Clean Meal List Item
-function MealItem({ type, meal }: { type: 'breakfast' | 'lunch' | 'dinner' | 'snack'; meal: { name: string; calories: number } }) {
+function MealItem({ type, meal, onSwap }: { type: 'breakfast' | 'lunch' | 'dinner' | 'snack'; meal: { id?: string; name: string; calories: number }; onSwap: () => void }) {
   const config = {
     breakfast: { icon: Sunrise, time: '07:00' },
     lunch: { icon: Sun, time: '12:00' },
@@ -513,6 +609,144 @@ function MealItem({ type, meal }: { type: 'breakfast' | 'lunch' | 'dinner' | 'sn
         <p className="text-sm font-medium text-gray-900 dark:text-white leading-relaxed">{meal.name}</p>
         <p className="text-xs text-gray-500 mt-1">{meal.calories} kkal</p>
       </div>
+
+      <button
+        onClick={(e) => {
+          e.stopPropagation()
+          onSwap()
+        }}
+        className="opacity-0 group-hover:opacity-100 p-2 bg-gray-100 dark:bg-gray-700 hover:bg-emerald-100 dark:hover:bg-emerald-900/30 text-gray-500 hover:text-emerald-600 rounded-lg transition-all"
+        title="Tukar Menu"
+      >
+        <RefreshCw className="w-4 h-4" />
+      </button>
     </div>
+  )
+}
+
+function ShoppingListModal({ isOpen, mealPlanId, onClose }: { isOpen: boolean, mealPlanId: string, onClose: () => void }) {
+  const [items, setItems] = useState<{ category: string, items: any[] }[]>([])
+  const [loading, setLoading] = useState(false)
+  const [checkedItems, setCheckedItems] = useState<Record<string, boolean>>({})
+
+  useEffect(() => {
+    if (isOpen && mealPlanId) {
+      loadList()
+    }
+  }, [isOpen, mealPlanId])
+
+  const loadList = async () => {
+    setLoading(true)
+    try {
+      const data = await mealPlanApi.getShoppingList(mealPlanId)
+      setItems(data || [])
+    } catch (e) {
+      console.error(e)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const toggleCheck = (id: string, name: string) => {
+    const key = `${id}-${name}`
+    setCheckedItems(prev => ({ ...prev, [key]: !prev[key] }))
+  }
+
+  return (
+    <AnimatePresence>
+      {isOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={onClose}
+            className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+          />
+          <motion.div
+            initial={{ scale: 0.95, opacity: 0, y: 20 }}
+            animate={{ scale: 1, opacity: 1, y: 0 }}
+            exit={{ scale: 0.95, opacity: 0, y: 20 }}
+            className="relative w-full max-w-lg bg-white dark:bg-gray-800 rounded-3xl shadow-xl overflow-hidden max-h-[85vh] flex flex-col"
+          >
+            {/* Header */}
+            <div className="p-6 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center bg-emerald-500 text-white">
+              <div>
+                <h3 className="text-xl font-bold">Shopping List</h3>
+                <p className="text-emerald-100 text-sm">Bahan untuk rencana makan ini</p>
+              </div>
+              <button
+                onClick={onClose}
+                className="p-2 hover:bg-white/20 rounded-xl transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Content */}
+            <div className="flex-1 overflow-y-auto p-6">
+              {loading ? (
+                <div className="flex flex-col items-center justify-center py-12 text-gray-400">
+                  <Loader2 className="w-8 h-8 animate-spin mb-2" />
+                  <p>Menyiapkan daftar belanja...</p>
+                </div>
+              ) : items.length === 0 ? (
+                <div className="text-center py-12 text-gray-400">
+                  <ShoppingCart className="w-12 h-12 mx-auto mb-3 opacity-50" />
+                  <p>Daftar kosong atau data bahan belum tersedia.</p>
+                </div>
+              ) : (
+                <div className="space-y-6">
+                  {items.map((cat, idx) => (
+                    <div key={idx}>
+                      <h4 className="font-bold text-emerald-600 dark:text-emerald-400 text-sm uppercase tracking-wider mb-3 px-1">
+                        {cat.category}
+                      </h4>
+                      <div className="bg-gray-50 dark:bg-gray-900/50 rounded-2xl p-2">
+                        {cat.items.map((item, i) => {
+                          const key = `${cat.category}-${item.name}`
+                          const isChecked = checkedItems[key]
+                          return (
+                            <div
+                              key={i}
+                              onClick={() => toggleCheck(cat.category, item.name)}
+                              className={`flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-all ${isChecked
+                                ? 'bg-emerald-100/50 dark:bg-emerald-900/20 opacity-60'
+                                : 'hover:bg-white dark:hover:bg-gray-800'
+                                }`}
+                            >
+                              <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center transition-colors ${isChecked
+                                ? 'bg-emerald-500 border-emerald-500'
+                                : 'border-gray-300 dark:border-gray-600'
+                                }`}>
+                                {isChecked && <Check className="w-3 h-3 text-white" />}
+                              </div>
+                              <div className="flex-1">
+                                <p className={`text-sm font-medium transition-all ${isChecked ? 'text-gray-500 line-through' : 'text-gray-900 dark:text-white'
+                                  }`}>
+                                  {item.name}
+                                </p>
+                              </div>
+                              <div className="text-sm font-bold text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 px-2 py-1 rounded-lg border border-gray-100 dark:border-gray-700 shadow-sm">
+                                {item.quantity} {item.unit}
+                              </div>
+                            </div>
+                          )
+                        })}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Footer */}
+            <div className="p-4 border-t border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/30 text-center text-xs text-gray-500">
+              Checklist ini tersimpan sementara di perangkat Anda
+            </div>
+          </motion.div>
+        </div>
+      )}
+    </AnimatePresence>
   )
 }

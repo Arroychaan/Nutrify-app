@@ -1,5 +1,5 @@
 import crypto from 'crypto';
-import { sendVerificationEmail } from '@services/emailService.js';
+import { sendVerificationEmail, sendPasswordResetEmail } from '@services/emailService.js';
 import { Request, Response } from 'express';
 import { asyncHandler } from '@middlewares/errorHandler.js';
 import { generateAccessToken, generateRefreshToken } from '@utils/jwt.js';
@@ -66,6 +66,7 @@ export const registerController = asyncHandler(
         isVerified: false,
         verificationToken,
         verificationExpires,
+        deletedAt: null,
       },
     });
 
@@ -102,9 +103,18 @@ export const registerController = asyncHandler(
  * Login user
  * POST /api/v1/auth/login
  */
+import { authenticator } from 'otplib';
+import QRCode from 'qrcode';
+
+// ... existing imports ...
+
+/**
+ * Login user
+ * POST /api/v1/auth/login
+ */
 export const loginController = asyncHandler(
   async (req: Request, res: Response) => {
-    const { email, password } = req.body;
+    const { email, password, totpCode } = req.body;
 
     logger.info('User login attempt', { email });
 
@@ -136,6 +146,18 @@ export const loginController = asyncHandler(
       return;
     }
 
+    // Check if account is soft deleted
+    if (user.deletedAt) {
+      res.status(403).json({
+        success: false,
+        error: {
+          code: 'ACCOUNT_DEACTIVATED',
+          message: 'Account is deactivated. Would you like to restore it?',
+        },
+      });
+      return;
+    }
+
     // Compare password
     const isPasswordValid = await comparePasswords(password, user.passwordHash);
 
@@ -148,6 +170,32 @@ export const loginController = asyncHandler(
         },
       });
       return;
+    }
+
+    // Check 2FA
+    if (user.isTwoFactorEnabled) {
+      if (!totpCode) {
+        res.status(403).json({
+          success: false,
+          error: {
+            code: '2FA_REQUIRED',
+            message: 'Two-factor authentication code is required',
+          },
+        });
+        return;
+      }
+
+      const isValid = authenticator.check(totpCode, user.twoFactorSecret!);
+      if (!isValid) {
+        res.status(401).json({
+          success: false,
+          error: {
+            code: 'INVALID_TOKEN',
+            message: 'Invalid authentication code',
+          },
+        });
+        return;
+      }
     }
 
     // Generate tokens
@@ -169,6 +217,113 @@ export const loginController = asyncHandler(
     });
   }
 );
+
+/**
+ * Generate 2FA Secret
+ * POST /api/v1/auth/2fa/generate
+ */
+export const generate2FASecretController = asyncHandler(
+  async (req: Request, res: Response) => {
+    const userId = req.userId!;
+    const user = await prisma.user.findUnique({ where: { id: userId } });
+
+    if (!user) {
+      res.status(404).json({ success: false, error: { code: 'USER_NOT_FOUND', message: 'User not found' } });
+      return;
+    }
+
+    const secret = authenticator.generateSecret();
+    const otpauth = authenticator.keyuri(user.email, 'Nutrify', secret);
+    const qrCodeUrl = await QRCode.toDataURL(otpauth);
+
+    // Save secret temporarily (or permanently but disabled)
+    await prisma.user.update({
+      where: { id: userId },
+      data: { twoFactorSecret: secret },
+    });
+
+    res.json({
+      success: true,
+      data: {
+        secret,
+        qrCodeUrl,
+      },
+    });
+  }
+);
+
+/**
+ * Verify and Enable 2FA
+ * POST /api/v1/auth/2fa/verify
+ */
+export const verify2FAController = asyncHandler(
+  async (req: Request, res: Response) => {
+    const userId = req.userId!;
+    const { token } = req.body;
+
+    const user = await prisma.user.findUnique({ where: { id: userId } });
+
+    if (!user || !user.twoFactorSecret) {
+      res.status(400).json({ success: false, error: { code: 'SETUP_REQUIRED', message: '2FA setup not initiated' } });
+      return;
+    }
+
+    const isValid = authenticator.check(token, user.twoFactorSecret);
+
+    if (!isValid) {
+      res.status(400).json({ success: false, error: { code: 'INVALID_TOKEN', message: 'Invalid token' } });
+      return;
+    }
+
+    await prisma.user.update({
+      where: { id: userId },
+      data: { isTwoFactorEnabled: true },
+    });
+
+    res.json({
+      success: true,
+      message: 'Two-factor authentication enabled successfully',
+    });
+  }
+);
+
+/**
+ * Disable 2FA
+ * POST /api/v1/auth/2fa/disable
+ */
+export const disable2FAController = asyncHandler(
+  async (req: Request, res: Response) => {
+    const userId = req.userId!;
+    const { password } = req.body;
+
+    const user = await prisma.user.findUnique({ where: { id: userId } });
+    if (!user) {
+      res.status(404).json({ success: false, error: { code: 'USER_NOT_FOUND', message: 'User not found' } });
+      return;
+    }
+
+    const isPasswordValid = await comparePasswords(password, user.passwordHash);
+    if (!isPasswordValid) {
+      res.status(401).json({ success: false, error: { code: 'INVALID_PASSWORD', message: 'Invalid password' } });
+      return;
+    }
+
+    await prisma.user.update({
+      where: { id: userId },
+      data: {
+        isTwoFactorEnabled: false,
+        twoFactorSecret: null,
+      },
+    });
+
+    res.json({
+      success: true,
+      message: 'Two-factor authentication disabled successfully',
+    });
+  }
+);
+
+// ... rest of the file ...
 
 /**
  * Refresh access token
@@ -459,16 +614,80 @@ export const deleteAccountController = asyncHandler(
 
     logger.info('User account deletion requested', { userId });
 
-    // Delete user (cascade will delete related data)
-    await prisma.user.delete({
+    // Soft Delete user
+    await prisma.user.update({
       where: { id: userId },
+      data: {
+        deletedAt: new Date(),
+      },
     });
 
-    logger.info('User account deleted successfully', { userId });
+    // TODO: Send account deactivation email
+
+    logger.info('User account deactivated (soft delete)', { userId });
 
     res.json({
       success: true,
-      message: 'Account deleted successfully',
+      message: 'Account deactivated successfully. You can restore it within 30 days by logging in.',
+    });
+  }
+);
+
+/**
+ * Restore account
+ * POST /api/v1/auth/restore
+ */
+export const restoreAccountController = asyncHandler(
+  async (req: Request, res: Response) => {
+    const { email, password } = req.body;
+
+    if (!email || !password) {
+      res.status(400).json({ success: false, error: { code: 'VALIDATION_ERROR', message: 'Email and password are required' } });
+      return;
+    }
+
+    const user = await prisma.user.findUnique({ where: { email } });
+
+    if (!user) {
+      res.status(404).json({ success: false, error: { code: 'USER_NOT_FOUND', message: 'User not found' } });
+      return;
+    }
+
+    if (!user.deletedAt) {
+      res.status(400).json({ success: false, error: { code: 'ACCOUNT_ACTIVE', message: 'Account is already active' } });
+      return;
+    }
+
+    const isPasswordValid = await comparePasswords(password, user.passwordHash);
+
+    if (!isPasswordValid) {
+      res.status(401).json({ success: false, error: { code: 'INVALID_CREDENTIALS', message: 'Invalid password' } });
+      return;
+    }
+
+    // Restore account
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { deletedAt: null },
+    });
+
+    logger.info('User account restored', { userId: user.id });
+
+    // Generate tokens for immediate login
+    const accessToken = generateAccessToken(user.id, email);
+    const refreshToken = generateRefreshToken(user.id, email);
+
+    res.json({
+      success: true,
+      data: {
+        userId: user.id,
+        email: user.email,
+        fullName: user.fullName,
+        accessToken,
+        refreshToken,
+        expiresIn: 86400,
+        message: 'Account restored successfully.',
+      },
     });
   }
 );
@@ -518,6 +737,114 @@ export const verifyEmailController = asyncHandler(
     res.json({
       success: true,
       message: 'Email verified successfully. You can now login.',
+    });
+  }
+);
+
+/**
+ * Forgot Password - Send Reset Link
+ * POST /api/v1/auth/forgot-password
+ */
+export const forgotPasswordController = asyncHandler(
+  async (req: Request, res: Response) => {
+    const { email } = req.body;
+
+    if (!email) {
+      res.status(400).json({
+        success: false,
+        error: { code: 'VALIDATION_ERROR', message: 'Email is required' },
+      });
+      return;
+    }
+
+    const user = await prisma.user.findUnique({ where: { email } });
+
+    if (!user) {
+      // Don't reveal user existence, just say email sent if account exists
+      res.json({
+        success: true,
+        message: 'Jika email terdaftar, kami telah mengirimkan link reset password.',
+      });
+      return;
+    }
+
+    // Generate reset token
+    const resetToken = crypto.randomBytes(32).toString('hex');
+    const resetExpires = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
+
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        resetPasswordToken: resetToken,
+        resetPasswordExpires: resetExpires,
+      },
+    });
+
+    // Send email
+    await sendPasswordResetEmail(email, resetToken);
+
+    res.json({
+      success: true,
+      message: 'Jika email terdaftar, kami telah mengirimkan link reset password.',
+    });
+  }
+);
+
+/**
+ * Reset Password
+ * POST /api/v1/auth/reset-password
+ */
+export const resetPasswordController = asyncHandler(
+  async (req: Request, res: Response) => {
+    const { token, newPassword } = req.body;
+
+    if (!token || !newPassword) {
+      res.status(400).json({
+        success: false,
+        error: { code: 'VALIDATION_ERROR', message: 'Token and new password are required' },
+      });
+      return;
+    }
+
+    if (newPassword.length < 8) {
+      res.status(400).json({
+        success: false,
+        error: { code: 'VALIDATION_ERROR', message: 'Password must be at least 8 characters' },
+      });
+      return;
+    }
+
+    const user = await prisma.user.findFirst({
+      where: {
+        resetPasswordToken: token,
+        resetPasswordExpires: { gt: new Date() },
+      },
+    });
+
+    if (!user) {
+      res.status(400).json({
+        success: false,
+        error: { code: 'INVALID_TOKEN', message: 'Invalid or expired reset token' },
+      });
+      return;
+    }
+
+    const hashedPassword = await hashPassword(newPassword);
+
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        passwordHash: hashedPassword,
+        resetPasswordToken: null,
+        resetPasswordExpires: null,
+      },
+    });
+
+    logger.info('User password reset successfully', { userId: user.id });
+
+    res.json({
+      success: true,
+      message: 'Password reset successfully. You can now login.',
     });
   }
 );

@@ -1,10 +1,12 @@
 import { Router } from 'express';
-import { 
+import {
   getMealPlansController,
-  generateMealPlanController, 
-  getMealPlanController, 
+  generateMealPlanController,
+  getMealPlanController,
   deleteMealPlanController,
-  rateMealPlanController 
+  rateMealPlanController,
+  swapMealController,
+  getShoppingListController
 } from '@controllers/mealPlanController.js';
 import { authenticateToken } from '@middlewares/auth.js';
 
@@ -18,5 +20,7 @@ router.post('/generate', generateMealPlanController);
 router.get('/:mealPlanId', getMealPlanController);
 router.delete('/:mealPlanId', deleteMealPlanController);
 router.put('/:mealPlanId/feedback', rateMealPlanController);
+router.put('/:mealPlanId/swap', swapMealController);
+router.get('/:mealPlanId/shopping-list', getShoppingListController);
 
 export default router;

@@ -2,6 +2,8 @@ import { Request, Response } from 'express';
 import prisma from '@config/prisma.js';
 import logger from '@config/logger.js';
 import { generateNutritionEstimate } from '@services/llmService.js';
+import { getBestNutritionData } from '@services/groundTruthService.js';
+import { sendOvereatingWarning } from '@services/notificationService.js';
 
 interface FoodLogData {
   id: string;
@@ -15,6 +17,10 @@ interface FoodLogData {
   loggedAt: Date;
   notes?: string | null;
 }
+
+// Special constant for water logging
+const WATER_MEAL_TYPE = 'water';
+const WATER_FOOD_NAME = 'Air Putih';
 
 // Type alias for prisma with foodLog
 const db = prisma as any;
@@ -34,15 +40,40 @@ export async function createFoodLog(req: Request, res: Response) {
       });
     }
 
-    // If nutrition not provided, estimate using AI
+    // If nutrition not provided, estimate using AI and validate with Ground Truth
     let nutritionData = { calories, proteinG, carbsG, fatG };
+    let source = 'manual';
+
     if (!calories) {
       try {
-        const estimate = await generateNutritionEstimate(foodName, portion || '1 porsi');
-        nutritionData = estimate;
+        // 1. Generate initial estimate from LLM
+        const llmEstimate = await generateNutritionEstimate(foodName, portion || '1 porsi');
+
+        // 2. Validate/Refine with Ground Truth Service
+        // This checks our trusted local database first, then validates the LLM response
+        const bestData = await getBestNutritionData(foodName, {
+          name: foodName,
+          ...llmEstimate
+        });
+
+        nutritionData = {
+          calories: bestData.data.calories,
+          proteinG: bestData.data.proteinG,
+          carbsG: bestData.data.carbsG,
+          fatG: bestData.data.fatG
+        };
+        source = bestData.source;
+
+        logger.info('Nutrition estimated', {
+          foodName,
+          source,
+          confidence: bestData.confidence
+        });
+
       } catch (err) {
         logger.warn('Failed to estimate nutrition, using defaults', { error: err });
         nutritionData = { calories: 0, proteinG: 0, carbsG: 0, fatG: 0 };
+        source = 'estimation_failed';
       }
     }
 
@@ -58,14 +89,107 @@ export async function createFoodLog(req: Request, res: Response) {
         proteinG: nutritionData.proteinG,
         carbsG: nutritionData.carbsG,
         fatG: nutritionData.fatG,
-        source: 'manual',
+        source,
       },
     });
 
     // Update user streak
     await updateUserStreak(userId);
 
+    // ========================================================================
+    // Check for Overeating Logic
+    // ========================================================================
+    try {
+      const todayStr = new Date().toISOString().split('T')[0];
+      const todayStart = new Date(todayStr);
+      const todayEnd = new Date(new Date(todayStr).setHours(23, 59, 59, 999));
+
+      const todayLogs = await db.foodLog.findMany({
+        where: { userId, loggedAt: { gte: todayStart, lte: todayEnd } }
+      });
+
+      const totalCalories = todayLogs.reduce((acc: number, log: any) => acc + (Number(log.calories) || 0), 0);
+
+      // Simple default target check (2000 kcal)
+      const dailyCalorieTarget = 2000;
+
+      if (totalCalories > dailyCalorieTarget) {
+        const existingWarning = await db.notification.findFirst({
+          where: {
+            userId,
+            type: 'WARNING',
+            createdAt: { gte: todayStart },
+            title: { contains: 'Kalori' }
+          }
+        });
+
+        if (!existingWarning) {
+          await db.notification.create({
+            data: {
+              userId,
+              type: 'WARNING',
+              title: 'Peringatan Kalori! ⚠️',
+              message: `Anda telah melampaui target kalori harian (${Math.round(totalCalories)} / ${dailyCalorieTarget} kkal).`,
+            }
+          });
+        }
+      }
+    } catch (warnErr) {
+      logger.error('Failed to process overeating warning', warnErr);
+    }
+
     logger.info('Food log created', { userId, foodLogId: foodLog.id });
+
+    // Check for overeating
+    // 1. Calculate today's total calories
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const endOfDay = new Date(today);
+    endOfDay.setHours(23, 59, 59, 999);
+
+    const todayLogs = await db.foodLog.findMany({
+      where: {
+        userId,
+        loggedAt: { gte: today, lte: endOfDay },
+        mealType: { not: 'water' }
+      },
+      select: { calories: true }
+    });
+
+    const totalCalories = todayLogs.reduce((sum: number, log: any) => sum + (Number(log.calories) || 0), 0);
+
+    // 2. Get user target (simplified TDEE or default)
+    const user = await prisma.user.findUnique({ where: { id: userId } });
+    let targetCalories = 2000;
+
+    if (user) {
+      // Quick TDEE approximation if not stored
+      if (user.currentWeightKg && user.heightCm && user.dateOfBirth) {
+        const age = Math.floor((Date.now() - new Date(user.dateOfBirth).getTime()) / (365.25 * 24 * 60 * 60 * 1000));
+        let bmr = (10 * Number(user.currentWeightKg)) + (6.25 * Number(user.heightCm)) - (5 * age);
+        bmr = user.gender === 'female' ? bmr - 161 : bmr + 5;
+        const multiplier = user.activityLevel === 'sedentary' ? 1.2 : 1.55; // Simplified
+        targetCalories = Math.round(bmr * multiplier);
+
+        // Adjust for BMI goal
+        const heightM = Number(user.heightCm) / 100;
+        const bmi = Number(user.currentWeightKg) / (heightM * heightM);
+        if (bmi >= 25) targetCalories -= 500;
+        if (bmi < 18.5) targetCalories += 400;
+      }
+    }
+
+    // 3. Trigger warning if exceeded
+    // Only trigger if this specific log pushed them over, OR if they are significantly over (to avoid spamming, we could add a flag, but for now let's just warn)
+    // To avoid spam, maybe check if they were ALREADY over before this log.
+    const caloriesBeforeThisLog = totalCalories - Number(nutritionData.calories);
+
+    if (totalCalories > targetCalories) {
+      // If they were NOT over before, this is the crossing point -> Send Notification
+      if (caloriesBeforeThisLog <= targetCalories) {
+        sendOvereatingWarning(userId, totalCalories, targetCalories, foodName).catch(err => logger.error('Failed to send warning', err));
+      }
+    }
 
     return res.status(201).json({
       success: true,
@@ -365,12 +489,23 @@ export async function updateFoodLog(req: Request, res: Response) {
 export async function getTodaySummary(req: Request, res: Response) {
   try {
     const userId = req.userId!;
+    const { startDate, endDate } = req.query;
 
-    const today = new Date();
-    const startOfDay = new Date(today);
-    startOfDay.setHours(0, 0, 0, 0);
-    const endOfDay = new Date(today);
-    endOfDay.setHours(23, 59, 59, 999);
+    let startOfDay: Date;
+    let endOfDay: Date;
+    let today: Date;
+
+    if (startDate && endDate) {
+      startOfDay = new Date(startDate as string);
+      endOfDay = new Date(endDate as string);
+      today = new Date(startDate as string); // Use start date as "today" reference
+    } else {
+      today = new Date();
+      startOfDay = new Date(today);
+      startOfDay.setHours(0, 0, 0, 0);
+      endOfDay = new Date(today);
+      endOfDay.setHours(23, 59, 59, 999);
+    }
 
     const foodLogs: FoodLogData[] = await db.foodLog.findMany({
       where: {
@@ -465,8 +600,8 @@ export async function getTodaySummary(req: Request, res: Response) {
           carbs: Math.round(totals.carbsG),
           fat: Math.round(totals.fatG),
         },
-        mealsLogged: foodLogs.length,
-        logs: foodLogs, // Include full logs for dashboard display
+        mealsLogged: foodLogs.filter(f => f.mealType !== 'water').length,
+        logs: foodLogs.filter(f => f.mealType !== 'water'), // Exclude water logs from main dashboard list
         byMealType: {
           breakfast: byMealType.breakfast.length,
           lunch: byMealType.lunch.length,
@@ -480,6 +615,129 @@ export async function getTodaySummary(req: Request, res: Response) {
     return res.status(500).json({
       success: false,
       error: { message: 'Gagal mengambil ringkasan hari ini' },
+    });
+  }
+}
+
+/**
+ * Update water intake for a specific date (Upsert)
+ */
+export async function updateWaterLog(req: Request, res: Response) {
+  try {
+    const userId = req.userId!;
+    const { count, date } = req.body; // count = number of glasses (250ml approx)
+
+    if (count === undefined || count < 0) {
+      return res.status(400).json({
+        success: false,
+        error: { message: 'Jumlah air tidak valid' },
+      });
+    }
+
+    const targetDate = date ? new Date(date) : new Date();
+    const startOfDay = new Date(targetDate);
+    startOfDay.setHours(0, 0, 0, 0);
+    const endOfDay = new Date(targetDate);
+    endOfDay.setHours(23, 59, 59, 999);
+
+    // Find existing water log for today
+    const existingLog = await db.foodLog.findFirst({
+      where: {
+        userId,
+        mealType: 'water',
+        loggedAt: {
+          gte: startOfDay,
+          lte: endOfDay,
+        },
+      },
+    });
+
+    let waterLog;
+
+    if (existingLog) {
+      // Update existing
+      waterLog = await db.foodLog.update({
+        where: { id: existingLog.id },
+        data: {
+          portion: `${count}`,
+          notes: `${count * 250}ml`,
+        },
+      });
+    } else {
+      // Create new
+      waterLog = await db.foodLog.create({
+        data: {
+          userId,
+          mealType: 'water',
+          foodName: 'Air Putih',
+          portion: `${count}`,
+          notes: `${count * 250}ml`,
+          calories: 0,
+          proteinG: 0,
+          carbsG: 0,
+          fatG: 0,
+          loggedAt: targetDate,
+          source: 'manual',
+        },
+      });
+    }
+
+    return res.json({
+      success: true,
+      data: {
+        count: Number(waterLog.portion),
+        volumeMl: Number(waterLog.portion) * 250,
+      },
+    });
+  } catch (error) {
+    logger.error('Error updating water log:', error);
+    return res.status(500).json({
+      success: false,
+      error: { message: 'Gagal mengupdate air minum' },
+    });
+  }
+}
+
+/**
+ * Get water intake for a specific date
+ */
+export async function getWaterLog(req: Request, res: Response) {
+  try {
+    const userId = req.userId!;
+    const { date } = req.query;
+
+    const targetDate = date ? new Date(date as string) : new Date();
+    const startOfDay = new Date(targetDate);
+    startOfDay.setHours(0, 0, 0, 0);
+    const endOfDay = new Date(targetDate);
+    endOfDay.setHours(23, 59, 59, 999);
+
+    const waterLog = await db.foodLog.findFirst({
+      where: {
+        userId,
+        mealType: 'water',
+        loggedAt: {
+          gte: startOfDay,
+          lte: endOfDay,
+        },
+      },
+    });
+
+    const count = waterLog ? Number(waterLog.portion) : 0;
+
+    return res.json({
+      success: true,
+      data: {
+        count,
+        volumeMl: count * 250,
+        target: 8, // Standard target
+      },
+    });
+  } catch (error) {
+    logger.error('Error getting water log:', error);
+    return res.status(500).json({
+      success: false,
+      error: { message: 'Gagal mengambil data air minum' },
     });
   }
 }

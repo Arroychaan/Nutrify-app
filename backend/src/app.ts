@@ -21,6 +21,7 @@ import foodLogRoutes from './routes/foodLogRoutes.js';
 import foodRoutes from './routes/foodRoutes.js';
 import notificationRoutes from './routes/notificationRoutes.js';
 import nutritionRoutes from './routes/nutritionRoutes.js';
+import biomarkerRoutes from './routes/biomarkerRoutes.js';
 import { initializeSchedulers, stopSchedulers } from './services/schedulerService.js';
 
 export async function createApp(): Promise<Application> {
@@ -134,6 +135,13 @@ export async function createApp(): Promise<Application> {
     app.use('/api/v1/foods', foodRoutes);
     app.use('/api/v1/notifications', notificationRoutes);
     app.use('/api/v1/nutrition', nutritionRoutes);
+    app.use('/api/v1/biomarkers', biomarkerRoutes);
+
+    // Test Routes (for development only)
+    if (process.env.NODE_ENV === 'development' || !process.env.NODE_ENV) {
+      const { default: testRoutes } = await import('./routes/testRoutes.js');
+      app.use('/api/v1/test', testRoutes);
+    }
 
     // ============================================================================
     // 404 Handler

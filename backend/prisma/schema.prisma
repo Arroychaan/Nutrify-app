@@ -28,6 +28,8 @@ model User {
   isVerified          Boolean   @default(false)
   verificationToken   String?
   verificationExpires DateTime?
+  resetPasswordToken   String?
+  resetPasswordExpires DateTime?
 
   // Physical Metrics
   heightCm            Decimal   @db.Decimal(5, 2)
@@ -54,6 +56,14 @@ model User {
   privacyConsent      Boolean   @default(false)
   dataUsageConsent    Boolean   @default(false)
 
+  // Security (2FA)
+  twoFactorSecret     String?
+  isTwoFactorEnabled  Boolean   @default(false)
+  backupCodes         String[]  @default([])
+  
+  // Soft Delete
+  deletedAt           DateTime?
+
   // Timestamps
   createdAt           DateTime  @default(now())
   updatedAt           DateTime  @updatedAt
@@ -68,6 +78,7 @@ model User {
   pushSubscriptions   PushSubscription[]
   notificationSettings NotificationSettings?
   notificationLogs    NotificationLog[]
+  notifications       Notification[]
 
   @@map("users")
   @@index([email])
@@ -501,6 +512,21 @@ model PushSubscription {
 
   @@map("push_subscriptions")
   @@index([userId])
+}
+
+model Notification {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId    String   @db.Uuid
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  title     String
+  message   String
+  type      String   // 'REMINDER', 'WARNING', 'INFO'
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@map("notifications")
+  @@index([userId, createdAt(sort: Desc)])
 }
 
 model NotificationSettings {

@@ -3,32 +3,48 @@
 @tailwind utilities;
 
 :root {
-  --primary: 36, 180, 126; /* #24B47E - More vivid green */
-  --primary-dark: 29, 144, 101;
-  --secondary: 20, 184, 166; /* Teal for Secondary */
-  --accent: 132, 204, 22; /* Lime for Accent */
-  --background: 248, 249, 251; /* #F8F9FB - Neutral base */
+  --primary: 16, 185, 129;
+  /* Emerald 500 - Main Brand Color */
+  --primary-dark: 5, 150, 105;
+  /* Emerald 600 */
+  --secondary: 13, 148, 136;
+  /* Teal 600 */
+  --accent: 234, 179, 8;
+  /* Amber 500 - For highlights/warnings */
+  --background: 249, 250, 251;
+  /* Gray 50 - Cleaner background */
   --surface: 255, 255, 255;
   --text-primary: 17, 24, 39;
-  --text-secondary: 75, 85, 99; /* #4B5563 - Darker gray for better contrast */
-  --border: 229, 234, 242; /* #E5EAF2 - Subtle border */
-  --success: 36, 180, 126;
+  /* Gray 900 - Sharp text */
+  --text-secondary: 75, 85, 99;
+  /* Gray 600 */
+  --border: 229, 231, 235;
+  /* Gray 200 */
+  --success: 16, 185, 129;
   --error: 239, 68, 68;
-  --warning: 251, 146, 60;
-  --info: 16, 185, 129; /* Emerald for Info */
+  --warning: 245, 158, 11;
+  --info: 59, 130, 246;
 }
 
 /* Dark mode variables */
 .dark {
-  --primary: 52, 211, 153; /* Lighter green for dark mode */
+  --primary: 52, 211, 153;
+  /* Lighter green for dark mode */
   --primary-dark: 36, 180, 126;
-  --secondary: 45, 212, 191; /* Teal-400 */
-  --accent: 163, 230, 53; /* Lime-400 */
-  --background: 17, 24, 39; /* #111827 */
-  --surface: 31, 41, 55; /* #1F2937 */
-  --text-primary: 249, 250, 251; /* #F9FAFB */
-  --text-secondary: 156, 163, 175; /* #9CA3AF */
-  --border: 55, 65, 81; /* #374151 */
+  --secondary: 45, 212, 191;
+  /* Teal-400 */
+  --accent: 163, 230, 53;
+  /* Lime-400 */
+  --background: 17, 24, 39;
+  /* #111827 */
+  --surface: 31, 41, 55;
+  /* #1F2937 */
+  --text-primary: 249, 250, 251;
+  /* #F9FAFB */
+  --text-secondary: 156, 163, 175;
+  /* #9CA3AF */
+  --border: 55, 65, 81;
+  /* #374151 */
 }
 
 * {
@@ -42,11 +58,9 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   background-color: rgb(var(--background));
-  background-image: 
-      radial-gradient(at 0% 0%, rgba(var(--primary), 0.08) 0px, transparent 50%), 
-      radial-gradient(at 100% 0%, rgba(var(--secondary), 0.08) 0px, transparent 50%), 
-      radial-gradient(at 100% 100%, rgba(var(--accent), 0.05) 0px, transparent 50%), 
-      radial-gradient(at 0% 100%, rgba(var(--success), 0.05) 0px, transparent 50%);
+  background-image:
+    radial-gradient(at 0% 0%, rgba(var(--primary), 0.05) 0px, transparent 50%),
+    radial-gradient(at 100% 0%, rgba(var(--secondary), 0.05) 0px, transparent 50%);
   background-attachment: fixed;
   color: rgb(var(--text-primary));
   overflow-x: hidden;
@@ -116,16 +130,22 @@ body {
 }
 
 /* Gradient backgrounds */
+/* Professional Gradients */
 .gradient-primary {
-  background: linear-gradient(135deg, rgb(var(--primary)) 0%, rgb(var(--primary-dark)) 100%);
+  background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+  /* Emerald Gradient */
 }
 
 .gradient-secondary {
-  background: linear-gradient(135deg, rgb(var(--secondary)) 0%, rgb(var(--accent)) 100%);
+  background: linear-gradient(135deg, #0D9488 0%, #0F766E 100%);
+  /* Teal Gradient */
 }
 
 .gradient-mesh {
-  background: linear-gradient(135deg, rgba(var(--primary), 0.05) 0%, rgba(var(--secondary), 0.05) 100%);
+  background-image:
+    radial-gradient(at 40% 20%, rgba(16, 185, 129, 0.1) 0px, transparent 50%),
+    radial-gradient(at 80% 0%, rgba(13, 148, 136, 0.1) 0px, transparent 50%),
+    radial-gradient(at 0% 50%, rgba(245, 158, 11, 0.05) 0px, transparent 50%);
 }
 
 /* Glass morphism */
@@ -231,6 +251,7 @@ select:focus {
 
 /* Prevent zoom on iOS devices when focusing on input */
 @media screen and (max-width: 768px) {
+
   input[type="text"],
   input[type="email"],
   input[type="password"],
@@ -245,9 +266,12 @@ select:focus {
 
 /* Loading animation */
 @keyframes pulse-slow {
-  0%, 100% {
+
+  0%,
+  100% {
     opacity: 1;
   }
+
   50% {
     opacity: 0.5;
   }
@@ -259,12 +283,10 @@ select:focus {
 
 /* Skeleton loading */
 .skeleton {
-  background: linear-gradient(
-    90deg,
-    rgb(var(--border)) 0%,
-    rgba(var(--border), 0.5) 50%,
-    rgb(var(--border)) 100%
-  );
+  background: linear-gradient(90deg,
+      rgb(var(--border)) 0%,
+      rgba(var(--border), 0.5) 50%,
+      rgb(var(--border)) 100%);
   background-size: 200% 100%;
   animation: loading 1.5s ease-in-out infinite;
 }
@@ -273,6 +295,7 @@ select:focus {
   0% {
     background-position: 200% 0;
   }
+
   100% {
     background-position: -200% 0;
   }
@@ -284,6 +307,7 @@ select:focus {
     opacity: 0;
     transform: translateY(100%);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -305,6 +329,7 @@ select:focus {
 
 /* Touch-friendly button sizes on mobile */
 @media (max-width: 768px) {
+
   button,
   a.btn,
   .btn-primary,
@@ -315,7 +340,8 @@ select:focus {
 }
 
 /* Prevent horizontal scroll */
-html, body {
+html,
+body {
   overflow-x: hidden;
   width: 100%;
 }
@@ -399,19 +425,24 @@ html {
    2. TABLET (<= 1024px)
    ============================================ */
 @media (max-width: 1024px) {
+
   /* Sidebar: COLLAPSE - Icon Only, Clean & Centered */
   .sidebar {
-    width: 90px; /* Narrow sidebar */
-    padding: 16px; /* Uniform padding */
+    width: 90px;
+    /* Narrow sidebar */
+    padding: 16px;
+    /* Uniform padding */
     display: flex;
     flex-direction: column;
-    align-items: center; /* Center all children horizontally */
+    align-items: center;
+    /* Center all children horizontally */
   }
-  
+
   /* Hide ALL text elements */
   .sidebar-text {
     display: none !important;
   }
+
   /* Hide all text inside navigation links (keep icons) */
   .sidebar a span,
   .nav-item .nav-label,
@@ -420,7 +451,7 @@ html {
   .nav-item .sidebar-text {
     display: none !important;
   }
-  
+
   /* Logo Section - Center the icon */
   .sidebar-logo {
     display: flex;
@@ -428,11 +459,11 @@ html {
     width: 100%;
     margin-bottom: 1.5rem;
   }
-  
+
   .sidebar-logo a {
     justify-content: center;
   }
-  
+
   /* User Info - Center the avatar only */
   .sidebar-user {
     width: 100%;
@@ -441,11 +472,11 @@ html {
     justify-content: center;
     margin-bottom: 1.5rem;
   }
-  
-  .sidebar-user > div {
+
+  .sidebar-user>div {
     justify-content: center;
   }
-  
+
   /* Navigation Items - Clean Icon-Only Style */
   .nav-item {
     width: 56px !important;
@@ -454,17 +485,18 @@ html {
     display: flex;
     align-items: center;
     justify-content: center;
-    margin: 16px 0 !important; /* vertical spacing between icons */
+    margin: 16px 0 !important;
+    /* vertical spacing between icons */
     border-radius: 12px;
     background: transparent;
     position: relative;
   }
-  
+
   /* Remove default active state styling */
   .nav-item {
     box-shadow: none !important;
   }
-  
+
   /* Active State - Colored background only on icon container */
   .nav-item .nav-icon {
     width: 48px;
@@ -475,32 +507,32 @@ html {
     border-radius: 10px;
     transition: all 0.3s ease;
   }
-  
+
   /* Active item - green background on icon */
   .nav-item.bg-\[#24B47E\] {
     background: transparent !important;
   }
-  
+
   .nav-item.bg-\[#24B47E\] .nav-icon {
     background: #24B47E;
   }
-  
+
   .nav-item.bg-\[#24B47E\] .nav-icon svg {
     color: white !important;
   }
-  
+
   /* Inactive items - subtle hover */
   .nav-item:not(.bg-\[#24B47E\]):hover .nav-icon {
     background: #f3f4f6;
   }
-  
+
   /* Hide active bar and glow effect in tablet */
   .tablet-hide,
-  .nav-item > div:first-child[class*="absolute"],
-  .nav-item > div:last-child[class*="absolute"] {
+  .nav-item>div:first-child[class*="absolute"],
+  .nav-item>div:last-child[class*="absolute"] {
     display: none !important;
   }
-  
+
   /* Navigation container - centered layout */
   nav.custom-scrollbar {
     display: flex;
@@ -509,13 +541,13 @@ html {
     gap: 0.5rem;
     padding: 0 1rem;
   }
-  
+
   nav.custom-scrollbar .space-y-2 {
     gap: 0.5rem;
   }
-  
+
   /* Logout Button - Icon Only at Bottom */
-  .sidebar > div:last-child {
+  .sidebar>div:last-child {
     margin-top: auto;
     width: 100%;
     padding: 1rem 0;
@@ -523,9 +555,9 @@ html {
     display: flex;
     justify-content: center;
   }
-  
+
   .logout-btn,
-  .sidebar > div:last-child button {
+  .sidebar>div:last-child button {
     width: 56px !important;
     height: 56px !important;
     padding: 0 !important;
@@ -533,51 +565,54 @@ html {
     align-items: center;
     justify-content: center;
     border-radius: 12px;
-    font-size: 0; /* hide any text like 'Keluar' while keeping icon visible */
+    font-size: 0;
+    /* hide any text like 'Keluar' while keeping icon visible */
   }
 
   /* Ensure any text node inside logout button is hidden while svg/icon remains */
-  .sidebar > div:last-child button span,
+  .sidebar>div:last-child button span,
   .logout-btn span {
     display: none !important;
   }
-  .sidebar > div:last-child button svg,
+
+  .sidebar>div:last-child button svg,
   .logout-btn svg {
     width: 24px;
     height: 24px;
   }
-  
+
   .logout-btn:hover,
-  .sidebar > div:last-child button:hover {
+  .sidebar>div:last-child button:hover {
     background: #fef2f2 !important;
   }
-  
+
   /* Adjust main content margin */
   .main-content {
-    margin-left: 90px; /* match new sidebar width */
+    margin-left: 90px;
+    /* match new sidebar width */
   }
-  
+
   .content-wrapper {
     padding: 1.5rem;
   }
-  
+
   /* Hero Grid: BMI Full Width, Target & Streak 2 Columns */
   .hero-grid {
     display: grid;
     grid-template-columns: 1fr;
     gap: 1rem;
   }
-  
-  .hero-grid > :first-child {
+
+  .hero-grid> :first-child {
     grid-column: 1 / -1;
   }
-  
+
   .hero-grid-bottom {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
     gap: 1rem;
   }
-  
+
   /* Action Grid - 2 COLUMNS */
   .action-grid {
     grid-template-columns: repeat(2, 1fr);
@@ -597,6 +632,7 @@ html {
   .sidebar-user .sidebar-text {
     display: none !important;
   }
+
   .sidebar-user {
     width: 100%;
     padding: 0.75rem 0 !important;
@@ -604,7 +640,8 @@ html {
     justify-content: center;
     align-items: center;
   }
-  .sidebar-user > div {
+
+  .sidebar-user>div {
     justify-content: center;
     align-items: center;
   }
@@ -614,29 +651,36 @@ html {
    3. MOBILE (<= 768px)
    ============================================ */
 @media (max-width: 768px) {
+
   /* Sidebar: SEMBUNYIKAN TOTAL di mobile */
   .sidebar {
     display: none !important;
   }
-  
+
   /* Saat tombol hamburger ditekan: tampilkan drawer sidebar sebagai overlay */
   .sidebar.sidebar-mobile-open {
     display: block !important;
-    width: 280px !important; /* reset lebar sidebar ke ukuran desktop */
-    align-items: flex-start !important; /* reset alignment ke kiri */
+    width: 280px !important;
+    /* reset lebar sidebar ke ukuran desktop */
+    align-items: flex-start !important;
+    /* reset alignment ke kiri */
   }
+
   .sidebar-mobile-open {
     transform: none !important;
   }
-  
+
   /* TAMPILKAN KEMBALI SEMUA TEKS YANG DIHILANGKAN DI TABLET */
-  .sidebar-text { /* elemen pembungkus teks (div) */
+  .sidebar-text {
+    /* elemen pembungkus teks (div) */
     display: block !important;
   }
+
   /* khusus container teks pada user info di sidebar (lebih spesifik agar menang dari aturan tablet) */
   .sidebar-user .sidebar-text {
     display: block !important;
   }
+
   /* span/label di dalam link nav & user info - paksa tampilkan lagi */
   .sidebar a span,
   .nav-item .nav-label,
@@ -647,7 +691,7 @@ html {
   .sidebar-user .user-email {
     display: inline !important;
   }
-  
+
   .mobile-only {
     display: block;
   }
@@ -670,7 +714,7 @@ html {
     background: rgb(var(--surface));
     border: 1px solid rgb(var(--border));
   }
-  
+
   .mobile-overlay {
     display: block;
   }
@@ -679,45 +723,57 @@ html {
   .nav-item {
     width: auto !important;
     height: auto !important;
-    padding: 0.875rem 1rem !important; /* ~py-3.5 px-4 */
-    margin: 0.25rem 0 !important; /* rapatkan jarak antar item */
+    padding: 0.875rem 1rem !important;
+    /* ~py-3.5 px-4 */
+    margin: 0.25rem 0 !important;
+    /* rapatkan jarak antar item */
     display: flex !important;
     flex-direction: row !important;
     align-items: center !important;
-    background: initial !important; /* biarkan class utility yang atur */
+    background: initial !important;
+    /* biarkan class utility yang atur */
   }
+
   .nav-item .nav-icon {
     width: 24px !important;
     height: 24px !important;
     background: transparent !important;
     border-radius: 0 !important;
   }
+
   /* Active state di mobile: JANGAN ubah teks jadi putih, gunakan bar hijau di kiri */
   .nav-item.bg-\[#24B47E\] {
-    background: transparent !important; /* biarkan background putih */
-    color: rgb(var(--text-primary)) !important; /* teks tetap gelap */
+    background: transparent !important;
+    /* biarkan background putih */
+    color: rgb(var(--text-primary)) !important;
+    /* teks tetap gelap */
     box-shadow: none !important;
   }
+
   .nav-item.bg-\[#24B47E\] .nav-icon {
     background: transparent !important;
   }
+
   .nav-item.bg-\[#24B47E\] .nav-icon svg {
-    color: rgb(var(--text-primary)) !important; /* ikon ikut warna teks */
+    color: rgb(var(--text-primary)) !important;
+    /* ikon ikut warna teks */
   }
+
   /* ubah warna active bar (elemen absolute) jadi hijau juga */
-  .nav-item .tablet-hide { 
-    background: rgb(var(--primary)) !important; 
+  .nav-item .tablet-hide {
+    background: rgb(var(--primary)) !important;
   }
 
   /* pastikan label teks logout terlihat jelas di mobile */
   .logout-btn span,
-  .sidebar > div:last-child button span {
+  .sidebar>div:last-child button span {
     display: inline !important;
   }
+
   /* tampilan elemen absolute (bar/glow) aktifkan lagi di mobile */
   .tablet-hide,
-  .nav-item > div:first-child[class*="absolute"],
-  .nav-item > div:last-child[class*="absolute"] {
+  .nav-item>div:first-child[class*="absolute"],
+  .nav-item>div:last-child[class*="absolute"] {
     display: block !important;
   }
 
@@ -730,54 +786,57 @@ html {
   .sidebar-user {
     justify-content: flex-start !important;
     align-items: center !important;
-    width: 100% !important; /* header block solid */
-    margin-bottom: 0.75rem !important; /* sedikit lebih rapat agar kohesif */
+    width: 100% !important;
+    /* header block solid */
+    margin-bottom: 0.75rem !important;
+    /* sedikit lebih rapat agar kohesif */
   }
-  .sidebar-user > div {
+
+  .sidebar-user>div {
     justify-content: flex-start !important;
     align-items: center !important;
   }
 
   /* tampilkan teks logout kembali */
   .logout-btn,
-  .sidebar > div:last-child button {
-    font-size: 16px !important; /* paksa teks "Keluar" tampil */
+  .sidebar>div:last-child button {
+    font-size: 16px !important;
+    /* paksa teks "Keluar" tampil */
   }
-  
+
   .main-content {
     margin-left: 0;
   }
-  
+
   .content-wrapper {
     padding: 1rem;
     padding-top: 4rem;
   }
-  
+
   /* Hero Grid: ALL 1 COLUMN */
   .hero-grid {
     display: grid;
     grid-template-columns: 1fr;
     gap: 1rem;
   }
-  
-  .hero-grid > :first-child {
+
+  .hero-grid> :first-child {
     grid-column: 1;
   }
-  
+
   .hero-grid-bottom {
     display: grid;
     grid-template-columns: 1fr;
     gap: 1rem;
   }
-  
+
   /* Action Grid: ALL 1 COLUMN */
   .action-grid {
     grid-template-columns: 1fr;
   }
-  
+
   /* ALL Cards: Full Width */
   .card-full-mobile {
     width: 100%;
   }
 }
-

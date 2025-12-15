@@ -321,6 +321,37 @@ export async function sendGoalProgress(
   await sendNotificationToUser(userId, payload);
 }
 
+/**
+ * Send overeating warning
+ */
+export async function sendOvereatingWarning(
+  userId: string,
+  currentCalories: number,
+  limitCalories: number,
+  mealName: string
+): Promise<void> {
+  const diff = currentCalories - limitCalories;
+
+  const payload: NotificationPayload = {
+    title: '⚠️ Calorie Alert!',
+    body: `Kamu telah melewati batas kalori harian sebesar ${diff} kkal setelah makan ${mealName}. Jaga asupanmu ya!`,
+    icon: '/icons/icon-192x192.png',
+    tag: 'overeating-warning',
+    data: {
+      type: 'overeating_warning',
+      currentCalories,
+      limitCalories,
+      url: '/dashboard',
+    },
+    actions: [
+      { action: 'view-log', title: 'Lihat Log' },
+      { action: 'get-advice', title: 'Saran AI' },
+    ],
+  };
+
+  await sendNotificationToUser(userId, payload);
+}
+
 export default {
   sendNotificationToUser,
   sendMealReminder,
@@ -329,4 +360,5 @@ export default {
   sendWeeklySummary,
   sendBadgeEarned,
   sendGoalProgress,
+  sendOvereatingWarning,
 };

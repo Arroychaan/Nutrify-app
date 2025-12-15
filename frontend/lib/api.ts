@@ -57,9 +57,33 @@ export const authApi = {
     return response.data
   },
 
-  login: async (data: { email: string; password: string }) => {
+  login: async (data: any) => {
     const response = await api.post('/api/v1/auth/login', data)
     // Backend returns { success: true, data: { accessToken, ... } }
+    const token = response.data.data?.accessToken || response.data.accessToken || response.data.token
+    if (token) {
+      localStorage.setItem('token', token)
+    }
+    return response.data
+  },
+
+  generate2FA: async () => {
+    const response = await api.post('/api/v1/auth/2fa/generate')
+    return response.data?.data
+  },
+
+  verify2FA: async (token: string) => {
+    const response = await api.post('/api/v1/auth/2fa/verify', { token })
+    return response.data
+  },
+
+  disable2FA: async (password: string) => {
+    const response = await api.post('/api/v1/auth/2fa/disable', { password })
+    return response.data
+  },
+
+  restore: async (data: { email: string; password: string }) => {
+    const response = await api.post('/api/v1/auth/restore', data)
     const token = response.data.data?.accessToken || response.data.accessToken || response.data.token
     if (token) {
       localStorage.setItem('token', token)
@@ -95,6 +119,16 @@ export const authApi = {
     const response = await api.get('/api/v1/auth/verify-email', { params: { token } })
     return response.data
   },
+
+  forgotPassword: async (email: string) => {
+    const response = await api.post('/api/v1/auth/forgot-password', { email })
+    return response.data
+  },
+
+  resetPassword: async (token: string, newPassword: string) => {
+    const response = await api.post('/api/v1/auth/reset-password', { token, newPassword })
+    return response.data
+  },
 }
 
 // Meal Plan API
@@ -102,6 +136,11 @@ export const mealPlanApi = {
   list: async () => {
     const response = await api.get('/api/v1/meal-plans')
     // Backend typically returns { success, data: [...] }
+    return response.data?.data ?? response.data
+  },
+
+  getShoppingList: async (mealPlanId: string) => {
+    const response = await api.get(`/api/v1/meal-plans/${mealPlanId}/shopping-list`)
     return response.data?.data ?? response.data
   },
 }
@@ -112,13 +151,20 @@ export const chatApi = {
     const response = await api.post('/api/v1/chat/messages', payload)
     return response.data?.data ?? response.data
   },
-  listConversations: async (params?: { page?: number; pageSize?: number }) => {
-    const response = await api.get('/api/v1/chat/conversations', { params })
+
+  getHistory: async () => {
+    const response = await api.get('/api/v1/chat/conversations')
     return response.data?.data ?? response.data
   },
-  getConversation: async (conversationId: string) => {
-    const response = await api.get(`/api/v1/chat/conversations/${conversationId}`)
+
+  getConversation: async (id: string) => {
+    const response = await api.get(`/api/v1/chat/conversations/${id}`)
     return response.data?.data ?? response.data
+  },
+
+  deleteConversation: async (id: string) => {
+    const response = await api.delete(`/api/v1/chat/conversations/${id}`)
+    return response.data
   },
 }
 
@@ -147,7 +193,18 @@ export const foodLogApi = {
 
   // Get today's summary
   getTodaySummary: async () => {
-    const response = await api.get('/api/v1/food-logs/today')
+    const now = new Date()
+    const start = new Date(now)
+    start.setHours(0, 0, 0, 0)
+    const end = new Date(now)
+    end.setHours(23, 59, 59, 999)
+
+    const response = await api.get('/api/v1/food-logs/today', {
+      params: {
+        startDate: start.toISOString(),
+        endDate: end.toISOString()
+      }
+    })
     return response.data?.data ?? response.data
   },
 
@@ -167,6 +224,17 @@ export const foodLogApi = {
   delete: async (id: string) => {
     const response = await api.delete(`/api/v1/food-logs/${id}`)
     return response.data
+  },
+
+  // Water Tracking
+  updateWater: async (count: number, date?: string) => {
+    const response = await api.put('/api/v1/food-logs/water', { count, date })
+    return response.data?.data ?? response.data
+  },
+
+  getWater: async (date?: string) => {
+    const response = await api.get('/api/v1/food-logs/water', { params: { date } })
+    return response.data?.data ?? response.data
   },
 }
 
@@ -225,6 +293,49 @@ export const notificationApi = {
   // Send test notification
   sendTest: async () => {
     const response = await api.post('/api/v1/notifications/test')
+    return response.data?.data ?? response.data
+  },
+
+  // In-App Notifications
+  getAll: async (params?: { limit?: number; unreadOnly?: boolean }) => {
+    const response = await api.get('/api/v1/notifications', { params })
+    return response.data?.data ?? response.data
+  },
+
+  markAsRead: async (id: string) => {
+    const response = await api.put(`/api/v1/notifications/${id}/read`)
+    return response.data
+  },
+
+  markAllAsRead: async () => {
+    const response = await api.put('/api/v1/notifications/read-all')
+    return response.data
+  },
+}
+
+// Biomarker API
+export const biomarkerApi = {
+  getWeightHistory: async () => {
+    // Returns { success: true, data: [{id, weightKg, recordedAt}, ...] }
+    const response = await api.get('/api/v1/biomarkers/weight/history')
+    return response.data?.data ?? response.data
+  },
+
+  logWeight: async (data: { weightKg: number; date?: string }) => {
+    const response = await api.post('/api/v1/biomarkers/weight', data)
+    return response.data?.data ?? response.data
+  },
+}
+
+// Food Database API
+export const foodApi = {
+  search: async (params: { q?: string; category?: string; limit?: number; offset?: number }) => {
+    const response = await api.get('/api/v1/foods/search', { params })
+    return response.data
+  },
+
+  getById: async (id: string) => {
+    const response = await api.get(`/api/v1/foods/${id}`)
     return response.data?.data ?? response.data
   },
 }

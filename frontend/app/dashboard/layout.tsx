@@ -7,7 +7,8 @@ import { usePathname, useRouter } from 'next/navigation'
 import { useState, useEffect } from 'react'
 import { authApi } from '@/lib/api'
 import { useTranslation } from '@/lib/AppContext'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
+import Image from 'next/image'
 import {
   LayoutDashboard,
   Utensils,
@@ -20,8 +21,11 @@ import {
   ChevronRight,
   ClipboardList,
   CalendarDays,
-  Settings
+  Settings,
+  Menu,
+  X
 } from 'lucide-react'
+import { NotificationBell } from '@/components/layout/NotificationBell'
 
 export default function DashboardLayout({
   children,
@@ -33,6 +37,7 @@ export default function DashboardLayout({
   const [user, setUser] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [isDarkMode, setIsDarkMode] = useState(false)
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const { t } = useTranslation()
 
   const toggleDarkMode = () => {
@@ -71,6 +76,11 @@ export default function DashboardLayout({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
+  // Close mobile menu when route changes
+  useEffect(() => {
+    setIsMobileMenuOpen(false)
+  }, [pathname])
+
   const checkAuth = async () => {
     try {
       const token = localStorage.getItem('token')
@@ -106,25 +116,66 @@ export default function DashboardLayout({
     )
   }
 
-  /* ... inside component ... */
-
 
   const navigation = [
     { name: t('nav.dashboard'), href: '/dashboard', icon: LayoutDashboard },
     { name: t('nav.foodLog'), href: '/dashboard/food-log', icon: ClipboardList },
     { name: t('nav.mealPlan'), href: '/dashboard/meal-plan', icon: CalendarDays },
+    { name: t('nav.chat'), href: '/dashboard/chat', icon: MessageSquare },
     { name: t('nav.settings'), href: '/dashboard/settings', icon: Settings },
   ]
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-300 font-sans">
 
-      {/* DESKTOP SIDEBAR */}
-      <aside className="hidden md:flex fixed inset-y-0 left-0 w-72 bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl border-r border-gray-200/50 dark:border-gray-700/50 shadow-[4px_0_24px_-12px_rgba(0,0,0,0.1)] z-50 flex-col transition-all duration-300">
-        <div className="p-6">
+      {/* MOBILE HEADER */}
+      <div className="md:hidden fixed top-0 left-0 right-0 z-40 bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border-b border-gray-100 dark:border-gray-800 px-4 py-3 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <div className="w-8 h-8 rounded-lg bg-emerald-500 flex items-center justify-center shadow-lg shadow-emerald-500/20">
+            <Image src="/logo-white.svg" alt="N" width={20} height={20} className="w-5 h-5" onError={(e: any) => e.currentTarget.src = '/favicon.svg'} />
+          </div>
+          <span className="font-bold text-gray-900 dark:text-white">Nutrify</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <NotificationBell />
+          <button
+            onClick={() => setIsMobileMenuOpen(true)}
+            className="p-2 -mr-2 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors"
+          >
+            <Menu className="w-6 h-6" />
+          </button>
+        </div>
+      </div>
+
+      {/* MOBILE SIDEBAR OVERLAY */}
+      <AnimatePresence>
+        {isMobileMenuOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setIsMobileMenuOpen(false)}
+            className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm md:hidden"
+          />
+        )}
+      </AnimatePresence>
+
+      {/* SIDEBAR (Desktop Fixed + Mobile Drawer) */}
+      <aside className={`fixed inset-y-0 left-0 z-50 w-72 bg-white/95 dark:bg-gray-900/95 md:bg-white/80 md:dark:bg-gray-800/80 backdrop-blur-xl border-r border-gray-200/50 dark:border-gray-700/50 shadow-2xl md:shadow-[4px_0_24px_-12px_rgba(0,0,0,0.1)] flex flex-col transition-all duration-300 transform 
+        ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
+      `}>
+        <div className="p-6 relative">
+          {/* Close Button Mobile */}
+          <button
+            onClick={() => setIsMobileMenuOpen(false)}
+            className="md:hidden absolute top-4 right-4 p-2 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full"
+          >
+            <X className="w-5 h-5" />
+          </button>
+
           <Link href="/dashboard" className="flex items-center gap-3 mb-8 group">
-            <div className="relative w-10 h-10 flex items-center justify-center rounded-xl shadow-lg shadow-emerald-200 dark:shadow-emerald-900/20 transition-transform group-hover:scale-110 overflow-hidden">
-              <img src="/icon.svg" alt="Nutrify" className="w-full h-full" />
+            <div className="relative w-10 h-10 flex items-center justify-center rounded-xl shadow-lg shadow-emerald-200 dark:shadow-emerald-900/20 transition-transform group-hover:scale-110 overflow-hidden bg-emerald-500">
+              <Image src="/favicon.svg" alt="Nutrify" width={24} height={24} className="w-6 h-6 invert brightness-0" />
             </div>
             <div>
               <h1 className="text-xl font-bold text-gray-900 dark:text-white tracking-tight">Nutrify</h1>
@@ -132,7 +183,7 @@ export default function DashboardLayout({
             </div>
           </Link>
 
-          <div className="p-4 rounded-2xl bg-gray-50 dark:bg-gray-700/50 border border-gray-100 dark:border-gray-700 flex items-center gap-3 mb-6">
+          <div className="p-4 rounded-2xl bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700 flex items-center gap-3 mb-6">
             <div className="w-10 h-10 rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 flex items-center justify-center font-bold text-lg shadow-sm">
               {user?.fullName?.charAt(0)?.toUpperCase()}
             </div>
@@ -163,10 +214,10 @@ export default function DashboardLayout({
           </nav>
         </div>
 
-        <div className="mt-auto p-6 border-t border-gray-100 dark:border-gray-700/50 space-y-2">
+        <div className="mt-auto p-6 border-t border-gray-100 dark:border-gray-800 space-y-2">
           <button
             onClick={toggleDarkMode}
-            className="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700/50 rounded-xl transition-all"
+            className="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-xl transition-all"
           >
             {isDarkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
             {isDarkMode ? t('settings.themeLight') : t('settings.themeDark')}
@@ -182,8 +233,8 @@ export default function DashboardLayout({
         </div>
       </aside>
 
-      {/* MOBILE BOTTOM NAVIGATION */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white/90 dark:bg-gray-800/90 backdrop-blur-xl border-t border-gray-200 dark:border-gray-700 z-50 pb-[env(safe-area-inset-bottom)]">
+      {/* MOBILE BOTTOM NAVIGATION (Keep for quick access, but visible only when sidebar is closed) */}
+      <nav className={`md:hidden fixed bottom-0 left-0 right-0 bg-white/90 dark:bg-gray-800/90 backdrop-blur-xl border-t border-gray-200 dark:border-gray-700 z-40 pb-[env(safe-area-inset-bottom)] transition-transform duration-300 ${isMobileMenuOpen ? 'translate-y-full' : 'translate-y-0'}`}>
         <div className="flex justify-around items-center px-2 py-2">
           {navigation.map((item) => {
             const isActive = pathname === item.href
@@ -224,7 +275,12 @@ export default function DashboardLayout({
       </nav>
 
       {/* MAIN CONTENT WRAPPER */}
-      <main className="md:pl-72 min-h-screen transition-all duration-300">
+      <main className={`md:pl-72 min-h-screen transition-all duration-300 pt-16 md:pt-0 ${isMobileMenuOpen ? 'blur-sm md:blur-none' : ''}`}>
+        {/* DESKTOP HEADER */}
+        <div className="hidden md:flex justify-end items-center px-8 py-4">
+          <NotificationBell />
+        </div>
+
         <div className="p-4 md:p-8 pb-24 md:pb-8 max-w-7xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 20 }}

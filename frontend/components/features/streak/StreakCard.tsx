@@ -63,17 +63,17 @@ export default function StreakCard({ streakDays, onShare }: StreakCardProps) {
                     <div>
                         <div className="flex items-center gap-2">
                             <h3 className={`text-xl font-bold ${streakDays > 0 ? color : 'text-gray-900 dark:text-white'}`}>
-                                {streakDays} {t('dashboard.streak')}
+                                {streakDays > 0 ? `${streakDays} ${t('dashboard.streak')}` : "Mulai Streak-mu!"}
                             </h3>
                         </div>
                         <p className="text-sm text-gray-500 dark:text-gray-400 mt-1 max-w-[200px] leading-tight">
-                            {t(message)}
+                            {streakDays > 0 ? t(message) : "Konsisten catat makanan untuk bangun kebiasaan sehat."}
                         </p>
                     </div>
                 </div>
 
                 {/* Share Button */}
-                {streakDays > 0 && (
+                {streakDays > 0 ? (
                     <motion.button
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
@@ -83,6 +83,14 @@ export default function StreakCard({ streakDays, onShare }: StreakCardProps) {
                     >
                         <Share2 className="w-5 h-5" />
                     </motion.button>
+                ) : (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        className="text-xs font-semibold text-emerald-600 bg-emerald-50 dark:bg-emerald-900/20 px-3 py-1.5 rounded-full"
+                    >
+                        Day 1
+                    </motion.div>
                 )}
             </div>
         </motion.div>

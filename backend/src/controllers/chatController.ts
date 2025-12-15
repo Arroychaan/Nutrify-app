@@ -98,6 +98,35 @@ export const sendChatMessageController = asyncHandler(
     const endOfDay = new Date(today);
     endOfDay.setHours(23, 59, 59, 999);
 
+    const todayLogs = await prisma.foodLog.findMany({
+      where: {
+        userId,
+        loggedAt: {
+          gte: startOfDay,
+          lte: endOfDay,
+        },
+      },
+      select: {
+        mealType: true,
+        foodName: true,
+        calories: true,
+        proteinG: true,
+        carbsG: true,
+        fatG: true,
+      },
+    });
+
+    // Calculate daily summary
+    const dailySummary = todayLogs.reduce(
+      (acc, log) => ({
+        calories: acc.calories + (Number(log.calories) || 0),
+        protein: acc.protein + (Number(log.proteinG) || 0),
+        carbs: acc.carbs + (Number(log.carbsG) || 0),
+        fat: acc.fat + (Number(log.fatG) || 0),
+      }),
+      { calories: 0, protein: 0, carbs: 0, fat: 0 }
+    );
+
     const todayFoodLogs = await (prisma as any).foodLog.findMany({
       where: {
         userId,
@@ -184,14 +213,14 @@ export const sendChatMessageController = asyncHandler(
       age: user?.dateOfBirth
         ? Math.floor((Date.now() - new Date(user.dateOfBirth).getTime()) / (365.25 * 24 * 60 * 60 * 1000))
         : null,
-      
+
       // Physical Metrics
       heightCm: user?.heightCm ? Number(user.heightCm) : null,
       currentWeightKg: user?.currentWeightKg ? Number(user.currentWeightKg) : null,
       targetWeightKg: user?.targetWeightKg ? Number(user.targetWeightKg) : null,
       bmi: Math.round(bmi * 10) / 10,
       activityLevel: user?.activityLevel,
-      
+
       // Preferences
       culture: user?.culture ?? undefined,
       religion: user?.religion,
@@ -200,14 +229,14 @@ export const sendChatMessageController = asyncHandler(
       allergies: user?.allergies ?? [],
       dietaryRestrictions: user?.dietaryRestrictions ?? [],
       dislikes: user?.dislikes ?? [],
-      
+
       // Today's Progress
       calorieTarget,
       todayCaloriesConsumed: Math.round(todayNutrition.calories),
       todayCaloriesRemaining: Math.max(0, calorieTarget - Math.round(todayNutrition.calories)),
       todayMealsLogged: todayFoodLogs.length,
       todayFoodLog: todayFoodLogs.map((f: any) => `${f.mealType}: ${f.foodName} (${f.portion})`),
-      
+
       // Latest Biomarkers
       latestBiomarker: latestBiomarker ? {
         bloodGlucose: latestBiomarker.bloodGlucose,
@@ -215,10 +244,13 @@ export const sendChatMessageController = asyncHandler(
         cholesterol: latestBiomarker.totalCholesterol,
         recordedAt: latestBiomarker.recordedAt,
       } : null,
-      
+
       // Engagement
       streakDays: user?.streakDays ?? 0,
       currentMealPlanId: latestMealPlan?.id,
+      latestMealPlan,
+      todayLogs,
+      dailySummary,
     } as Record<string, any>;
 
     // Call LLM
@@ -322,6 +354,40 @@ export const getConversationController = asyncHandler(
         id: conv.id,
         messages: conv.messages.map((m) => ({ id: m.id, role: m.role, content: m.content, createdAt: m.createdAt })),
       },
+    });
+  }
+);
+
+/**
+ * Delete conversation
+ * DELETE /api/v1/chat/conversations/:conversationId
+ */
+export const deleteConversationController = asyncHandler(
+  async (req: Request, res: Response) => {
+    const { conversationId } = req.params;
+    const userId = req.userId!;
+
+    logger.info('Deleting conversation', { userId, conversationId });
+
+    // Verify ownership
+    const conv = await prisma.conversation.findFirst({
+      where: { id: conversationId, userId },
+    });
+
+    if (!conv) {
+      res.status(404).json({ success: false, error: { code: 'NOT_FOUND', message: 'Conversation not found' } });
+      return;
+    }
+
+    // Soft delete / Archive
+    await prisma.conversation.update({
+      where: { id: conversationId },
+      data: { isArchived: true },
+    });
+
+    res.json({
+      success: true,
+      message: 'Conversation deleted successfully',
     });
   }
 );

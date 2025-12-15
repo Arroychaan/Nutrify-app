@@ -7,6 +7,11 @@ import {
   deleteFoodLog,
   updateFoodLog,
   getTodaySummary,
+  deleteFoodLog,
+  updateFoodLog,
+  getTodaySummary,
+  updateWaterLog,
+  getWaterLog,
 } from '@controllers/foodLogController.js';
 
 const router = Router();
@@ -25,6 +30,12 @@ router.get('/summary', getFoodLogsSummary);
 
 // GET /api/food-logs/today - Get today's calorie summary
 router.get('/today', getTodaySummary);
+
+// PUT /api/food-logs/water - Update water intake (Specific route BEFORE generic :id)
+router.put('/water', updateWaterLog);
+
+// GET /api/food-logs/water - Get water intake (Specific route BEFORE generic :id)
+router.get('/water', getWaterLog);
 
 // PUT /api/food-logs/:id - Update food log
 router.put('/:id', updateFoodLog);

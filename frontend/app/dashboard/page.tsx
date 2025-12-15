@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { motion } from 'framer-motion'
 import Link from 'next/link'
 import {
@@ -18,7 +18,8 @@ import {
     Sparkles,
     Share2,
     ChefHat,
-    LineChart
+    LineChart,
+    Info
 } from 'lucide-react'
 import { authApi, foodLogApi } from '@/lib/api'
 import StreakCard from '@/components/features/streak/StreakCard'
@@ -26,6 +27,8 @@ import ShareModal from '@/components/features/sharing/ShareModal'
 import { useTranslation } from '@/lib/AppContext'
 import { GlassCard } from '@/components/ui/GlassCard'
 import { GradientButton } from '@/components/ui/GradientButton'
+import TDEEExplanationModal from '@/components/features/dashboard/TDEEExplanationModal'
+import { Skeleton } from '@/components/ui/Skeleton'
 
 interface DashboardData {
     user: any
@@ -55,22 +58,14 @@ export default function DashboardPage() {
     const [waterCount, setWaterCount] = useState(0)
     const [dailyTip] = useState(() => dailyTips[Math.floor(Math.random() * dailyTips.length)])
 
-    // Share State
+    // Share & Modal State
     const [shareModalOpen, setShareModalOpen] = useState(false)
     const [shareType, setShareType] = useState<'streak' | 'daily_summary'>('streak')
     const [shareData, setShareData] = useState<any>(null)
+    const [showTDEEModal, setShowTDEEModal] = useState(false)
 
-    useEffect(() => {
-        const today = new Date().toISOString().split('T')[0]
-        const savedWater = localStorage.getItem(`water_${today}`)
-        if (savedWater) setWaterCount(parseInt(savedWater, 10))
-    }, [])
-
-    useEffect(() => {
-        loadDashboardData()
-    }, [])
-
-    const loadDashboardData = async () => {
+    // Move loadDashboardData to useCallback to fix lint warning
+    const loadDashboardData = useCallback(async () => {
         try {
             const [userRes, todayRes] = await Promise.all([
                 authApi.me().catch(() => ({ data: { fullName: 'Pengguna', currentWeightKg: 65 } })),
@@ -84,13 +79,13 @@ export default function DashboardPage() {
                 user,
                 todayLogs: todayRes?.logs || [],
                 stats: {
-                    calories: todayRes?.totalCalories || 0,
-                    caloriesGoal,
-                    protein: todayRes?.totalProtein || 0,
-                    proteinGoal: Math.round((user.currentWeightKg || 65) * 1.6),
-                    carbs: todayRes?.totalCarbs || 0,
+                    calories: Number(todayRes?.totalCalories) || 0,
+                    caloriesGoal: Number(caloriesGoal),
+                    protein: Number(todayRes?.totalProtein) || 0,
+                    proteinGoal: Math.round((Number(user.currentWeightKg) || 65) * 1.6),
+                    carbs: Number(todayRes?.totalCarbs) || 0,
                     carbsGoal: Math.round(caloriesGoal * 0.5 / 4),
-                    fat: todayRes?.totalFat || 0,
+                    fat: Number(todayRes?.totalFat) || 0,
                     fatGoal: Math.round(caloriesGoal * 0.25 / 9),
                 }
             })
@@ -99,13 +94,33 @@ export default function DashboardPage() {
         } finally {
             setLoading(false)
         }
-    }
+    }, [])
 
-    const addWater = () => {
+    useEffect(() => {
+        const loadWater = async () => {
+            try {
+                const res = await foodLogApi.getWater()
+                if (res?.count) setWaterCount(res.count)
+            } catch (e) {
+                console.error('Failed to load water', e)
+            }
+        }
+        loadWater()
+    }, [])
+
+    useEffect(() => {
+        loadDashboardData()
+    }, [loadDashboardData])
+
+    const addWater = async () => {
         const newCount = Math.min(waterCount + 1, 8)
-        setWaterCount(newCount)
-        const today = new Date().toISOString().split('T')[0]
-        localStorage.setItem(`water_${today}`, newCount.toString())
+        setWaterCount(newCount) // Optimistic update
+        try {
+            await foodLogApi.updateWater(newCount)
+        } catch (e) {
+            console.error('Failed to sync water', e)
+            setWaterCount(waterCount) // Revert on error
+        }
     }
 
     const handleStreakShare = () => {
@@ -128,16 +143,35 @@ export default function DashboardPage() {
 
     if (loading) {
         return (
-            <div className="space-y-4 animate-pulse p-1">
-                <div className="h-8 w-40 bg-gray-200 dark:bg-gray-800 rounded-lg" />
-                <div className="h-44 bg-gray-200 dark:bg-gray-800 rounded-3xl" />
-                <div className="h-64 bg-gray-200 dark:bg-gray-800 rounded-2xl" />
+            <div className="space-y-8 pb-24 md:pb-12 max-w-5xl mx-auto pt-2">
+                {/* Header Skeleton */}
+                <div className="flex justify-between items-end">
+                    <div className="space-y-2">
+                        <Skeleton className="h-10 w-64 rounded-xl" />
+                        <Skeleton className="h-6 w-96 rounded-lg" />
+                    </div>
+                    <Skeleton className="hidden md:block w-12 h-12 rounded-full" />
+                </div>
+
+                {/* Hero Card Skeleton */}
+                <Skeleton className="h-[280px] w-full rounded-[32px]" />
+
+                {/* Features Grid Skeleton */}
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+                    {[...Array(4)].map((_, i) => (
+                        <Skeleton key={i} className="h-40 rounded-[24px]" />
+                    ))}
+                </div>
             </div>
         )
     }
 
     const firstName = data?.user?.fullName?.split(' ')[0] || 'Teman'
-    const caloriesRemaining = Math.max(0, (data?.stats.caloriesGoal || 0) - (data?.stats.calories || 0))
+    const currentCalories = data?.stats.calories || 0
+    const goalCalories = data?.stats.caloriesGoal || 0
+    const calorieDiff = goalCalories - currentCalories
+    const isOver = calorieDiff < 0
+    const absDiff = Math.abs(calorieDiff)
 
     const getGreeting = () => {
         const hour = new Date().getHours()
@@ -153,15 +187,19 @@ export default function DashboardPage() {
             <div className="pt-2 flex justify-between items-end">
                 <div>
                     <h1 className="text-3xl font-display font-bold text-gray-900 dark:text-white">
-                        {getGreeting()}, <span className="text-primary-600">{firstName}</span> 👋
+                        {getGreeting()}, <span className="text-emerald-500">{firstName}</span> 👋
                     </h1>
-                    <p className="text-gray-500 dark:text-gray-400 mt-1 text-lg">
-                        Target kalorimu hari ini masih {caloriesRemaining} kcal.
+                    <p className={`mt-1 text-lg ${isOver ? 'text-red-500 font-medium' : 'text-gray-500 dark:text-gray-400'}`}>
+                        {goalCalories === 0
+                            ? "Belum ada target kalori. Silakan atur profilmu."
+                            : isOver
+                                ? `⚠️ Perhatian! Asupanmu melebihi target sebesar ${absDiff} kcal.`
+                                : `Kamu masih butuh ${absDiff} kcal lagi untuk mencapai target.`}
                     </p>
                 </div>
                 <div className="hidden md:block">
                     <div className="w-12 h-12 bg-white rounded-full border border-gray-200 shadow-sm flex items-center justify-center">
-                        <span className="text-xl font-bold text-primary-600">{firstName[0]}</span>
+                        <span className="text-xl font-bold text-emerald-600">{firstName[0]}</span>
                     </div>
                 </div>
             </div>
@@ -170,7 +208,7 @@ export default function DashboardPage() {
             <motion.div
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="bg-gradient-primary rounded-[32px] p-6 md:p-8 text-white relative shadow-xl shadow-emerald-500/20"
+                className={`rounded-[32px] p-6 md:p-8 text-white relative shadow-xl ${isOver ? 'bg-gradient-to-br from-red-500 to-orange-600 shadow-red-500/20' : 'bg-gradient-primary shadow-emerald-500/20'}`}
             >
                 {/* Decorative Circles */}
                 <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
@@ -178,19 +216,22 @@ export default function DashboardPage() {
                 <div className="relative z-10">
                     <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-6 gap-4">
                         <div>
-                            <p className="text-emerald-100 font-medium mb-1 flex items-center gap-2">
+                            <p className="text-white/80 font-medium mb-1 flex items-center gap-2">
                                 <Flame className="w-4 h-4" /> {t('dashboard.caloriesToday')}
                             </p>
                             <div className="flex items-baseline gap-2">
-                                <span className="text-5xl font-display font-bold">{data?.stats.calories || 0}</span>
-                                <span className="text-emerald-100 text-lg">/ {data?.stats.caloriesGoal} kcal</span>
+                                <span className="text-5xl font-display font-bold">{currentCalories}</span>
+                                <div className="flex items-center gap-1 group cursor-pointer" onClick={() => setShowTDEEModal(true)}>
+                                    <span className="text-white/60 text-lg">/ {goalCalories} kcal</span>
+                                    <Info className="w-4 h-4 text-white/40 group-hover:text-white transition-colors" />
+                                </div>
                             </div>
                         </div>
 
                         <div className="flex gap-4 items-center">
-                            <div className="bg-white/20 backdrop-blur-md rounded-2xl px-4 py-2 text-center min-w-[100px]">
-                                <p className="text-emerald-50 text-xs mb-1">Target</p>
-                                <p className="text-xl font-bold">{caloriesRemaining}</p>
+                            <div className={`backdrop-blur-md rounded-2xl px-4 py-2 text-center min-w-[100px] ${isOver ? 'bg-red-500/30' : 'bg-white/20'}`}>
+                                <p className="text-white/80 text-xs mb-1">{isOver ? 'Kelebihan' : 'Sisa'}</p>
+                                <p className="text-xl font-bold">{absDiff}</p>
                             </div>
                             <button
                                 onClick={handleDailyShare}
@@ -207,7 +248,7 @@ export default function DashboardPage() {
                             initial={{ width: 0 }}
                             animate={{ width: `${Math.min(((data?.stats.calories || 0) / (data?.stats.caloriesGoal || 1)) * 100, 100)}%` }}
                             transition={{ duration: 0.8 }}
-                            className="h-full bg-white rounded-full shadow-[0_0_10px_rgba(255,255,255,0.5)]"
+                            className={`h-full rounded-full shadow-[0_0_10px_rgba(255,255,255,0.5)] ${isOver ? 'bg-red-400' : 'bg-white'}`}
                         />
                     </div>
 
@@ -226,28 +267,28 @@ export default function DashboardPage() {
                     title="Generate Meal Plan"
                     subtitle="Rencana makan harian"
                     icon={ChefHat}
-                    gradient="from-emerald-500 to-teal-500"
+                    gradient="from-emerald-600 to-teal-600"
                     href="/dashboard/meal-plan"
                 />
                 <FeatureCard
                     title="AI Dietician"
                     subtitle="Konsultasi gizi"
                     icon={Sparkles}
-                    gradient="from-indigo-500 to-violet-500"
+                    gradient="from-emerald-500 to-emerald-700"
                     href="/dashboard/chat"
                 />
                 <FeatureCard
                     title="Jurnal Makanan"
                     subtitle="Catat kalori & makro"
                     icon={Camera}
-                    gradient="from-amber-500 to-orange-500"
+                    gradient="from-teal-500 to-cyan-600"
                     href="/dashboard/food-log/add"
                 />
                 <FeatureCard
                     title="Lihat Progress"
                     subtitle="Pantau berat badan"
                     icon={LineChart}
-                    gradient="from-blue-500 to-cyan-500"
+                    gradient="from-cyan-600 to-blue-700"
                     href="/dashboard/progress"
                 />
             </div>
@@ -313,18 +354,28 @@ export default function DashboardPage() {
                 type={shareType}
                 data={shareData}
             />
+
+            <TDEEExplanationModal
+                isOpen={showTDEEModal}
+                onClose={() => setShowTDEEModal(false)}
+                user={data?.user}
+                caloriesGoal={data?.stats?.caloriesGoal || 2000}
+            />
         </div>
     )
 }
 
 function MacroItem({ label, value, goal, color }: { label: string; value: number; goal: number; color: string }) {
+    const isOver = value > goal;
     const percentage = Math.min((value / goal) * 100, 100);
+    const barColor = isOver ? 'bg-red-400' : color;
+
     return (
         <div className="bg-white/10 rounded-xl p-3 backdrop-blur-sm">
-            <p className="text-emerald-100 text-xs mb-1">{label}</p>
-            <p className="font-bold text-lg mb-2">{value}<span className="text-xs text-emerald-200 font-normal">/{goal}g</span></p>
+            <p className="text-white/80 text-xs mb-1">{label}</p>
+            <p className="font-bold text-lg mb-2">{value}<span className="text-xs text-white/60 font-normal">/{goal}g</span></p>
             <div className="h-1 bg-black/20 rounded-full overflow-hidden">
-                <div className={`h-full ${color} rounded-full`} style={{ width: `${percentage}%` }} />
+                <div className={`h-full ${barColor} rounded-full transition-all duration-500`} style={{ width: `${percentage}%` }} />
             </div>
         </div>
     )

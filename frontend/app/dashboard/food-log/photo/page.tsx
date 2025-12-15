@@ -19,6 +19,7 @@ import {
     Moon,
     Apple
 } from 'lucide-react'
+import Image from 'next/image'
 import { foodLogApi, api } from '@/lib/api'
 import Toast from '@/components/Toast'
 
@@ -246,10 +247,12 @@ export default function PhotoFoodPage() {
                     {/* Preview Area */}
                     <div className="aspect-[4/5] bg-gray-900 relative flex items-center justify-center overflow-hidden">
                         {capturedImage ? (
-                            <img
+                            <Image
                                 src={capturedImage}
                                 alt="Captured food"
-                                className="w-full h-full object-cover"
+                                fill
+                                className="object-cover"
+                                unoptimized
                             />
                         ) : cameraActive ? (
                             <div className="relative w-full h-full">

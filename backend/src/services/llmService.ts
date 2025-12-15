@@ -97,7 +97,7 @@ async function geminiChatWithRotation(
     : new Error('Gemini rate limit reached for all keys');
 }
 
-async function geminiGenerateWithRotation(prompt: string, systemPrompt: string): Promise<string> {
+export async function geminiGenerateWithRotation(prompt: string, systemPrompt: string): Promise<string> {
   const keys = config.llm.gemini.apiKeys;
   if (!keys || keys.length === 0) {
     throw new Error('Gemini not configured');
@@ -323,14 +323,27 @@ Guidelines:
       }
     }
 
-    if (context.calorieTarget) {
-      prompt += `\n\n=== PROGRESS HARI INI ===`;
-      prompt += `\nTarget kalori harian: ${context.calorieTarget} kcal`;
-      prompt += `\nKalori sudah dikonsumsi: ${context.todayCaloriesConsumed || 0} kcal`;
-      prompt += `\nSisa kalori: ${context.todayCaloriesRemaining || context.calorieTarget} kcal`;
-      prompt += `\nJumlah makanan dicatat: ${context.todayMealsLogged || 0}`;
-      if (context.todayFoodLog?.length > 0) {
-        prompt += `\nMakanan hari ini: ${context.todayFoodLog.join(', ')}`;
+    if (context.dailySummary || context.todayLogs) {
+      const target = context.calorieTarget || 2000;
+      const consumed = context.dailySummary?.calories || 0;
+      const remaining = target - consumed;
+
+      prompt += `\n\n=== PROGRESS HARI INI (REAL-TIME) ===`;
+      prompt += `\nTarget kalori harian: ${target} kcal`;
+      prompt += `\nKalori sudah dikonsumsi: ${consumed} kcal`;
+      prompt += `\nSisa kalori: ${remaining} kcal ${remaining < 0 ? '(OVER LIMIT ⚠️)' : ''}`;
+
+      if (context.dailySummary) {
+        prompt += `\nMakro saat ini: P: ${context.dailySummary.protein}g, K: ${context.dailySummary.carbs}g, L: ${context.dailySummary.fat}g`;
+      }
+
+      if (context.todayLogs && context.todayLogs.length > 0) {
+        prompt += `\n\nDetail Makanan Hari Ini:`;
+        context.todayLogs.forEach((log: any) => {
+          prompt += `\n- ${log.mealType}: ${log.foodName} (${log.calories} kcal)`;
+        });
+      } else {
+        prompt += `\nBelum ada makanan yang dicatat hari ini.`;
       }
     }
 

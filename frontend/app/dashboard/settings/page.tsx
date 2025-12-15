@@ -170,19 +170,19 @@ export default function SettingsPage() {
                         />
                         <SettingsLink
                             href="/dashboard/settings/weight"
-                            icon={<Weight className="w-5 h-5 text-green-600" />}
+                            icon={<Weight className="w-5 h-5 text-emerald-600" />}
                             title="Berat Badan & Target"
                             description="Berat saat ini, target, tinggi badan"
                         />
                         <SettingsLink
                             href="/dashboard/settings/health"
-                            icon={<Heart className="w-5 h-5 text-teal-600" />}
+                            icon={<Heart className="w-5 h-5 text-emerald-600" />}
                             title="Kondisi Kesehatan"
                             description="Alergi, kondisi medis, diet"
                         />
                         <SettingsLink
                             href="/dashboard/settings/goals"
-                            icon={<Target className="w-5 h-5 text-emerald-500" />}
+                            icon={<Target className="w-5 h-5 text-emerald-600" />}
                             title="Target Nutrisi"
                             description="Target kalori, protein, karbo, lemak"
                         />
@@ -227,17 +227,22 @@ export default function SettingsPage() {
 
                         <SettingsLink
                             href="/dashboard/settings/language"
-                            icon={<Globe className="w-5 h-5 text-teal-600" />}
+                            icon={<Globe className="w-5 h-5 text-emerald-600" />}
                             title="Bahasa"
                             description={userSettings.language === 'id' ? 'Indonesia' : 'English'}
                         />
                     </div>
                 </div>
 
-                {/* Keamanan & Privasi */}
                 <div className="space-y-3 pt-4">
                     <h3 className="text-sm font-semibold text-gray-500 ml-2 uppercase tracking-wider text-xs">Keamanan</h3>
                     <div className="space-y-2">
+                        <SettingsLink
+                            href="/dashboard/settings/security"
+                            icon={<Shield className="w-5 h-5 text-emerald-600" />}
+                            title="Keamanan Akun (2FA)"
+                            description="Autentikasi 2 Faktor & Login"
+                        />
                         <SettingsLink
                             href="/dashboard/settings/password"
                             icon={<Lock className="w-5 h-5 text-emerald-600" />}
@@ -246,7 +251,7 @@ export default function SettingsPage() {
                         />
                         <SettingsLink
                             href="/dashboard/settings/privacy"
-                            icon={<Shield className="w-5 h-5 text-green-600" />}
+                            icon={<Shield className="w-5 h-5 text-emerald-600" />}
                             title="Privasi Data"
                             description="Kelola data dan ekspor"
                         />
@@ -259,13 +264,13 @@ export default function SettingsPage() {
                     <div className="space-y-2">
                         <SettingsLink
                             href="/help"
-                            icon={<HelpCircle className="w-5 h-5 text-teal-500" />}
+                            icon={<HelpCircle className="w-5 h-5 text-emerald-600" />}
                             title="Pusat Bantuan"
                             description="FAQ dan panduan penggunaan"
                         />
                         <SettingsLink
                             href="/about"
-                            icon={<Info className="w-5 h-5 text-emerald-500" />}
+                            icon={<Info className="w-5 h-5 text-emerald-600" />}
                             title="Tentang Aplikasi"
                             description="Versi 1.0.0"
                         />
@@ -276,7 +281,7 @@ export default function SettingsPage() {
                 <div className="space-y-3 pt-6">
                     <button
                         onClick={handleLogout}
-                        className="w-full flex items-center justify-between p-4 bg-white dark:bg-gray-800 rounded-2xl shadow-sm text-red-500 font-semibold hover:bg-red-50 dark:hover:bg-red-900/10 transition-colors"
+                        className="w-full flex items-center justify-between p-4 bg-white dark:bg-gray-800 rounded-2xl shadow-sm text-red-500 font-semibold hover:bg-red-50 dark:hover:bg-red-900/10 transition-colors border border-transparent hover:border-red-100"
                     >
                         <span className="flex items-center gap-3">
                             <LogOut className="w-5 h-5" />

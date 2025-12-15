@@ -3,6 +3,7 @@ import { asyncHandler } from '@middlewares/errorHandler.js';
 import { generateMealPlan } from '@services/llmService.js';
 import prisma from '@config/prisma.js';
 import logger from '@config/logger.js';
+import { validateWithKnowledge } from '@services/ragService.js';
 
 /**
  * Get random foods from database by category
@@ -16,14 +17,14 @@ async function getRandomFoodsFromDatabase(
   } = {}
 ): Promise<any[]> {
   const whereClause: any = { category };
-  
+
   if (filters.dietaryRestrictions?.includes('vegetarian')) {
     whereClause.isVegetarian = true;
   }
   if (filters.dietaryRestrictions?.includes('halal')) {
     whereClause.isHalal = true;
   }
-  
+
   // Medical condition filters
   if (filters.medicalConditions?.includes('Hipertensi')) {
     whereClause.sodiumMg = { lt: 600 };
@@ -31,10 +32,10 @@ async function getRandomFoodsFromDatabase(
   if (filters.medicalConditions?.includes('Diabetes')) {
     whereClause.sugarG = { lt: 15 };
   }
-  
+
   const totalCount = await prisma.localFood.count({ where: whereClause });
   const randomOffset = Math.floor(Math.random() * Math.max(1, totalCount - count));
-  
+
   return prisma.localFood.findMany({
     where: whereClause,
     take: count,
@@ -79,30 +80,30 @@ async function createMealFromDatabase(
       { name: 'Buah', category: 'fruits' },
     ],
   };
-  
+
   const templates = mealTemplates[mealType];
   const selectedTemplate = templates[Math.floor(Math.random() * templates.length)];
-  
+
   // Try to find the food in database
   let food = await prisma.localFood.findFirst({
     where: {
       name: { contains: selectedTemplate.name, mode: 'insensitive' },
     },
   });
-  
+
   // Fallback to category search
   if (!food) {
     const foods = await getRandomFoodsFromDatabase(selectedTemplate.category, 1, filters);
     food = foods[0];
   }
-  
+
   // If still no food, get any food from appropriate category
   if (!food) {
     const categoryFallback = mealType === 'snack' ? 'fruits' : 'prepared_dishes';
     const foods = await getRandomFoodsFromDatabase(categoryFallback, 1, filters);
     food = foods[0];
   }
-  
+
   if (!food) {
     // Return default if database is empty
     return {
@@ -118,18 +119,21 @@ async function createMealFromDatabase(
       isCultureApproved: true,
     };
   }
-  
+
   // Calculate portion based on target calories
   const baseCalories = Number(food.calories) || 200;
   const portionMultiplier = targetCalories / baseCalories;
-  const portionDescription = portionMultiplier >= 1.5 ? '1.5 porsi' : 
-                             portionMultiplier >= 1 ? '1 porsi' : '0.5 porsi';
-  
+  const portionDescription = portionMultiplier >= 1.5 ? '1.5 porsi' :
+    portionMultiplier >= 1 ? '1 porsi' : '0.5 porsi';
+
+  // Calculate weight in grams (assuming 100g base for nutrition data)
+  const weightInGrams = Math.round(100 * portionMultiplier);
+
   return {
     name: food.name,
     description: food.benefits?.[0] || `${food.name} khas Indonesia`,
     portion: portionDescription,
-    calories: Math.round(Number(food.calories) * portionMultiplier),
+    calories: Math.min(Math.round(Number(food.calories) * portionMultiplier), 2000),
     proteinG: Math.round(Number(food.proteinG) * portionMultiplier),
     carbsG: Math.round(Number(food.carbsG) * portionMultiplier),
     fatG: Math.round(Number(food.fatG) * portionMultiplier),
@@ -138,8 +142,9 @@ async function createMealFromDatabase(
     sugarG: food.sugarG ? Math.round(Number(food.sugarG) * portionMultiplier) : null,
     isLocalFood: true,
     isCultureApproved: true,
-    // Store localFoodId separately for ingredient linking if needed
+    // Store metadata for ingredient linking
     _localFoodId: food.id,
+    _weightInGrams: weightInGrams,
   };
 }
 
@@ -226,6 +231,9 @@ export const generateMealPlanController = asyncHandler(
         culture: true,
         religion: true,
         dislikes: true,
+        gender: true,
+        dateOfBirth: true,
+        activityLevel: true,
       },
     });
 
@@ -234,6 +242,39 @@ export const generateMealPlanController = asyncHandler(
     today.setHours(0, 0, 0, 0);
     const tomorrow = new Date(today);
     tomorrow.setDate(tomorrow.getDate() + 1);
+
+    // Calculate TDEE if targetCalories is invalid
+    let finalTargetCalories = targetCalories;
+    if (!finalTargetCalories || finalTargetCalories < 1000) {
+      if (user?.currentWeightKg && user?.heightCm && user?.dateOfBirth) {
+        const age = Math.floor((Date.now() - new Date(user.dateOfBirth).getTime()) / (365.25 * 24 * 60 * 60 * 1000));
+        // Mifflin-St Jeor Equation
+        let bmr = (10 * Number(user.currentWeightKg)) + (6.25 * Number(user.heightCm)) - (5 * age);
+        bmr = user.gender === 'male' ? bmr + 5 : bmr - 161;
+
+        // Activity Multiplier Map
+        const activityMap: Record<string, number> = {
+          sedentary: 1.2,
+          light: 1.375,
+          moderate: 1.55,
+          active: 1.725,
+          very_active: 1.9,
+        };
+        const multiplier = activityMap[user.activityLevel || 'sedentary'] || 1.2;
+        finalTargetCalories = Math.round(bmr * multiplier);
+
+        // Adjust for goal
+        if (user.targetWeightKg) {
+          if (Number(user.targetWeightKg) < Number(user.currentWeightKg)) finalTargetCalories -= 500; // Deficit
+          if (Number(user.targetWeightKg) > Number(user.currentWeightKg)) finalTargetCalories += 300; // Surplus
+        }
+      } else {
+        finalTargetCalories = 2000; // Default fallback
+      }
+    }
+
+    // Ensure safety bounds
+    finalTargetCalories = Math.max(1200, Math.min(finalTargetCalories, 4000));
 
     // Find and delete existing meal plans for today
     const existingPlans = await prisma.mealPlan.findMany({
@@ -249,7 +290,7 @@ export const generateMealPlanController = asyncHandler(
 
     if (existingPlans.length > 0) {
       const planIds = existingPlans.map(p => p.id);
-      
+
       // Delete in correct order due to foreign key constraints
       // 1. Delete MealPlanDayMeal entries
       const days = await prisma.mealPlanDay.findMany({
@@ -257,16 +298,16 @@ export const generateMealPlanController = asyncHandler(
         select: { id: true },
       });
       const dayIds = days.map(d => d.id);
-      
+
       await prisma.mealPlanDayMeal.deleteMany({
         where: { mealPlanDayId: { in: dayIds } },
       });
-      
+
       // 2. Delete MealPlanDay entries
       await prisma.mealPlanDay.deleteMany({
         where: { mealPlanId: { in: planIds } },
       });
-      
+
       // 3. Delete MealPlan entries
       await prisma.mealPlan.deleteMany({
         where: { id: { in: planIds } },
@@ -286,7 +327,7 @@ export const generateMealPlanController = asyncHandler(
     };
 
     // Calculate calorie distribution
-    const dailyCalories = targetCalories || 2000;
+    const dailyCalories = finalTargetCalories;
     const breakfastCal = Math.round(dailyCalories * 0.25);
     const lunchCal = Math.round(dailyCalories * 0.35);
     const dinnerCal = Math.round(dailyCalories * 0.30);
@@ -314,6 +355,31 @@ export const generateMealPlanController = asyncHandler(
       totalSodium += snack1Data.sodiumMg + snack2Data.sodiumMg;
     }
 
+    // RAG Validation based on Permenkes 2019
+    let validationResult;
+    try {
+      validationResult = await validateWithKnowledge(
+        {
+          gender: user?.gender || 'unknown',
+          age: user?.dateOfBirth ? Math.floor((Date.now() - new Date(user.dateOfBirth).getTime()) / (365.25 * 24 * 60 * 60 * 1000)) : 30,
+          currentWeightKg: Number(user?.currentWeightKg) || 60,
+          heightCm: Number(user?.heightCm) || 165,
+          medicalConditions: user?.medicalConditions,
+          activityLevel: user?.activityLevel
+        },
+        {
+          totalCalories,
+          totalProtein,
+          totalCarbs,
+          totalFat
+        }
+      );
+      logger.info('Compliance Score calculated', { score: validationResult.score });
+    } catch (err) {
+      logger.error('RAG Validation error', err);
+      validationResult = { score: 85 }; // Fallback
+    }
+
     // Create meal plan with calculated totals
     const mealPlan = await prisma.mealPlan.create({
       data: {
@@ -327,10 +393,11 @@ export const generateMealPlanController = asyncHandler(
         avgFatG: totalFat,
         avgSugarG: 30,
         avgSodiumMg: totalSodium,
-        akgCompliance: 0.85,
-        localFoodPercentage: 0.95,
-        medicalSafetyScore: 0.90,
+        akgCompliance: validationResult.score, // Store as 0-100
+        localFoodPercentage: 95,
+        medicalSafetyScore: 90,
         generatedBy: 'gemini-1.5-flash',
+        llmPromptUsed: `RAG Validation: ${validationResult.details || 'N/A'}`
       },
     });
 
@@ -343,16 +410,35 @@ export const generateMealPlanController = asyncHandler(
       },
     });
 
-    // Helper to extract only valid Meal fields (remove _localFoodId)
+    // Helper to extract only valid Meal fields (remove _localFoodId, _weightInGrams)
     const toMealData = (data: any) => {
-      const { _localFoodId, ...mealData } = data;
+      const { _localFoodId, _weightInGrams, ...mealData } = data;
       return mealData;
+    };
+
+    // Helper to create ingredient link
+    const createIngredient = async (mealId: string, mealData: any) => {
+      if (mealData._localFoodId) {
+        await prisma.mealIngredient.create({
+          data: {
+            mealId,
+            foodId: mealData._localFoodId,
+            quantity: mealData._weightInGrams || 100,
+            unit: 'g'
+          }
+        });
+      }
     };
 
     // Create meals in database
     const breakfastMeal = await prisma.meal.create({ data: toMealData(breakfastData) });
+    await createIngredient(breakfastMeal.id, breakfastData);
+
     const lunchMeal = await prisma.meal.create({ data: toMealData(lunchData) });
+    await createIngredient(lunchMeal.id, lunchData);
+
     const dinnerMeal = await prisma.meal.create({ data: toMealData(dinnerData) });
+    await createIngredient(dinnerMeal.id, dinnerData);
 
     // Link meals to day
     await prisma.mealPlanDayMeal.createMany({
@@ -378,7 +464,10 @@ export const generateMealPlanController = asyncHandler(
     // Add snacks if requested
     if (includeSnacks) {
       const snackMeal1 = await prisma.meal.create({ data: toMealData(snack1Data) });
+      await createIngredient(snackMeal1.id, snack1Data);
+
       const snackMeal2 = await prisma.meal.create({ data: toMealData(snack2Data) });
+      await createIngredient(snackMeal2.id, snack2Data);
 
       await prisma.mealPlanDayMeal.createMany({
         data: [
@@ -548,6 +637,213 @@ export const rateMealPlanController = asyncHandler(
       data: {
         message: 'Feedback saved successfully',
       },
+    });
+  }
+);
+
+/**
+ * Swap a meal in the meal plan
+ * PUT /api/v1/meal-plans/:mealPlanId/swap
+ */
+export const swapMealController = asyncHandler(
+  async (req: Request, res: Response) => {
+    const { mealPlanId } = req.params;
+    const { mealPlanDayId, mealType, currentMealId } = req.body;
+    const userId = req.userId!;
+
+    logger.info('Swapping meal', { userId, mealPlanId, mealType });
+
+    // 1. Validate ownership
+    const mealPlan = await prisma.mealPlan.findFirst({
+      where: { id: mealPlanId, userId },
+    });
+
+    if (!mealPlan) {
+      res.status(404).json({ success: false, error: { message: 'Meal plan not found' } });
+      return;
+    }
+
+    // 2. Get user preferences for filters
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { medicalConditions: true, dislikes: true }
+    });
+
+    const userFilters = {
+      medicalConditions: user?.medicalConditions || [],
+      dietaryRestrictions: user?.dislikes || [],
+    };
+
+    // 3. Calculate target calories for this slot
+    // We try to match the calories of the meal being replaced, or use standard distribution
+    const day = await prisma.mealPlanDay.findUnique({
+      where: { id: mealPlanDayId },
+      include: { meals: { include: { meal: true } } }
+    });
+
+    if (!day) {
+      res.status(404).json({ success: false, error: { message: 'Meal plan day not found' } });
+      return;
+    }
+
+    const currentMealEntry = day.meals.find(m => m.mealType === mealType && m.mealId === currentMealId);
+    let targetCalories = 500; // Default fallback
+
+    if (currentMealEntry && currentMealEntry.meal.calories) {
+      targetCalories = Number(currentMealEntry.meal.calories);
+    } else {
+      // Fallback based on meal type
+      if (mealType === 'snack') targetCalories = 200;
+      else targetCalories = 600;
+    }
+
+    // 4. Generate new meal
+    // We pass a 'forceNew' flag logic implicitly by generating a new one. 
+    // In a real app we might want to ensure it's DIFFERENT from current.
+    const newMealData = await createMealFromDatabase(mealType as any, targetCalories, userFilters);
+
+    // 5. Save new meal
+    // Helper to extract only valid Meal fields
+    const toMealData = (data: any) => {
+      const { _localFoodId, _weightInGrams, ...mealData } = data;
+      return mealData;
+    };
+
+    const newMeal = await prisma.meal.create({ data: toMealData(newMealData) });
+
+    // Link ingredient
+    if (newMealData._localFoodId) {
+      await prisma.mealIngredient.create({
+        data: {
+          mealId: newMeal.id,
+          foodId: newMealData._localFoodId,
+          quantity: newMealData._weightInGrams || 100,
+          unit: 'g'
+        }
+      });
+    }
+
+    // 6. Update relation: Delete old link, create new link
+    // We don't delete the old MEAL record because it might be used in history or other plans (relational db patterns)
+    // But in this simple schema, if meals are unique per plan generation, we could delete it. 
+    // For safety, let's just update the join table.
+
+    if (currentMealEntry) {
+      await prisma.mealPlanDayMeal.delete({
+        where: { id: currentMealEntry.id } // This deletes the RELATION
+      });
+    }
+
+    await prisma.mealPlanDayMeal.create({
+      data: {
+        mealPlanDayId: mealPlanDayId,
+        mealId: newMeal.id,
+        mealType: mealType,
+      }
+    });
+
+    // 7. Recalculate Totals for the Meal Plan
+    // Re-fetch all meals for this plan to sum up
+    const updatedPlanDays = await prisma.mealPlanDay.findMany({
+      where: { mealPlanId },
+      include: { meals: { include: { meal: true } } }
+    });
+
+    let totalCalories = 0;
+    let totalProtein = 0;
+    let totalCarbs = 0;
+    let totalFat = 0;
+
+    updatedPlanDays.forEach(d => {
+      d.meals.forEach(m => {
+        totalCalories += Number(m.meal.calories || 0);
+        totalProtein += Number(m.meal.proteinG || 0);
+        totalCarbs += Number(m.meal.carbsG || 0);
+        totalFat += Number(m.meal.fatG || 0);
+      });
+    });
+
+    // Average per day (if multi-day) - currently 1 day
+    const dayCount = updatedPlanDays.length || 1;
+
+    await prisma.mealPlan.update({
+      where: { id: mealPlanId },
+      data: {
+        avgCalories: Math.round(totalCalories / dayCount),
+        avgProteinG: Math.round(totalProtein / dayCount),
+        avgCarbsG: Math.round(totalCarbs / dayCount),
+        avgFatG: Math.round(totalFat / dayCount),
+      }
+    });
+
+    res.json({
+      success: true,
+      data: newMeal
+    });
+  }
+);
+
+/**
+ * Get shopping list for meal plan
+ * GET /api/v1/meal-plans/:mealPlanId/shopping-list
+ */
+export const getShoppingListController = asyncHandler(
+  async (req: Request, res: Response) => {
+    const { mealPlanId } = req.params;
+    const userId = req.userId!;
+
+    // 1. Get all meal IDs in the plan
+    const days = await prisma.mealPlanDay.findMany({
+      where: { mealPlanId },
+      include: { meals: true }
+    });
+
+    const mealIds = days.flatMap(d => d.meals.map(m => m.mealId));
+
+    // 2. Fetch Ingredients grouped by Food
+    const ingredients = await prisma.mealIngredient.findMany({
+      where: { mealId: { in: mealIds } },
+      include: { food: true }
+    });
+
+    // 3. Aggregate
+    const shoppingList: Record<string, {
+      category: string,
+      name: string,
+      quantity: number,
+      unit: string
+    }> = {};
+
+    ingredients.forEach(item => {
+      const key = item.foodId;
+      if (!shoppingList[key]) {
+        shoppingList[key] = {
+          category: item.food.category,
+          name: item.food.name,
+          quantity: 0,
+          unit: item.unit
+        };
+      }
+      shoppingList[key].quantity += Number(item.quantity);
+    });
+
+    // 4. Group by Category
+    const groupedList: Record<string, any[]> = {};
+    Object.values(shoppingList).forEach(item => {
+      const cat = item.category || 'Lainnya';
+      if (!groupedList[cat]) groupedList[cat] = [];
+      groupedList[cat].push(item);
+    });
+
+    // 5. Format response
+    const formattedData = Object.keys(groupedList).map(cat => ({
+      category: cat.charAt(0).toUpperCase() + cat.slice(1).replace('_', ' '),
+      items: groupedList[cat]
+    }));
+
+    res.json({
+      success: true,
+      data: formattedData
     });
   }
 );

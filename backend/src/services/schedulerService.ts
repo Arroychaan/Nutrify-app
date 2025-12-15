@@ -1,292 +1,113 @@
 import cron from 'node-cron';
-import prisma from '@config/prisma.js';
-import logger from '@config/logger.js';
-import {
-  sendMealReminder,
-  sendStreakReminder,
-  sendDailyTip,
-  sendWeeklySummary,
-} from './notificationService.js';
+import { PrismaClient } from '@prisma/client';
+import logger from '../config/logger.js';
+
+const prisma = new PrismaClient();
+
+// Store active jobs to potentially stop them later
+const activeJobs: cron.ScheduledTask[] = [];
 
 /**
- * Scheduler Service
- * Manages all scheduled tasks for notifications
+ * Initialize all scheduled tasks
  */
+export const initializeSchedulers = () => {
+  logger.info('Initializing schedulers...');
 
-// Store active cron jobs
-const activeJobs: Map<string, cron.ScheduledTask> = new Map();
+  // 1. Meal Reminders
+  // Breakfast at 07:00
+  scheduleMealReminder('0 7 * * *', 'Waktunya Sarapan! 🍳', 'Jangan lupa mengisi energi untuk memulai harimu.');
 
-/**
- * Get users who need meal reminders at a specific time
- */
-async function getUsersForMealReminder(
-  mealType: 'breakfast' | 'lunch' | 'dinner',
-  currentTime: string
-): Promise<string[]> {
-  const timeField =
-    mealType === 'breakfast'
-      ? 'breakfastTime'
-      : mealType === 'lunch'
-      ? 'lunchTime'
-      : 'dinnerTime';
+  // Lunch at 12:00
+  scheduleMealReminder('0 12 * * *', 'Waktunya Makan Siang! 🥗', 'Istirahat sejenak dan nikmati makan siangmu.');
 
-  const settings = await prisma.notificationSettings.findMany({
-    where: {
-      mealReminders: true,
-      [timeField]: currentTime,
-    },
-    select: { userId: true },
-  });
+  // Dinner at 19:00
+  scheduleMealReminder('0 19 * * *', 'Waktunya Makan Malam! 🍲', 'Makan malam sebelum larut baik untuk pencernaan.');
 
-  return settings.map((s) => s.userId);
-}
+  // 2. Permanent Account Deletion
+  schedulePermanentDeletion();
 
-/**
- * Process meal reminders for a specific meal type
- */
-async function processMealReminders(
-  mealType: 'breakfast' | 'lunch' | 'dinner'
-): Promise<void> {
-  const now = new Date();
-  const currentTime = `${now.getHours().toString().padStart(2, '0')}:${now
-    .getMinutes()
-    .toString()
-    .padStart(2, '0')}`;
-
-  logger.info(`Processing ${mealType} reminders for time ${currentTime}`);
-
-  try {
-    const userIds = await getUsersForMealReminder(mealType, currentTime);
-
-    logger.info(`Found ${userIds.length} users for ${mealType} reminder`);
-
-    for (const userId of userIds) {
-      try {
-        await sendMealReminder(userId, mealType);
-      } catch (error) {
-        logger.error(`Failed to send ${mealType} reminder to user`, {
-          userId,
-          error,
-        });
-      }
-    }
-  } catch (error) {
-    logger.error(`Error processing ${mealType} reminders`, { error });
-  }
-}
-
-/**
- * Process streak reminders - runs at 20:00 daily
- */
-async function processStreakReminders(): Promise<void> {
-  logger.info('Processing streak reminders');
-
-  try {
-    // Get users with streak reminders enabled who haven't logged food today
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
-    const usersWithReminders = await prisma.notificationSettings.findMany({
-      where: { streakReminders: true },
-      include: {
-        user: {
-          select: {
-            id: true,
-            streakDays: true,
-            foodLogs: {
-              where: {
-                loggedAt: { gte: today },
-              },
-              take: 1,
-            },
-          },
-        },
-      },
-    });
-
-    // Filter users who haven't logged food today
-    const usersToNotify = usersWithReminders.filter(
-      (setting) => setting.user.foodLogs.length === 0
-    );
-
-    logger.info(`Found ${usersToNotify.length} users for streak reminder`);
-
-    for (const setting of usersToNotify) {
-      try {
-        await sendStreakReminder(setting.userId, setting.user.streakDays);
-      } catch (error) {
-        logger.error('Failed to send streak reminder', {
-          userId: setting.userId,
-          error,
-        });
-      }
-    }
-  } catch (error) {
-    logger.error('Error processing streak reminders', { error });
-  }
-}
-
-/**
- * Process daily tips - runs at 09:00 daily
- */
-async function processDailyTips(): Promise<void> {
-  logger.info('Processing daily tips');
-
-  try {
-    const usersWithTips = await prisma.notificationSettings.findMany({
-      where: { dailyTips: true },
-      select: { userId: true },
-    });
-
-    logger.info(`Sending daily tips to ${usersWithTips.length} users`);
-
-    for (const setting of usersWithTips) {
-      try {
-        await sendDailyTip(setting.userId);
-      } catch (error) {
-        logger.error('Failed to send daily tip', {
-          userId: setting.userId,
-          error,
-        });
-      }
-    }
-  } catch (error) {
-    logger.error('Error processing daily tips', { error });
-  }
-}
-
-/**
- * Process weekly summaries - runs every Sunday at 10:00
- */
-async function processWeeklySummaries(): Promise<void> {
-  logger.info('Processing weekly summaries');
-
-  try {
-    const usersWithWeeklyReport = await prisma.notificationSettings.findMany({
-      where: { weeklyReport: true },
-      include: {
-        user: {
-          select: {
-            id: true,
-            streakDays: true,
-            currentWeightKg: true,
-            heightCm: true,
-            activityLevel: true,
-            gender: true,
-            dateOfBirth: true,
-          },
-        },
-      },
-    });
-
-    const oneWeekAgo = new Date();
-    oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
-
-    for (const setting of usersWithWeeklyReport) {
-      try {
-        // Get food logs for the past week
-        const foodLogs = await prisma.foodLog.findMany({
-          where: {
-            userId: setting.userId,
-            loggedAt: { gte: oneWeekAgo },
-          },
-        });
-
-        // Calculate stats
-        const totalCalories = foodLogs.reduce(
-          (sum, log) => sum + (Number(log.calories) || 0),
-          0
-        );
-        const daysWithLogs = new Set(
-          foodLogs.map((log) => log.loggedAt.toDateString())
-        ).size;
-        const avgCalories = daysWithLogs > 0 ? Math.round(totalCalories / daysWithLogs) : 0;
-
-        // Calculate target calories (simplified)
-        const targetCalories = 2000; // TODO: Use actual calculated target
-
-        await sendWeeklySummary(setting.userId, {
-          avgCalories,
-          targetCalories,
-          mealsLogged: foodLogs.length,
-          streakDays: setting.user.streakDays,
-        });
-      } catch (error) {
-        logger.error('Failed to send weekly summary', {
-          userId: setting.userId,
-          error,
-        });
-      }
-    }
-  } catch (error) {
-    logger.error('Error processing weekly summaries', { error });
-  }
-}
-
-/**
- * Initialize all schedulers
- */
-export function initializeSchedulers(): void {
-  logger.info('Initializing notification schedulers');
-
-  // Meal reminder scheduler - runs every minute to check for users
-  // This checks every minute and compares with user's preferred times
-  const mealReminderJob = cron.schedule('* * * * *', async () => {
-    const now = new Date();
-    const currentMinute = now.getMinutes();
-    
-    // Only process at the start of each minute
-    if (currentMinute % 1 === 0) {
-      await processMealReminders('breakfast');
-      await processMealReminders('lunch');
-      await processMealReminders('dinner');
-    }
-  });
-  activeJobs.set('meal-reminders', mealReminderJob);
-
-  // Streak reminder - every day at 20:00
-  const streakReminderJob = cron.schedule('0 20 * * *', processStreakReminders);
-  activeJobs.set('streak-reminders', streakReminderJob);
-
-  // Daily tips - every day at 09:00
-  const dailyTipsJob = cron.schedule('0 9 * * *', processDailyTips);
-  activeJobs.set('daily-tips', dailyTipsJob);
-
-  // Weekly summary - every Sunday at 10:00
-  const weeklySummaryJob = cron.schedule('0 10 * * 0', processWeeklySummaries);
-  activeJobs.set('weekly-summary', weeklySummaryJob);
-
-  logger.info('All notification schedulers initialized', {
-    jobs: Array.from(activeJobs.keys()),
-  });
-}
-
-/**
- * Stop all schedulers
- */
-export function stopSchedulers(): void {
-  logger.info('Stopping notification schedulers');
-
-  for (const [name, job] of activeJobs) {
-    job.stop();
-    logger.debug(`Stopped scheduler: ${name}`);
-  }
-
-  activeJobs.clear();
-}
-
-/**
- * Get scheduler status
- */
-export function getSchedulerStatus(): { name: string; running: boolean }[] {
-  return Array.from(activeJobs.entries()).map(([name, _job]) => ({
-    name,
-    running: true, // If job exists in activeJobs, it's running
-  }));
-}
-
-export default {
-  initializeSchedulers,
-  stopSchedulers,
-  getSchedulerStatus,
+  logger.info(`Schedulers initialized. ${activeJobs.length} jobs running.`);
 };
+
+/**
+ * Stop all scheduled tasks
+ */
+export const stopSchedulers = () => {
+  activeJobs.forEach(job => job.stop());
+  logger.info('All schedulers stopped.');
+};
+
+/**
+ * Helper to schedule a meal reminder for all users who have reminders enabled
+ */
+const scheduleMealReminder = (cronExpression: string, title: string, message: string) => {
+  const job = cron.schedule(cronExpression, async () => {
+    logger.info(`Running scheduled task: ${title}`);
+
+    try {
+      // Find users who have meal reminders enabled
+      // Note: In a real app with millions of users, we would batch this or use a queue.
+      // For now, we fetch users with settings.
+      const usersToNotify = await prisma.user.findMany({
+        where: {
+          notificationSettings: {
+            mealReminders: true
+          }
+        },
+        select: { id: true }
+      });
+
+      if (usersToNotify.length === 0) return;
+
+      logger.info(`Sending "${title}" to ${usersToNotify.length} users.`);
+
+      // Create notifications in batch
+      await prisma.notification.createMany({
+        data: usersToNotify.map(user => ({
+          userId: user.id,
+          title,
+          message,
+          type: 'REMINDER'
+        }))
+      });
+
+    } catch (error) {
+      logger.error(`Error in scheduled task ${title}:`, error);
+    }
+  });
+
+  activeJobs.push(job);
+};
+
+/**
+ * Schedule permanent deletion of soft-deleted accounts after 30 days
+ */
+const schedulePermanentDeletion = () => {
+  // Run every day at midnight
+  const job = cron.schedule('0 0 * * *', async () => {
+    logger.info('Running scheduled task: Permanent Account Deletion');
+
+    try {
+      const thirtyDaysAgo = new Date();
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+      const deletedUsers = await prisma.user.deleteMany({
+        where: {
+          deletedAt: {
+            lt: thirtyDaysAgo,
+          },
+        },
+      });
+
+      if (deletedUsers.count > 0) {
+        logger.info(`Permanently deleted ${deletedUsers.count} inactive accounts.`);
+      }
+    } catch (error) {
+      logger.error('Error in Permanent Account Deletion task:', error);
+    }
+  });
+
+  activeJobs.push(job);
+};
+
+

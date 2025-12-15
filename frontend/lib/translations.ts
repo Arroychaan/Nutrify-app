@@ -17,9 +17,9 @@ export const translations = {
   // Navigation
   nav: {
     dashboard: { id: 'Dashboard', en: 'Dashboard' },
-    foodLog: { id: 'Food Log', en: 'Food Log' },
+    foodLog: { id: 'Jurnal Makanan', en: 'Food Log' },
     mealPlan: { id: 'Meal Plan', en: 'Meal Plan' },
-    chatAI: { id: 'Chat AI', en: 'Chat AI' },
+    chat: { id: 'Chat AI', en: 'Chat AI' },
     profile: { id: 'Profil', en: 'Profile' },
     settings: { id: 'Pengaturan', en: 'Settings' },
     logout: { id: 'Keluar', en: 'Logout' },
