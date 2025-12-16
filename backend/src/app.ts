@@ -137,11 +137,9 @@ export async function createApp(): Promise<Application> {
     app.use('/api/v1/nutrition', nutritionRoutes);
     app.use('/api/v1/biomarkers', biomarkerRoutes);
 
-    // Test Routes (for development only)
-    if (process.env.NODE_ENV === 'development' || !process.env.NODE_ENV) {
-      const { default: testRoutes } = await import('./routes/testRoutes.js');
-      app.use('/api/v1/test', testRoutes);
-    }
+    // Test Routes (enabled in production for RAG Validation feature)
+    const { default: testRoutes } = await import('./routes/testRoutes.js');
+    app.use('/api/v1/test', testRoutes);
 
     // ============================================================================
     // 404 Handler
