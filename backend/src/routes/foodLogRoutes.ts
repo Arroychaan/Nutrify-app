@@ -7,12 +7,9 @@ import {
   deleteFoodLog,
   updateFoodLog,
   getTodaySummary,
-  deleteFoodLog,
-  updateFoodLog,
-  getTodaySummary,
   updateWaterLog,
   getWaterLog,
-} from '@controllers/foodLogController.js';
+} from '../controllers/foodLogController.js';
 
 const router = Router();
 
