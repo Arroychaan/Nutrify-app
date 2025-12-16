@@ -76,6 +76,7 @@ export default function AddFoodLogPage() {
         }, 500)
 
         return () => clearTimeout(delayDebounceFn)
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [searchQuery])
 
     const performSearch = async (reset = false) => {

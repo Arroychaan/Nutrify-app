@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { motion } from 'framer-motion'
 import Link from 'next/link'
@@ -48,11 +48,7 @@ export default function FoodLogPage() {
     const [toast, setToast] = useState({ isVisible: false, message: '', type: 'info' as any })
     const [deleting, setDeleting] = useState<string | null>(null)
 
-    useEffect(() => {
-        loadLogs()
-    }, [selectedDate])
-
-    const loadLogs = async () => {
+    const loadLogs = useCallback(async () => {
         try {
             setLoading(true)
             const dateStr = selectedDate.toISOString().split('T')[0]
@@ -79,7 +75,11 @@ export default function FoodLogPage() {
         } finally {
             setLoading(false)
         }
-    }
+    }, [selectedDate])
+
+    useEffect(() => {
+        loadLogs()
+    }, [loadLogs])
 
     const handleDelete = async (id: string) => {
         if (!confirm(t('foodLog.deleteConfirm'))) return

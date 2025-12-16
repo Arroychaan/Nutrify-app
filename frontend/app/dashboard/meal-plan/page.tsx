@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import axios from 'axios'
 import Toast from '@/components/Toast'
@@ -80,7 +80,7 @@ export default function MealPlanPage() {
     if (mealPlans.length > 0 && !expandedPlan) {
       setExpandedPlan(mealPlans[0].id)
     }
-  }, [mealPlans])
+  }, [mealPlans, expandedPlan])
 
   const loadData = async () => {
     try {
@@ -630,13 +630,7 @@ function ShoppingListModal({ isOpen, mealPlanId, onClose }: { isOpen: boolean, m
   const [loading, setLoading] = useState(false)
   const [checkedItems, setCheckedItems] = useState<Record<string, boolean>>({})
 
-  useEffect(() => {
-    if (isOpen && mealPlanId) {
-      loadList()
-    }
-  }, [isOpen, mealPlanId])
-
-  const loadList = async () => {
+  const loadList = useCallback(async () => {
     setLoading(true)
     try {
       const data = await mealPlanApi.getShoppingList(mealPlanId)
@@ -646,7 +640,13 @@ function ShoppingListModal({ isOpen, mealPlanId, onClose }: { isOpen: boolean, m
     } finally {
       setLoading(false)
     }
-  }
+  }, [mealPlanId])
+
+  useEffect(() => {
+    if (isOpen && mealPlanId) {
+      loadList()
+    }
+  }, [isOpen, mealPlanId, loadList])
 
   const toggleCheck = (id: string, name: string) => {
     const key = `${id}-${name}`

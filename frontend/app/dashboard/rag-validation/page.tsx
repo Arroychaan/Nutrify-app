@@ -153,7 +153,7 @@ export default function RagValidationPage() {
                         RAG Knowledge Validation
                     </h1>
                     <p className="text-emerald-100 max-w-2xl text-lg opacity-90">
-                        Verify AI reasoning against "Permenkes RI No. 28 Tahun 2019" Ground Truth.
+                        Verify AI reasoning against &quot;Permenkes RI No. 28 Tahun 2019&quot; Ground Truth.
                         This tool demonstrates the correct implementation of the Retrieval-Augmented Generation system.
                     </p>
                 </div>

@@ -162,7 +162,7 @@ export default function AboutPage() {
 
                 {/* Footer */}
                 <p className="text-center text-xs text-gray-400 mt-8">
-                    Dibuat dengan ❤️ di Indonesia<br />
+                    Dibuat dengan @ Di Wknda<br />
                     © 2025 Nutrify. Semua hak dilindungi.
                 </p>
             </div>
