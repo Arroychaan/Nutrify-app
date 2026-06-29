@@ -1,9 +1,0 @@
-{
-  "$schema": "https://railpack.io/schema.json",
-  "name": "nutrify-backend",
-  "runtime": "node",
-  "nodeVersion": "20",
-  "installCommand": "npm ci",
-  "buildCommand": "npx prisma generate && npm run build",
-  "startCommand": "npm start"
-}

@@ -169,7 +169,12 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
           // Messages
           Expanded(
             child: chatState.messages.isEmpty
-                ? _EmptyChat()
+                ? _EmptyChat(
+                    onSuggestionTap: (text) {
+                      _messageController.text = text;
+                      _sendMessage();
+                    },
+                  )
                 : ListView.builder(
                     controller: _scrollController,
                     padding: const EdgeInsets.all(16),
@@ -288,6 +293,10 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
 }
 
 class _EmptyChat extends StatelessWidget {
+  final Function(String) onSuggestionTap;
+
+  const _EmptyChat({required this.onSuggestionTap});
+
   @override
   Widget build(BuildContext context) {
     return Center(
@@ -330,9 +339,18 @@ class _EmptyChat extends StatelessWidget {
               runSpacing: 8,
               alignment: WrapAlignment.center,
               children: [
-                _SuggestionChip(text: 'Rekomendasi makan siang 🍳'),
-                _SuggestionChip(text: 'Saya lagi diet karbo 📉'),
-                _SuggestionChip(text: 'Camilan sehat apa ya? 🍎'),
+                _SuggestionChip(
+                  text: 'Rekomendasi makan siang 🍳',
+                  onTap: () => onSuggestionTap('Rekomendasi makan siang sehat dan murah'),
+                ),
+                _SuggestionChip(
+                  text: 'Saya lagi diet karbo 📉',
+                  onTap: () => onSuggestionTap('Saya lagi diet karbo, ada saran menu?'),
+                ),
+                _SuggestionChip(
+                  text: 'Camilan sehat apa ya? 🍎',
+                  onTap: () => onSuggestionTap('Rekomendasi camilan sehat di minimarket'),
+                ),
               ],
             ),
           ],
@@ -344,15 +362,14 @@ class _EmptyChat extends StatelessWidget {
 
 class _SuggestionChip extends StatelessWidget {
   final String text;
+  final VoidCallback onTap;
 
-  const _SuggestionChip({required this.text});
+  const _SuggestionChip({required this.text, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () {
-        // Could pre-fill the message
-      },
+      onTap: onTap,
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
@@ -460,13 +477,13 @@ class _TypingIndicator extends StatelessWidget {
               ),
               border: Border.all(color: AppColors.border),
             ),
-            child: Row(
+            child: const Row(
               mainAxisSize: MainAxisSize.min,
               children: [
                 _Dot(delay: 0),
-                const SizedBox(width: 4),
+                SizedBox(width: 4),
                 _Dot(delay: 1),
-                const SizedBox(width: 4),
+                SizedBox(width: 4),
                 _Dot(delay: 2),
               ],
             ),

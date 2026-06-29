@@ -1,0 +1,33 @@
+<svg width="80" height="80" viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
+  <g fill="none" stroke="currentColor" stroke-width="1.2">
+    <!-- Kawung Outer Circles -->
+    <circle cx="40" cy="40" r="38" stroke-dasharray="2 2" opacity="0.4" />
+    <circle cx="0" cy="0" r="38" stroke-dasharray="2 2" opacity="0.4" />
+    <circle cx="80" cy="0" r="38" stroke-dasharray="2 2" opacity="0.4" />
+    <circle cx="0" cy="80" r="38" stroke-dasharray="2 2" opacity="0.4" />
+    <circle cx="80" cy="80" r="38" stroke-dasharray="2 2" opacity="0.4" />
+    
+    <!-- Kawung Petals (Vertical & Horizontal) -->
+    <path d="M40 2 C46 15 46 65 40 78 C34 65 34 15 40 2 Z" opacity="0.6" />
+    <path d="M2 40 C15 46 65 46 78 40 C65 34 15 34 2 40 Z" opacity="0.6" />
+    
+    <!-- Corner half-petals -->
+    <path d="M0 2 C2 10 2 30 0 38 C-2 30 -2 10 0 2 Z" opacity="0.4" />
+    <path d="M80 2 C82 10 82 30 80 38 C78 30 78 10 80 2 Z" opacity="0.4" />
+    <path d="M0 42 C2 50 2 70 0 78 C-2 70 -2 50 0 42 Z" opacity="0.4" />
+    <path d="M80 42 C82 50 82 70 80 78 C78 70 78 50 80 42 Z" opacity="0.4" />
+
+    <!-- Horizontal half-petals at edges -->
+    <path d="M40 0 C42 4 42 20 40 30 C38 20 38 4 40 0 Z" opacity="0.4" />
+    <path d="M40 50 C42 60 42 76 40 80 C38 76 38 60 40 50 Z" opacity="0.4" />
+    <path d="M0 40 C4 42 20 42 30 40 C20 38 4 38 0 40 Z" opacity="0.4" />
+    <path d="M50 40 C60 42 76 42 80 40 C76 38 60 38 50 40 Z" opacity="0.4" />
+    
+    <!-- Center dots -->
+    <circle cx="40" cy="40" r="2.5" fill="currentColor" opacity="0.7" />
+    <circle cx="0" cy="0" r="2.5" fill="currentColor" opacity="0.7" />
+    <circle cx="80" cy="0" r="2.5" fill="currentColor" opacity="0.7" />
+    <circle cx="0" cy="80" r="2.5" fill="currentColor" opacity="0.7" />
+    <circle cx="80" cy="80" r="2.5" fill="currentColor" opacity="0.7" />
+  </g>
+</svg>

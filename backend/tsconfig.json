@@ -1,61 +1,25 @@
 {
   "compilerOptions": {
-    "target": "ES2020",
-    "module": "ES2020",
-    "lib": [
-      "ES2020"
-    ],
-    "outDir": "./dist",
-    "rootDir": "./src",
-    "strict": true,
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
+    "resolvePackageJsonExports": true,
     "esModuleInterop": true,
-    "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true,
-    "resolveJsonModule": true,
+    "isolatedModules": true,
     "declaration": true,
-    "declarationMap": true,
+    "removeComments": true,
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "allowSyntheticDefaultImports": true,
+    "target": "ES2023",
     "sourceMap": true,
-    "moduleResolution": "node",
-    "allowUnusedLabels": false,
-    "allowUnreachableCode": false,
-    "baseUrl": ".",
-    "paths": {
-      "@/*": [
-        "src/*"
-      ],
-      "@config/*": [
-        "src/config/*"
-      ],
-      "@controllers/*": [
-        "src/controllers/*"
-      ],
-      "@services/*": [
-        "src/services/*"
-      ],
-      "@models/*": [
-        "src/models/*"
-      ],
-      "@middlewares/*": [
-        "src/middlewares/*"
-      ],
-      "@utils/*": [
-        "src/utils/*"
-      ],
-      "@types/*": [
-        "src/types/*"
-      ],
-      "@engines/*": [
-        "src/engines/*"
-      ]
-    }
-  },
-  "include": [
-    "src/**/*"
-  ],
-  "exclude": [
-    "node_modules",
-    "dist",
-    "tests",
-    "src/scripts"
-  ]
+    "outDir": "./dist",
+    "baseUrl": "./",
+    "incremental": true,
+    "skipLibCheck": true,
+    "strictNullChecks": true,
+    "forceConsistentCasingInFileNames": true,
+    "noImplicitAny": false,
+    "strictBindCallApply": false,
+    "noFallthroughCasesInSwitch": false
+  }
 }

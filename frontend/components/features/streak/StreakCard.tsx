@@ -1,98 +1,54 @@
 'use client'
 
-import React, { useState } from 'react'
-import { Flame, Share2, Award } from 'lucide-react'
-import { motion, AnimatePresence } from 'framer-motion'
-import { getStreakInfo } from '@/lib/utils/streak-calculator'
-import { useTranslation } from '@/lib/AppContext'
+import React from 'react'
+import { Flame } from 'lucide-react'
+import { motion } from 'framer-motion'
+import { GlassCard } from '@/components/ui/GlassCard'
 
 interface StreakCardProps {
     streakDays: number
-    onShare: () => void
+    onShare?: () => void
 }
 
-export default function StreakCard({ streakDays, onShare }: StreakCardProps) {
-    const { t } = useTranslation()
-    const { message, color, bg, level, fireIntensity } = getStreakInfo(streakDays)
-    const [isHovered, setIsHovered] = useState(false)
+export default function StreakCard({ streakDays }: StreakCardProps) {
+    const daysInWeek = 7
+    const activeDays = Math.min(streakDays % 7 || (streakDays > 0 ? 7 : 0), 7)
 
     return (
-        <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="relative overflow-hidden bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-3xl p-6 shadow-sm border border-white/20 dark:border-gray-700"
-            onMouseEnter={() => setIsHovered(true)}
-            onMouseLeave={() => setIsHovered(false)}
-        >
-            {/* Background Glow Effect */}
-            {streakDays > 0 && (
-                <div className={`absolute -right-10 -top-10 w-32 h-32 ${bg} opacity-10 blur-3xl rounded-full`} />
-            )}
-
-            <div className="relative z-10 flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                    {/* Fire Icon Container */}
-                    <div className={`relative w-14 h-14 rounded-2xl ${streakDays > 0 ? bg : 'bg-gray-100 dark:bg-gray-700'} bg-opacity-10 dark:bg-opacity-20 flex items-center justify-center`}>
-                        <motion.div
-                            animate={
-                                streakDays > 0 ? {
-                                    scale: [1, 1.1, 1],
-                                    rotate: [0, 5, -5, 0],
-                                } : {}
-                            }
-                            transition={{
-                                duration: 2,
-                                repeat: Infinity,
-                                ease: "easeInOut"
-                            }}
-                        >
-                            <Flame
-                                className={`w-8 h-8 ${streakDays > 0 ? color : 'text-gray-400'}`}
-                                fill={streakDays > 0 ? "currentColor" : "none"}
-                            />
-                        </motion.div>
-
-                        {/* Level Badge */}
-                        {streakDays >= 7 && (
-                            <div className="absolute -bottom-2 -right-2 bg-gradient-to-r from-red-500 to-orange-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full border-2 border-white dark:border-gray-800 shadow-sm">
-                                {level.toUpperCase()}
-                            </div>
-                        )}
+        <GlassCard className="flex flex-col justify-between h-full">
+            {/* Header */}
+            <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-orange-50 dark:bg-orange-900/30 rounded-xl flex items-center justify-center">
+                        <Flame className="w-5 h-5 text-orange-500" />
                     </div>
-
                     <div>
-                        <div className="flex items-center gap-2">
-                            <h3 className={`text-xl font-bold ${streakDays > 0 ? color : 'text-gray-900 dark:text-white'}`}>
-                                {streakDays > 0 ? `${streakDays} ${t('dashboard.streak')}` : "Mulai Streak-mu!"}
-                            </h3>
-                        </div>
-                        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1 max-w-[200px] leading-tight">
-                            {streakDays > 0 ? t(message) : "Konsisten catat makanan untuk bangun kebiasaan sehat."}
-                        </p>
+                        <h3 className="font-bold text-neutral-900 dark:text-white">Mulai Streak</h3>
+                        <p className="text-xs text-neutral-500">Target: 7 hari/minggu</p>
                     </div>
                 </div>
 
-                {/* Share Button */}
-                {streakDays > 0 ? (
-                    <motion.button
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                        onClick={onShare}
-                        className="p-3 rounded-xl bg-gray-50 dark:bg-gray-700 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 text-gray-500 hover:text-emerald-600 transition-colors"
-                        title={t('dashboard.share.title')}
-                    >
-                        <Share2 className="w-5 h-5" />
-                    </motion.button>
-                ) : (
-                    <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        className="text-xs font-semibold text-emerald-600 bg-emerald-50 dark:bg-emerald-900/20 px-3 py-1.5 rounded-full"
-                    >
-                        Day 1
-                    </motion.div>
-                )}
+                <span className="text-sm font-semibold text-emerald-600 bg-emerald-50 dark:bg-emerald-900/20 px-2.5 py-1 rounded-full">
+                    Day {streakDays > 0 ? streakDays : 1}
+                </span>
             </div>
-        </motion.div>
+
+            {/* Weekly Progress Bars */}
+            <div className="flex gap-2 mb-4 h-12 items-end">
+                {[...Array(daysInWeek)].map((_, i) => (
+                    <motion.div
+                        key={i}
+                        initial={{ height: '30%' }}
+                        animate={{ height: i < activeDays ? '100%' : '30%' }}
+                        className={`flex-1 rounded-lg transition-colors ${i < activeDays ? 'bg-orange-400' : 'bg-neutral-200 dark:bg-neutral-700'}`}
+                    />
+                ))}
+            </div>
+
+            {/* Motivation text */}
+            <p className="text-xs text-neutral-500 dark:text-neutral-400 text-center">
+                Catat makanan hari ini untuk memulai streak!
+            </p>
+        </GlassCard>
     )
 }

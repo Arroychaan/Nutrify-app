@@ -1,7 +1,7 @@
 name: nutrify_app
 description: "Nutrify - AI Dietician untuk Indonesia"
 publish_to: 'none'
-version: 1.1.0+1
+version: 1.2.0+1
 
 environment:
   sdk: ^3.10.3
@@ -56,6 +56,6 @@ flutter:
 flutter_launcher_icons:
   android: true
   ios: true
-  image_path: "iconaplikasi.png"
+  image_path: "assets/images/Nusantara.png"
   adaptive_icon_background: "#FFFFFF"
-  adaptive_icon_foreground: "iconaplikasi.png"
+  adaptive_icon_foreground: "assets/images/Nusantara.png"

@@ -72,7 +72,7 @@ class DashboardScreen extends ConsumerWidget {
 
                   // 4. Feature Grid (The Core Navigation)
                   Text(
-                    "Menu Utama",
+                    'Menu Utama',
                     style: Theme.of(context).textTheme.titleLarge?.copyWith(
                       fontWeight: FontWeight.bold,
                     ),
@@ -121,7 +121,7 @@ class DashboardScreen extends ConsumerWidget {
             ),
             const SizedBox(height: 4),
             Text(
-              'Target kalorimu hari ini masih 480 kcal.', // Mock dynamic for now as urged by user
+              'Ayo capai target nutrisimu hari ini!',
               style: Theme.of(
                 context,
               ).textTheme.bodyMedium?.copyWith(color: AppColors.textSecondary),
@@ -171,37 +171,42 @@ class DashboardScreen extends ConsumerWidget {
           children: [
             _FeatureCard(
               width: width,
-              title: "Generate\nMeal Plan",
-              subtitle: "Rencana makan harian",
+              title: 'Generate\nMeal Plan',
+              subtitle: 'Rencana makan harian',
               icon: Icons.restaurant_menu,
               gradient: AppGradients.primary,
               onTap: () => context.push(AppRoutes.generateMealPlan),
             ),
             _FeatureCard(
               width: width,
-              title: "Konsultasi\nAI Dietician",
-              subtitle: "Tanya jawab gizi",
+              title: 'Konsultasi\nAI Dietician',
+              subtitle: 'Tanya jawab gizi',
               icon: Icons.auto_awesome,
               gradient: AppGradients.accent, // Purple for AI
               onTap: () => context.go(AppRoutes.chat),
             ),
             _FeatureCard(
               width: width,
-              title: "Jurnal\nMakanan",
-              subtitle: "Catat kalori & makro",
+              title: 'Jurnal\nMakanan',
+              subtitle: 'Catat kalori & makro',
               icon: Icons.camera_alt_outlined, // Camera icon for logging
               gradient: AppGradients.fire, // Orange for Action
               onTap: () => context.push(AppRoutes.addFoodLog),
             ),
             _FeatureCard(
               width: width,
-              title: "Lihat\nProgress",
-              subtitle: "Pantau berat badan",
+              title: 'Lihat\nProgress',
+              subtitle: 'Pantau berat badan',
               icon: Icons.show_chart_rounded,
               gradient: AppGradients.blue,
-              onTap: () => context.go(
-                AppRoutes.mealPlans,
-              ), // Mapping to meal plans as specific progress page might not exist yet
+              onTap: () {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Fitur Progress akan segera hadir!'),
+                    backgroundColor: AppColors.primary,
+                  ),
+                );
+              },
             ),
           ],
         );
@@ -229,7 +234,7 @@ class _NutritionSummaryCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    "Target Kalori",
+                    'Target Kalori',
                     style: Theme.of(context).textTheme.titleSmall?.copyWith(
                       color: AppColors.textSecondary,
                     ),
@@ -245,10 +250,10 @@ class _NutritionSummaryCard extends StatelessWidget {
                       ),
                     ),
                     loading: () => const Text(
-                      "Loading...",
+                      'Loading...',
                       style: TextStyle(fontSize: 18),
                     ),
-                    error: (error, stack) => const Text("0 / 2000 kcal"),
+                    error: (error, stack) => const Text('0 / 2000 kcal'),
                   ),
                 ],
               ),
@@ -287,21 +292,53 @@ class _NutritionSummaryCard extends StatelessWidget {
           ),
           const SizedBox(height: 20),
           // Macros
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              _MacroItem(
-                label: "Protein",
-                value: "82g",
-                color: AppColors.info,
-              ), // Mock values for preview
-              _MacroItem(
-                label: "Karbo",
-                value: "240g",
-                color: AppColors.warning,
-              ),
-              _MacroItem(label: "Lemak", value: "45g", color: AppColors.error),
-            ],
+          // Macros
+          nutritionAsync.when(
+            data: (data) => Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                _MacroItem(
+                  label: 'Protein',
+                  value: "${(data['totalProtein'] as num?)?.toInt() ?? 0}g",
+                  color: AppColors.info, // Blue/Info is fine for Protein
+                ),
+                _MacroItem(
+                  label: 'Karbo',
+                  value: "${(data['totalCarbs'] as num?)?.toInt() ?? 0}g",
+                  color: AppColors.warning, // Orange/Yellow is fine for Carbs
+                ),
+                _MacroItem(
+                  label: 'Lemak',
+                  value: "${(data['totalFat'] as num?)?.toInt() ?? 0}g",
+                  // UX Improvement: Fat is not an "Error". Using a neutral warm color.
+                  color: const Color(0xFFFF8C00),
+                ),
+              ],
+            ),
+            loading: () => const SizedBox(
+              height: 50,
+              child: Center(child: CircularProgressIndicator()),
+            ),
+            error: (error, stack) => const Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                _MacroItem(
+                  label: 'Protein',
+                  value: '-g',
+                  color: AppColors.info,
+                ),
+                _MacroItem(
+                  label: 'Karbo',
+                  value: '-g',
+                  color: AppColors.warning,
+                ),
+                _MacroItem(
+                  label: 'Lemak',
+                  value: '-g',
+                  color: Color(0xFFFF8C00),
+                ),
+              ],
+            ),
           ),
         ],
       ),
@@ -363,54 +400,65 @@ class _FeatureCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        width: width,
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          color: Colors.white,
+    // UX Improvement: Replaced GestureDetector with InkWell + Material
+    // to provide ripple feedback when touched.
+    return Container(
+      width: width,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: AppShadows.small,
+        border: Border.all(color: Colors.white.withValues(alpha: 0.5)),
+      ),
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(24),
+        child: InkWell(
+          onTap: onTap,
           borderRadius: BorderRadius.circular(24),
-          boxShadow: AppShadows.small,
-          border: Border.all(color: Colors.white.withValues(alpha: 0.5)),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(
-              width: 48,
-              height: 48,
-              decoration: BoxDecoration(
-                gradient: gradient,
-                borderRadius: BorderRadius.circular(16),
-                boxShadow: [
-                  BoxShadow(
-                    color: gradient.colors.first.withValues(alpha: 0.3),
-                    blurRadius: 8,
-                    offset: const Offset(0, 4),
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  width: 48,
+                  height: 48,
+                  decoration: BoxDecoration(
+                    gradient: gradient,
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: gradient.colors.first.withValues(alpha: 0.3),
+                        blurRadius: 8,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
                   ),
-                ],
-              ),
-              child: Center(child: Icon(icon, color: Colors.white, size: 24)),
+                  child: Center(
+                    child: Icon(icon, color: Colors.white, size: 24),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  title,
+                  style: GoogleFonts.outfit(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    height: 1.2,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  subtitle,
+                  style: GoogleFonts.inter(
+                    fontSize: 12,
+                    color: AppColors.textSecondary,
+                  ),
+                ),
+              ],
             ),
-            const SizedBox(height: 16),
-            Text(
-              title,
-              style: GoogleFonts.outfit(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-                height: 1.2,
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              subtitle,
-              style: GoogleFonts.inter(
-                fontSize: 12,
-                color: AppColors.textSecondary,
-              ),
-            ),
-          ],
+          ),
         ),
       ),
     );
@@ -432,13 +480,13 @@ class _StreakBanner extends StatelessWidget {
       ),
       child: Row(
         children: [
-          const Text("🔥", style: TextStyle(fontSize: 20)),
+          const Text('🔥', style: TextStyle(fontSize: 20)),
           const SizedBox(width: 12),
           Expanded(
             child: Text(
               streakDays > 0
-                  ? "$streakDays hari streak! Pertahankan!"
-                  : "Mulai streak pertamamu hari ini!",
+                  ? '$streakDays hari streak! Pertahankan!'
+                  : 'Mulai streak pertamamu hari ini!',
               style: GoogleFonts.inter(
                 fontWeight: FontWeight.w500,
                 color: AppColors.textPrimary,

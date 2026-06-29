@@ -1,11 +1,12 @@
 'use client'
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { authApi } from '@/lib/api'
 import { motion } from 'framer-motion'
-import { Eye, EyeOff, ArrowLeft, Loader2, Leaf, Check } from 'lucide-react'
+import { Eye, EyeOff, ArrowLeft, Check } from 'lucide-react'
 import { GradientButton } from '@/components/ui/GradientButton'
 
 export default function RegisterPage() {
@@ -44,8 +45,7 @@ export default function RegisterPage() {
         currentWeightKg: parseFloat(formData.currentWeightKg),
       })
 
-      // Don't login automatically, show verification step
-      setStep(3)
+      router.push('/dashboard')
     } catch (err: any) {
       setError(err.response?.data?.message || 'Registrasi gagal. Silakan coba lagi.')
     } finally {
@@ -80,39 +80,48 @@ export default function RegisterPage() {
   ]
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-teal-50/50 via-white to-emerald-50/50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800 flex relative overflow-hidden">
-      {/* Decorative Blobs */}
-      <div className="absolute top-0 -right-48 w-96 h-96 bg-teal-200/40 dark:bg-teal-900/20 rounded-full blur-3xl" />
-      <div className="absolute bottom-0 -left-48 w-[500px] h-[500px] bg-emerald-200/40 dark:bg-emerald-900/20 rounded-full blur-3xl" />
-      <div className="absolute top-1/3 right-1/4 w-64 h-64 bg-cyan-200/30 dark:bg-cyan-900/20 rounded-full blur-3xl" />
+    <div className="min-h-screen bg-neutral-50 dark:bg-neutral-900 flex relative overflow-hidden font-sans">
+      {/* Decorative Mesh Gradient Background */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute inset-0 bg-gradient-mesh opacity-50" />
+        <div className="absolute top-0 -right-48 w-[500px] h-[500px] bg-gradient-to-br from-emerald-200/30 to-teal-200/20 rounded-full blur-3xl animate-float" />
+        <div className="absolute bottom-0 -left-48 w-[600px] h-[600px] bg-gradient-to-br from-amber-200/20 to-orange-200/10 rounded-full blur-3xl" />
+        <div className="absolute top-1/3 right-1/4 w-[400px] h-[400px] bg-gradient-to-br from-violet-200/15 to-purple-200/10 rounded-full blur-3xl" />
+      </div>
 
       {/* Left Panel - Branding (Desktop) */}
-      <div className="hidden lg:flex lg:w-1/2 relative z-10 items-center justify-center p-12">
+      <div className="hidden lg:flex lg:w-1/2 relative z-10 items-center justify-center p-12 glass-premium border-r border-neutral-200/30 dark:border-neutral-800/30">
         <div className="max-w-md">
-          <Link href="/" className="flex items-center gap-3 mb-12">
-            <div className="w-12 h-12 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-2xl flex items-center justify-center shadow-lg shadow-emerald-500/20">
-              <Leaf className="w-6 h-6 text-white" />
+          <Link href="/" className="flex items-center gap-3 mb-12 group">
+            <div className="w-12 h-12 flex items-center justify-center transition-transform group-hover:scale-105">
+              <Image
+                src="/logorevisi.png"
+                alt="Nutrify"
+                width={48}
+                height={48}
+                className="object-contain"
+              />
             </div>
-            <span className="text-2xl font-display font-bold text-gray-900 dark:text-white">Nutrify</span>
+            <span className="text-2xl font-display font-bold text-neutral-900 dark:text-white tracking-tight">Nutrify</span>
           </Link>
 
-          <h1 className="text-4xl font-display font-bold text-gray-900 dark:text-white mb-4 leading-tight">
+          <h1 className="text-4xl font-display font-bold text-neutral-900 dark:text-white mb-6 leading-tight">
             Mulai Perjalanan
-            <span className="block text-emerald-500">Sehatmu! 🌱</span>
+            <span className="block text-primary-700 dark:text-primary-500">Sehatmu! 🌱</span>
           </h1>
-          <p className="text-gray-600 dark:text-gray-400 text-lg leading-relaxed mb-8">
+          <p className="text-neutral-600 dark:text-neutral-400 text-lg leading-relaxed mb-10 font-light">
             Bergabung dengan Nutrify dan dapatkan rencana nutrisi personal
             yang disesuaikan dengan kebutuhanmu.
           </p>
 
           {/* Benefits */}
-          <div className="space-y-3">
+          <div className="space-y-4">
             {benefits.map((benefit, index) => (
-              <div key={index} className="flex items-center gap-3">
-                <div className="w-6 h-6 bg-emerald-100 dark:bg-emerald-900/30 rounded-full flex items-center justify-center">
-                  <Check className="w-4 h-4 text-emerald-500" />
+              <div key={index} className="flex items-center gap-3 group">
+                <div className="w-6 h-6 bg-primary-100 dark:bg-primary-900/30 rounded-full flex items-center justify-center group-hover:bg-primary-200 transition-colors">
+                  <Check className="w-4 h-4 text-primary-700 dark:text-primary-400" />
                 </div>
-                <span className="text-gray-700 dark:text-gray-300 font-medium">{benefit}</span>
+                <span className="text-neutral-700 dark:text-neutral-300 font-medium">{benefit}</span>
               </div>
             ))}
           </div>
@@ -129,32 +138,40 @@ export default function RegisterPage() {
         >
           {/* Mobile Header */}
           <div className="lg:hidden mb-8">
-            <Link href="/" className="inline-flex items-center gap-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 mb-6">
-              <ArrowLeft className="w-4 h-4" />
-              Kembali
-            </Link>
-            <div className="flex items-center gap-3 mb-2">
-              <div className="w-10 h-10 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-xl flex items-center justify-center">
-                <Leaf className="w-5 h-5 text-white" />
+            <div className="flex justify-between items-center mb-6">
+              <Link href="/" className="inline-flex items-center gap-2 text-neutral-500 hover:text-neutral-800 dark:text-neutral-400 dark:hover:text-neutral-200 transition-colors">
+                <ArrowLeft className="w-4 h-4" />
+                Kembali
+              </Link>
+            </div>
+            <div className="flex items-center gap-3 mb-2 justify-center">
+              <div className="w-12 h-12 flex items-center justify-center">
+                <Image
+                  src="/logorevisi.png"
+                  alt="Nutrify"
+                  width={48}
+                  height={48}
+                  className="object-contain"
+                />
               </div>
-              <span className="text-xl font-bold text-gray-900 dark:text-white">Nutrify</span>
+              <span className="text-2xl font-bold text-neutral-900 dark:text-white font-display">Nutrify</span>
             </div>
           </div>
 
-          {/* Form Card */}
-          <div className="bg-white dark:bg-gray-800 rounded-3xl p-8 shadow-xl shadow-gray-200/50 dark:shadow-none border border-gray-100 dark:border-gray-700">
+          {/* Form Card - Premium Glassmorphism */}
+          <div className="glass-premium rounded-2xl p-8 md:p-10 shadow-glass-lg">
             {/* Progress Steps */}
             {step < 3 && (
               <div className="flex items-center gap-3 mb-8">
-                <div className={`flex items-center gap-2 ${step >= 1 ? 'text-emerald-600' : 'text-gray-400'}`}>
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${step >= 1 ? 'bg-emerald-500 text-white' : 'bg-gray-100 dark:bg-gray-700'}`}>
+                <div className={`flex items-center gap-2 ${step >= 1 ? 'text-primary-700 dark:text-primary-400' : 'text-neutral-400'}`}>
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${step >= 1 ? 'bg-primary-600 text-white' : 'bg-neutral-100 dark:bg-neutral-800'}`}>
                     {step > 1 ? <Check className="w-4 h-4" /> : '1'}
                   </div>
                   <span className="text-sm font-medium hidden sm:inline">Akun</span>
                 </div>
-                <div className={`flex-1 h-1 rounded ${step >= 2 ? 'bg-emerald-500' : 'bg-gray-100 dark:bg-gray-700'}`} />
-                <div className={`flex items-center gap-2 ${step >= 2 ? 'text-emerald-600' : 'text-gray-400'}`}>
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${step >= 2 ? 'bg-emerald-500 text-white' : 'bg-gray-100 dark:bg-gray-700 text-gray-500'}`}>
+                <div className={`flex-1 h-1 rounded ${step >= 2 ? 'bg-primary-600' : 'bg-neutral-100 dark:bg-neutral-800'}`} />
+                <div className={`flex items-center gap-2 ${step >= 2 ? 'text-primary-700 dark:text-primary-400' : 'text-neutral-400'}`}>
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${step >= 2 ? 'bg-primary-600 text-white' : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-500'}`}>
                     {step > 2 ? <Check className="w-4 h-4" /> : '2'}
                   </div>
                   <span className="text-sm font-medium hidden sm:inline">Profil</span>
@@ -162,14 +179,14 @@ export default function RegisterPage() {
               </div>
             )}
 
-            <div className="mb-6">
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+            <div className="mb-8">
+              <h2 className="text-2xl font-bold text-neutral-900 dark:text-white mb-2 font-display">
                 {step === 1 ? 'Buat Akun' : step === 2 ? 'Data Diri' : 'Cek Email Anda 📧'}
               </h2>
               {step < 3 && (
-                <p className="text-gray-500 dark:text-gray-400">
+                <p className="text-neutral-500 dark:text-neutral-400 text-sm">
                   Sudah punya akun?{' '}
-                  <Link href="/auth/login" className="text-emerald-600 dark:text-emerald-400 hover:underline font-semibold">
+                  <Link href="/auth/login" className="text-primary-700 dark:text-primary-400 hover:text-primary-800 font-semibold hover:underline transition-colors">
                     Masuk
                   </Link>
                 </p>
@@ -181,9 +198,9 @@ export default function RegisterPage() {
               <motion.div
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="mb-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-800 rounded-2xl"
+                className="mb-6 p-4 bg-red-50 dark:bg-red-900/10 border border-red-100 dark:border-red-900/30 rounded-xl"
               >
-                <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
+                <p className="text-sm text-red-600 dark:text-red-400 font-medium">{error}</p>
               </motion.div>
             )}
 
@@ -195,18 +212,18 @@ export default function RegisterPage() {
                   animate={{ opacity: 1, scale: 1 }}
                   className="text-center py-8"
                 >
-                  <div className="w-20 h-20 bg-emerald-100 dark:bg-emerald-900/30 rounded-full flex items-center justify-center mx-auto mb-6">
+                  <div className="w-20 h-20 bg-primary-100 dark:bg-primary-900/30 rounded-full flex items-center justify-center mx-auto mb-6">
                     <span className="text-4xl">✉️</span>
                   </div>
-                  <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-3">Verifikasi Email Dikirim</h3>
-                  <p className="text-gray-600 dark:text-gray-400 mb-8 leading-relaxed">
+                  <h3 className="text-xl font-bold text-neutral-900 dark:text-white mb-3">Verifikasi Email Dikirim</h3>
+                  <p className="text-neutral-600 dark:text-neutral-400 mb-8 leading-relaxed">
                     Kami telah mengirimkan link verifikasi ke <strong>{formData.email}</strong>.<br />
                     Klik link tersebut untuk mengaktifkan akun Anda.
                   </p>
 
                   <Link
                     href="/auth/login"
-                    className="inline-block w-full bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-4 px-4 rounded-2xl transition-colors"
+                    className="inline-block w-full bg-primary-600 hover:bg-primary-700 text-white font-bold py-3.5 px-6 rounded-xl transition-colors shadow-lg shadow-primary-600/25"
                   >
                     Ke Halaman Login
                   </Link>
@@ -220,7 +237,7 @@ export default function RegisterPage() {
                   className="space-y-5"
                 >
                   <div>
-                    <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    <label htmlFor="email" className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1.5">
                       Email
                     </label>
                     <input
@@ -229,13 +246,13 @@ export default function RegisterPage() {
                       required
                       value={formData.email}
                       onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                      className="w-full px-4 py-3.5 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-2xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition-all text-gray-900 dark:text-white"
+                      className="w-full px-4 py-3 bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500 outline-none transition-all text-neutral-900 dark:text-white placeholder-neutral-400"
                       placeholder="nama@email.com"
                     />
                   </div>
 
                   <div>
-                    <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    <label htmlFor="password" className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1.5">
                       Password
                     </label>
                     <div className="relative">
@@ -245,13 +262,13 @@ export default function RegisterPage() {
                         required
                         value={formData.password}
                         onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                        className="w-full px-4 py-3.5 pr-12 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-2xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition-all text-gray-900 dark:text-white"
+                        className="w-full px-4 py-3 pr-12 bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500 outline-none transition-all text-neutral-900 dark:text-white placeholder-neutral-400"
                         placeholder="Minimal 6 karakter"
                       />
                       <button
                         type="button"
                         onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                        className="absolute right-4 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-300 transition-colors"
                       >
                         {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                       </button>
@@ -259,7 +276,7 @@ export default function RegisterPage() {
                   </div>
 
                   <div>
-                    <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    <label htmlFor="confirmPassword" className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1.5">
                       Konfirmasi Password
                     </label>
                     <div className="relative">
@@ -269,20 +286,20 @@ export default function RegisterPage() {
                         required
                         value={formData.confirmPassword}
                         onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
-                        className="w-full px-4 py-3.5 pr-12 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-2xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition-all text-gray-900 dark:text-white"
+                        className="w-full px-4 py-3 pr-12 bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500 outline-none transition-all text-neutral-900 dark:text-white placeholder-neutral-400"
                         placeholder="Ulangi password"
                       />
                       <button
                         type="button"
                         onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                        className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                        className="absolute right-4 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-300 transition-colors"
                       >
                         {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                       </button>
                     </div>
                   </div>
 
-                  <GradientButton type="button" onClick={nextStep} className="w-full">
+                  <GradientButton type="button" onClick={nextStep} className="w-full py-3.5 text-base font-semibold shadow-lg shadow-primary-500/25">
                     Lanjut
                   </GradientButton>
                 </motion.div>
@@ -295,7 +312,7 @@ export default function RegisterPage() {
                   className="space-y-5"
                 >
                   <div>
-                    <label htmlFor="fullName" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    <label htmlFor="fullName" className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1.5">
                       Nama Lengkap
                     </label>
                     <input
@@ -304,14 +321,14 @@ export default function RegisterPage() {
                       required
                       value={formData.fullName}
                       onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
-                      className="w-full px-4 py-3.5 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-2xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition-all text-gray-900 dark:text-white"
+                      className="w-full px-4 py-3 bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500 outline-none transition-all text-neutral-900 dark:text-white placeholder-neutral-400"
                       placeholder="Nama lengkap Anda"
                     />
                   </div>
 
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label htmlFor="heightCm" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      <label htmlFor="heightCm" className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1.5">
                         Tinggi Badan
                       </label>
                       <div className="relative">
@@ -322,15 +339,15 @@ export default function RegisterPage() {
                           required
                           value={formData.heightCm}
                           onChange={(e) => setFormData({ ...formData, heightCm: e.target.value })}
-                          className="w-full px-4 py-3.5 pr-12 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-2xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition-all text-gray-900 dark:text-white"
+                          className="w-full px-4 py-3 pr-12 bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500 outline-none transition-all text-neutral-900 dark:text-white placeholder-neutral-400"
                           placeholder="170"
                         />
-                        <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 text-sm">cm</span>
+                        <span className="absolute right-4 top-1/2 -translate-y-1/2 text-neutral-400 text-sm">cm</span>
                       </div>
                     </div>
 
                     <div>
-                      <label htmlFor="currentWeightKg" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      <label htmlFor="currentWeightKg" className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1.5">
                         Berat Badan
                       </label>
                       <div className="relative">
@@ -341,23 +358,23 @@ export default function RegisterPage() {
                           required
                           value={formData.currentWeightKg}
                           onChange={(e) => setFormData({ ...formData, currentWeightKg: e.target.value })}
-                          className="w-full px-4 py-3.5 pr-12 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-2xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition-all text-gray-900 dark:text-white"
+                          className="w-full px-4 py-3 pr-12 bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500 outline-none transition-all text-neutral-900 dark:text-white placeholder-neutral-400"
                           placeholder="65"
                         />
-                        <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 text-sm">kg</span>
+                        <span className="absolute right-4 top-1/2 -translate-y-1/2 text-neutral-400 text-sm">kg</span>
                       </div>
                     </div>
                   </div>
 
-                  <div className="flex gap-3">
+                  <div className="flex gap-3 pt-2">
                     <button
                       type="button"
                       onClick={() => setStep(1)}
-                      className="flex-1 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 font-bold py-4 px-4 rounded-2xl hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+                      className="flex-1 bg-white dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300 font-bold py-3.5 px-4 rounded-xl hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-colors border border-neutral-200 dark:border-neutral-700"
                     >
                       Kembali
                     </button>
-                    <GradientButton type="submit" isLoading={loading} className="flex-1">
+                    <GradientButton type="submit" isLoading={loading} className="flex-1 py-3.5 shadow-lg shadow-primary-500/25">
                       Daftar
                     </GradientButton>
                   </div>
@@ -367,12 +384,13 @@ export default function RegisterPage() {
           </div>
 
           {/* Bottom Link */}
-          <div className="mt-6 text-center">
+          <div className="mt-8 text-center">
             <Link
               href="/"
-              className="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors"
+              className="text-sm font-medium text-neutral-500 dark:text-neutral-400 hover:text-primary-600 dark:hover:text-primary-400 transition-colors flex items-center justify-center gap-2"
             >
-              ← Kembali ke Beranda
+              <ArrowLeft className="w-4 h-4" />
+              Kembali ke Beranda
             </Link>
           </div>
         </motion.div>

@@ -1,11 +1,12 @@
 'use client'
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { authApi } from '@/lib/api'
 import { motion } from 'framer-motion'
-import { Eye, EyeOff, ArrowLeft, Loader2, Leaf, Sparkles } from 'lucide-react'
+import { Eye, EyeOff, ArrowLeft, Loader2, Sparkles } from 'lucide-react'
 import { GradientButton } from '@/components/ui/GradientButton'
 import { GlassCard } from '@/components/ui/GlassCard'
 
@@ -53,43 +54,52 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-emerald-50/50 via-white to-teal-50/50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800 flex relative overflow-hidden">
-      {/* ... Decorative Blobs ... */}
-      <div className="absolute top-0 -left-48 w-96 h-96 bg-emerald-200/40 dark:bg-emerald-900/20 rounded-full blur-3xl" />
-      <div className="absolute bottom-0 -right-48 w-[500px] h-[500px] bg-teal-200/40 dark:bg-teal-900/20 rounded-full blur-3xl" />
-      <div className="absolute top-1/2 left-1/4 w-64 h-64 bg-cyan-200/30 dark:bg-cyan-900/20 rounded-full blur-3xl" />
+    <div className="min-h-screen bg-neutral-50 dark:bg-neutral-900 flex relative overflow-hidden font-sans">
+      {/* Decorative Mesh Gradient Background */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute inset-0 bg-gradient-mesh opacity-50" />
+        <div className="absolute top-0 -left-48 w-[500px] h-[500px] bg-gradient-to-br from-emerald-200/30 to-teal-200/20 rounded-full blur-3xl animate-float" />
+        <div className="absolute bottom-0 -right-48 w-[600px] h-[600px] bg-gradient-to-br from-amber-200/20 to-orange-200/10 rounded-full blur-3xl" />
+        <div className="absolute top-1/2 left-1/4 w-[400px] h-[400px] bg-gradient-to-br from-violet-200/15 to-purple-200/10 rounded-full blur-3xl" />
+      </div>
 
-      {/* Left Panel ... */}
-      <div className="hidden lg:flex lg:w-1/2 relative z-10 items-center justify-center p-12">
+      {/* Left Panel - Branding & Stats */}
+      <div className="hidden lg:flex lg:w-1/2 relative z-10 items-center justify-center p-12 glass-premium border-r border-neutral-200/30 dark:border-neutral-800/30">
         <div className="max-w-md">
-          <Link href="/" className="flex items-center gap-3 mb-12">
-            <div className="w-12 h-12 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-2xl flex items-center justify-center shadow-lg shadow-emerald-500/20">
-              <Leaf className="w-6 h-6 text-white" />
+          <Link href="/" className="flex items-center gap-3 mb-12 group">
+            <div className="w-12 h-12 flex items-center justify-center transition-transform group-hover:scale-105">
+              <Image
+                src="/logorevisi.png"
+                alt="Nutrify"
+                width={48}
+                height={48}
+                className="object-contain"
+              />
             </div>
-            <span className="text-2xl font-bold font-display text-gray-900 dark:text-white">Nutrify</span>
+            <span className="text-2xl font-bold font-display text-neutral-900 dark:text-white tracking-tight">Nutrify</span>
           </Link>
 
-          <h1 className="text-4xl font-display font-bold text-gray-900 dark:text-white mb-4 leading-tight">
+          <h1 className="text-4xl font-display font-bold text-neutral-900 dark:text-white mb-6 leading-tight">
             Selamat Datang
-            <span className="block text-emerald-500">Kembali! 👋</span>
+            <span className="block text-primary-700 dark:text-primary-500">Kembali! 👋</span>
           </h1>
-          <p className="text-gray-600 dark:text-gray-400 text-lg leading-relaxed mb-8">
+          <p className="text-neutral-600 dark:text-neutral-400 text-lg leading-relaxed mb-10 font-light">
             Lanjutkan perjalanan sehatmu dengan Nutrify.
-            AI nutritionist personal yang memahami kebutuhanmu.
+            AI nutritionist personal yang memahami kebutuhan dan budayamu.
           </p>
 
-          {/* Stats */}
+          {/* Stats Cards */}
           <div className="grid grid-cols-2 gap-4">
-            <GlassCard className="!p-4 bg-white/40 dark:bg-gray-800/40">
-              <div className="text-2xl font-bold text-gray-900 dark:text-white mb-1">1000+</div>
-              <div className="text-gray-500 text-sm">Makanan Lokal</div>
+            <GlassCard className="!p-6 bg-white/60 dark:bg-neutral-800/60 border-neutral-200 dark:border-neutral-700">
+              <div className="text-2xl font-bold text-neutral-900 dark:text-white mb-2">1000+</div>
+              <div className="text-neutral-500 text-sm font-medium">Makanan Lokal</div>
             </GlassCard>
-            <GlassCard className="!p-4 bg-white/40 dark:bg-gray-800/40">
-              <div className="flex items-center gap-1 text-2xl font-bold text-gray-900 dark:text-white mb-1">
-                <Sparkles className="w-5 h-5 text-emerald-500" />
+            <GlassCard className="!p-6 bg-white/60 dark:bg-neutral-800/60 border-neutral-200 dark:border-neutral-700">
+              <div className="flex items-center gap-2 text-2xl font-bold text-neutral-900 dark:text-white mb-2">
+                <Sparkles className="w-5 h-5 text-secondary-500" />
                 AI
               </div>
-              <div className="text-gray-500 text-sm">Powered</div>
+              <div className="text-neutral-500 text-sm font-medium">Powered Integration</div>
             </GlassCard>
           </div>
         </div>
@@ -103,35 +113,44 @@ export default function LoginPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4 }}
         >
-          {/* Mobile Header ... */}
+          {/* Mobile Header (only visible on small screens) */}
           <div className="lg:hidden mb-8">
-            <Link href="/" className="inline-flex items-center gap-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 mb-6">
-              <ArrowLeft className="w-4 h-4" />
-              Kembali
-            </Link>
-            <div className="flex items-center gap-3 mb-2">
-              <div className="w-10 h-10 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-xl flex items-center justify-center">
-                <Leaf className="w-5 h-5 text-white" />
+            <div className="flex justify-between items-center mb-6">
+              <Link href="/" className="inline-flex items-center gap-2 text-neutral-500 hover:text-neutral-800 dark:text-neutral-400 dark:hover:text-neutral-200 transition-colors">
+                <ArrowLeft className="w-4 h-4" />
+                Kembali
+              </Link>
+            </div>
+
+            <div className="flex items-center gap-3 mb-6 justify-center">
+              <div className="w-12 h-12 flex items-center justify-center">
+                <Image
+                  src="/logorevisi.png"
+                  alt="Nutrify"
+                  width={48}
+                  height={48}
+                  className="object-contain"
+                />
               </div>
-              <span className="text-xl font-bold text-gray-900 dark:text-white">Nutrify</span>
+              <span className="text-2xl font-bold text-neutral-900 dark:text-white font-display">Nutrify</span>
             </div>
           </div>
 
-          {/* Form Card */}
-          <div className="bg-white dark:bg-gray-800 rounded-3xl p-8 shadow-xl shadow-gray-200/50 dark:shadow-none border border-gray-100 dark:border-gray-700">
+          {/* Form Card - Premium Glassmorphism */}
+          <div className="glass-premium rounded-2xl p-8 md:p-10 shadow-glass-lg">
             <div className="mb-8">
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-                {isDeactivated ? 'Pulihkan Akun?' : requires2FA ? 'Verifikasi 2 Langkah' : 'Masuk'}
+              <h2 className="text-2xl font-bold text-neutral-900 dark:text-white mb-2 font-display">
+                {isDeactivated ? 'Pulihkan Akun?' : requires2FA ? 'Verifikasi 2 Langkah' : 'Masuk ke Akun'}
               </h2>
-              <p className="text-gray-500 dark:text-gray-400">
+              <p className="text-neutral-500 dark:text-neutral-400 text-sm">
                 {isDeactivated
-                  ? 'Akun Anda sedang dalam masa tenggang penghapusan. Apakah Anda ingin mengaktifkannya kembali?'
+                  ? 'Akun Anda sedang dalam masa tenggang penghapusan. Aktifkan kembali sekarang.'
                   : requires2FA
                     ? 'Masukkan kode autentikasi dari aplikasi Authenticator Anda.'
                     : (
                       <>
                         Belum punya akun?{' '}
-                        <Link href="/auth/register" className="text-emerald-600 dark:text-emerald-400 hover:underline font-semibold">
+                        <Link href="/auth/register" className="text-primary-700 dark:text-primary-400 hover:text-primary-800 dark:hover:text-primary-300 font-semibold transition-colors">
                           Daftar gratis
                         </Link>
                       </>
@@ -144,9 +163,9 @@ export default function LoginPage() {
               <motion.div
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="mb-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-800 rounded-2xl"
+                className="mb-6 p-4 bg-red-50 dark:bg-red-900/10 border border-red-100 dark:border-red-900/30 rounded-xl"
               >
-                <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
+                <p className="text-sm text-red-600 dark:text-red-400 font-medium">{error}</p>
               </motion.div>
             )}
 
@@ -155,7 +174,7 @@ export default function LoginPage() {
               {!requires2FA && !isDeactivated ? (
                 <>
                   <div>
-                    <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    <label htmlFor="email" className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1.5">
                       Email
                     </label>
                     <input
@@ -164,15 +183,24 @@ export default function LoginPage() {
                       required
                       value={formData.email}
                       onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                      className="w-full px-4 py-3.5 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-2xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition-all text-gray-900 dark:text-white"
+                      className="w-full px-4 py-3 bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500 outline-none transition-all text-neutral-900 dark:text-white placeholder-neutral-400"
                       placeholder="nama@email.com"
                     />
                   </div>
 
                   <div>
-                    <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      Password
-                    </label>
+                    <div className="flex justify-between items-center mb-1.5">
+                      <label htmlFor="password" className="block text-sm font-medium text-neutral-700 dark:text-neutral-300">
+                        Password
+                      </label>
+                      <Link
+                        href="/auth/forgot-password"
+                        className="text-xs font-medium text-primary-700 dark:text-primary-400 hover:text-primary-800 hover:underline"
+                      >
+                        Lupa Password?
+                      </Link>
+                    </div>
+
                     <div className="relative">
                       <input
                         id="password"
@@ -180,38 +208,29 @@ export default function LoginPage() {
                         required
                         value={formData.password}
                         onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                        className="w-full px-4 py-3.5 pr-12 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-2xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition-all text-gray-900 dark:text-white"
+                        className="w-full px-4 py-3 pr-12 bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500 outline-none transition-all text-neutral-900 dark:text-white placeholder-neutral-400"
                         placeholder="••••••••"
                       />
                       <button
                         type="button"
                         onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                        className="absolute right-4 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-300 transition-colors"
                       >
                         {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                       </button>
                     </div>
                   </div>
-
-                  <div className="flex justify-end">
-                    <Link
-                      href="/auth/forgot-password"
-                      className="text-sm font-medium text-emerald-600 dark:text-emerald-400 hover:text-emerald-500"
-                    >
-                      Lupa Password?
-                    </Link>
-                  </div>
                 </>
               ) : isDeactivated ? (
                 // Restoration UI
                 <div className="space-y-4">
-                  <div className="p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-100 dark:border-yellow-800 rounded-2xl flex items-start gap-4">
-                    <div className="bg-yellow-100 dark:bg-yellow-900/50 p-2 rounded-full">
-                      <Sparkles className="w-5 h-5 text-yellow-600 dark:text-yellow-400" />
+                  <div className="p-4 bg-secondary-50 dark:bg-secondary-900/10 border border-secondary-100 dark:border-secondary-900/30 rounded-xl flex items-start gap-4">
+                    <div className="bg-secondary-100 dark:bg-secondary-900/30 p-2 rounded-full shrink-0">
+                      <Sparkles className="w-5 h-5 text-secondary-600 dark:text-secondary-400" />
                     </div>
                     <div>
-                      <h4 className="font-semibold text-gray-900 dark:text-white text-sm">Data Anda Masih Aman</h4>
-                      <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
+                      <h4 className="font-semibold text-neutral-900 dark:text-white text-sm">Data Anda Masih Aman</h4>
+                      <p className="text-xs text-neutral-600 dark:text-neutral-400 mt-1 leading-relaxed">
                         Akun Anda dinonaktifkan tetapi belum dihapus permanen. Klik tombol di bawah untuk memulihkan akses.
                       </p>
                     </div>
@@ -219,7 +238,7 @@ export default function LoginPage() {
                 </div>
               ) : (
                 <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }}>
-                  <label htmlFor="totp" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  <label htmlFor="totp" className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
                     Kode Autentikasi
                   </label>
                   <input
@@ -230,14 +249,14 @@ export default function LoginPage() {
                     maxLength={6}
                     value={totpCode}
                     onChange={(e) => setTotpCode(e.target.value.replace(/\D/g, ''))}
-                    className="w-full px-4 py-3.5 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-2xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition-all text-gray-900 dark:text-white text-center text-2xl tracking-widest font-mono"
+                    className="w-full px-4 py-3 bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500 outline-none transition-all text-neutral-900 dark:text-white text-center text-2xl tracking-widest font-mono"
                     placeholder="000000"
                   />
                 </motion.div>
               )}
 
-              <div className="space-y-3">
-                <GradientButton type="submit" isLoading={loading} className="w-full">
+              <div className="space-y-3 pt-2">
+                <GradientButton type="submit" isLoading={loading} className="w-full py-3.5 text-base font-semibold shadow-lg shadow-primary-500/25">
                   {isDeactivated ? 'Pulihkan Akun Saya' : requires2FA ? 'Verifikasi' : 'Masuk'}
                 </GradientButton>
 
@@ -245,7 +264,7 @@ export default function LoginPage() {
                   <button
                     type="button"
                     onClick={() => { setIsDeactivated(false); setFormData({ email: '', password: '' }) }}
-                    className="w-full py-3 text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                    className="w-full py-3 text-sm text-neutral-500 hover:text-neutral-700 dark:text-neutral-400 dark:hover:text-neutral-200 font-medium transition-colors"
                   >
                     Batal
                   </button>
@@ -255,12 +274,13 @@ export default function LoginPage() {
           </div>
 
           {/* Bottom Link */}
-          <div className="mt-6 text-center">
+          <div className="mt-8 text-center">
             <Link
               href="/"
-              className="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors"
+              className="text-sm font-medium text-neutral-500 dark:text-neutral-400 hover:text-primary-600 dark:hover:text-primary-400 transition-colors flex items-center justify-center gap-2"
             >
-              ← Kembali ke Beranda
+              <ArrowLeft className="w-4 h-4" />
+              Kembali ke Beranda
             </Link>
           </div>
         </motion.div>

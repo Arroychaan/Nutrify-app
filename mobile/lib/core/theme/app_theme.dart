@@ -10,7 +10,7 @@ class AppTheme {
       brightness: Brightness.light,
 
       // Color scheme
-      colorScheme: ColorScheme.light(
+      colorScheme: const ColorScheme.light(
         primary: AppColors.primary,
         onPrimary: Colors.white,
         secondary: AppColors.secondary,

@@ -16,8 +16,9 @@ final foodLogsProvider = FutureProvider<List<FoodLogModel>>((ref) async {
     final response = await ApiClient.instance.getFoodLogs();
 
     if (response.statusCode == 200) {
-      final List<dynamic> data = response.data['data'] ?? [];
-      return data.map((json) => FoodLogModel.fromJson(json)).toList();
+      final data = response.data['data'];
+      final List<dynamic> logs = data['logs'] ?? [];
+      return logs.map((json) => FoodLogModel.fromJson(json)).toList();
     }
     throw Exception('Gagal memuat food logs');
   } catch (e) {

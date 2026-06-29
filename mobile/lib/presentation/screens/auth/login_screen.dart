@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/theme/app_colors.dart';
@@ -58,16 +59,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 Center(
                   child: Column(
                     children: [
-                      Container(
-                        width: 80,
-                        height: 80,
-                        decoration: BoxDecoration(
-                          gradient: AppGradients.primary,
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: const Center(
-                          child: Text('🥗', style: TextStyle(fontSize: 40)),
-                        ),
+                      SvgPicture.asset(
+                        'assets/images/nutrify_logo.svg',
+                        width: 120,
+                        height: 120,
                       ),
                       const SizedBox(height: 16),
                       Text(

@@ -19,20 +19,20 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   final List<OnboardingContent> _contents = [
     OnboardingContent(
-      title: "AI Nutritionist Lokal\nUntukmu",
+      title: 'AI Nutritionist Lokal\nUntukmu',
       description:
-          "Satu-satunya aplikasi diet yang paham masakan Indonesia. Sehat tanpa harus makan hambar.",
+          'Satu-satunya aplikasi diet yang paham masakan Indonesia. Sehat tanpa harus makan hambar.',
       icon: Icons.auto_awesome,
     ),
     OnboardingContent(
-      title: "Cara Kerja\nNutrify",
-      description: "Flow flow",
+      title: 'Cara Kerja\nNutrify',
+      description: 'Langkah mudah menuju hidup sehat.',
       isFlowSlide: true, // Special flag for the flow slide
     ),
     OnboardingContent(
-      title: "Dipercaya Komunitas\nSehat Indonesia",
+      title: 'Dipercaya Komunitas\nSehat Indonesia',
       description:
-          "Didukung database database makanan terlengkap. Mulai perjalanan sehatmu hari ini.",
+          'Didukung database database makanan terlengkap. Mulai perjalanan sehatmu hari ini.',
       icon: Icons.verified_user_outlined,
       isLast: true,
     ),
@@ -149,8 +149,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       // CTA Button
                       GradientButton(
                         text: _currentPage == _contents.length - 1
-                            ? "Mulai Perjalanan Sehatmu"
-                            : "Lanjut",
+                            ? 'Mulai Perjalanan Sehatmu'
+                            : 'Lanjut',
                         onPressed: _onNext,
                         gradient: _currentPage == _contents.length - 1
                             ? AppGradients
@@ -230,9 +230,9 @@ class _OnboardingPage extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                _buildTrustBadge(Icons.star, "4.8 Rating"),
+                _buildTrustBadge(Icons.star, '4.8 Rating'),
                 const SizedBox(width: 16),
-                _buildTrustBadge(Icons.restaurant_menu, "10k+ Foods"),
+                _buildTrustBadge(Icons.restaurant_menu, '10k+ Foods'),
               ],
             ),
           ],
@@ -284,13 +284,13 @@ class _OnboardingPage extends StatelessWidget {
   Widget _buildFlowVisual() {
     return Column(
       children: [
-        _buildFlowStep(1, "Daftar", Icons.person_add, isFirst: true),
+        _buildFlowStep(1, 'Daftar', Icons.person_add, isFirst: true),
         _buildFlowConnector(),
-        _buildFlowStep(2, "Scan / Input", Icons.qr_code_scanner),
+        _buildFlowStep(2, 'Scan / Input', Icons.qr_code_scanner),
         _buildFlowConnector(),
-        _buildFlowStep(3, "Analisa AI", Icons.auto_awesome),
+        _buildFlowStep(3, 'Analisa AI', Icons.auto_awesome),
         _buildFlowConnector(),
-        _buildFlowStep(4, "Sehat", Icons.favorite, isLast: true),
+        _buildFlowStep(4, 'Sehat', Icons.favorite, isLast: true),
       ],
     );
   }

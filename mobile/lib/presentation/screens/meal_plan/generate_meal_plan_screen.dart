@@ -165,7 +165,7 @@ class _GenerateMealPlanScreenState
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Icon(Icons.info_outline, color: AppColors.info, size: 20),
+                  const Icon(Icons.info_outline, color: AppColors.info, size: 20),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(

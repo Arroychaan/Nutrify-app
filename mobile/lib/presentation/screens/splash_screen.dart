@@ -82,16 +82,22 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                         decoration: BoxDecoration(
                           color: Colors.white,
                           borderRadius: BorderRadius.circular(30),
-                          boxShadow: [
+                          boxShadow: const [
                             BoxShadow(
-                              color: const Color.fromRGBO(0, 0, 0, 0.2),
+                              color: Color.fromRGBO(0, 0, 0, 0.2),
                               blurRadius: 20,
-                              offset: const Offset(0, 10),
+                              offset: Offset(0, 10),
                             ),
                           ],
                         ),
-                        child: const Center(
-                          child: Text('🥗', style: TextStyle(fontSize: 60)),
+                        child: Center(
+                          child: Padding(
+                            padding: const EdgeInsets.all(16.0),
+                            child: Image.asset(
+                              'assets/images/Nusantara.png',
+                              fit: BoxFit.contain,
+                            ),
+                          ),
                         ),
                       ),
                       const SizedBox(height: 24),
@@ -109,11 +115,11 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                       const SizedBox(height: 8),
 
                       // Tagline
-                      Text(
+                      const Text(
                         'AI Dietician untuk Indonesia',
                         style: TextStyle(
                           fontSize: 16,
-                          color: const Color.fromRGBO(255, 255, 255, 0.9),
+                          color: Color.fromRGBO(255, 255, 255, 0.9),
                           fontWeight: FontWeight.w500,
                         ),
                       ),
@@ -121,12 +127,12 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                       const SizedBox(height: 48),
 
                       // Loading indicator
-                      SizedBox(
+                      const SizedBox(
                         width: 24,
                         height: 24,
                         child: CircularProgressIndicator(
                           strokeWidth: 2,
-                          valueColor: const AlwaysStoppedAnimation<Color>(
+                          valueColor: AlwaysStoppedAnimation<Color>(
                             Color.fromRGBO(255, 255, 255, 0.8),
                           ),
                         ),

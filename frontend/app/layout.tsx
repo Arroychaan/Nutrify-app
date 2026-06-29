@@ -1,37 +1,37 @@
 import type { Metadata, Viewport } from 'next'
-import { Outfit, Inter } from 'next/font/google'
+import { Fraunces, Plus_Jakarta_Sans } from 'next/font/google'
 import './globals.css'
 import { AppProvider } from '@/lib/AppContext'
 import UpdatePrompt from '@/components/UpdatePrompt'
 
-const outfit = Outfit({
+const fraunces = Fraunces({
   subsets: ['latin'],
   display: 'swap',
-  variable: '--font-outfit',
+  variable: '--font-fraunces',
+  weight: ['400', '500', '600', '700'],
 })
 
-const inter = Inter({
+const jakartaSans = Plus_Jakarta_Sans({
   subsets: ['latin'],
   display: 'swap',
-  variable: '--font-inter',
+  variable: '--font-jakarta',
+  weight: ['400', '500', '600', '700', '800'],
 })
 
 export const metadata: Metadata = {
-  title: 'Nutrify - Indonesian Personalized Nutrition',
-  description: 'Aplikasi perencanaan nutrisi personal berbasis budaya Indonesia',
+  title: 'Nutrify — Nutrisi Personal Berbasis Budaya Indonesia',
+  description: 'Rancang pola makan sehat dengan kecerdasan yang memahami bahan lokal, tradisi kuliner, dan kebutuhan gizi unikmu.',
   manifest: '/manifest.json',
   icons: {
     icon: [
-      { url: '/favicon.svg', type: 'image/svg+xml' },
-      { url: '/icons/icon-192x192.png', sizes: '192x192', type: 'image/png' },
-      { url: '/icons/icon-512x512.png', sizes: '512x512', type: 'image/png' },
+      { url: '/logorevisi.png', type: 'image/png' },
     ],
-    apple: '/icons/icon-192x192.png',
+    apple: '/logorevisi.png',
   },
 }
 
 export const viewport: Viewport = {
-  themeColor: '#24B47E',
+  themeColor: '#1E1810',
 }
 
 export default function RootLayout({
@@ -40,60 +40,37 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="id" suppressHydrationWarning className={outfit.variable}>
+    <html lang="id" suppressHydrationWarning className={`${fraunces.variable} ${jakartaSans.variable}`}>
       <head>
-        <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+        <link rel="icon" href="/logorevisi.png" type="image/png" />
         <link rel="manifest" href="/manifest.json" />
-        <meta name="theme-color" content="#24B47E" />
+        <meta name="theme-color" content="#1E1810" />
         <meta name="mobile-web-app-capable" content="yes" />
         <script dangerouslySetInnerHTML={{
           __html: `
             (function() {
-              // Version checker - increment this when deploying breaking changes
-              var APP_VERSION = '1.0.0';
+              var APP_VERSION = '2.0.0';
               var storedVersion = localStorage.getItem('appVersion');
-              
-              // If version mismatch, clear old data
               if (storedVersion !== APP_VERSION) {
                 console.log('App updated from', storedVersion, 'to', APP_VERSION);
-                // Clear potentially problematic cached data
                 localStorage.removeItem('appSettings');
-                // Keep token so user stays logged in
                 localStorage.setItem('appVersion', APP_VERSION);
-                
-                // Clear service worker cache
                 if ('caches' in window) {
                   caches.keys().then(function(names) {
-                    names.forEach(function(name) {
-                      caches.delete(name);
-                    });
+                    names.forEach(function(name) { caches.delete(name); });
                   });
                 }
-                
-                // Unregister service workers
                 if ('serviceWorker' in navigator) {
                   navigator.serviceWorker.getRegistrations().then(function(registrations) {
-                    registrations.forEach(function(registration) {
-                      registration.unregister();
-                    });
+                    registrations.forEach(function(registration) { registration.unregister(); });
                   });
                 }
               }
-              
-              // Apply theme
-              try {
-                var settings = JSON.parse(localStorage.getItem('appSettings') || '{}');
-                var theme = settings.theme || 'light';
-                if (theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-                  document.documentElement.classList.add('dark');
-                  document.documentElement.style.colorScheme = 'dark';
-                }
-              } catch (e) {}
             })();
           `
         }} />
       </head>
-      <body className={`${outfit.variable} ${inter.variable} font-sans bg-neutral-50 dark:bg-gray-900 text-neutral-900 dark:text-gray-100 transition-colors duration-300 antialiased`}>
+      <body className={`${fraunces.variable} ${jakartaSans.variable} font-sans bg-background text-text-primary antialiased`}>
         <AppProvider>
           {children}
           <UpdatePrompt />
@@ -102,4 +79,3 @@ export default function RootLayout({
     </html>
   )
 }
-
