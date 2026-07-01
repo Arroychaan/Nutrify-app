@@ -1,5 +1,5 @@
-// Service Worker for Nutrify
-const CACHE_NAME = 'nutrify-v4';
+// Service Worker for AI Ate Indonesia
+const CACHE_NAME = 'aiate-v4';
 const APP_VERSION = '2.2.0';
 
 // Only cache static assets, NOT pages
@@ -145,11 +145,11 @@ self.addEventListener('push', (event) => {
   console.log('[SW] Push received:', event);
   
   let data = {
-    title: 'Nutrify',
+    title: 'AI Ate Indonesia',
     body: 'Kamu punya notifikasi baru!',
     icon: '/icons/icon-192x192.png',
     badge: '/icons/icon-192x192.png',
-    tag: 'nutrify-notification',
+    tag: 'aiate-notification',
   };
 
   // Parse push data if available
@@ -166,7 +166,7 @@ self.addEventListener('push', (event) => {
     body: data.body,
     icon: data.icon || '/icons/icon-192x192.png',
     badge: data.badge || '/icons/icon-192x192.png',
-    tag: data.tag || 'nutrify-notification',
+    tag: data.tag || 'aiate-notification',
     vibrate: [100, 50, 100],
     data: data.data || {},
     actions: data.actions || [],

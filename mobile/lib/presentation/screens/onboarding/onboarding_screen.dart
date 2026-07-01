@@ -1,7 +1,7 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../providers/router_provider.dart';
 import '../../widgets/gradient_button.dart';
@@ -19,21 +19,19 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   final List<OnboardingContent> _contents = [
     OnboardingContent(
-      title: 'AI Nutritionist Lokal\nUntukmu',
-      description:
-          'Satu-satunya aplikasi diet yang paham masakan Indonesia. Sehat tanpa harus makan hambar.',
-      icon: Icons.auto_awesome,
+      title: 'Makan Enak,\nHidup Sehat',
+      description: 'Tanpa perlu ninggalin rendang dan nasi padang kesukaanmu. Diet santai ala Indonesia.',
+      icon: Icons.restaurant,
     ),
     OnboardingContent(
-      title: 'Cara Kerja\nNutrify',
-      description: 'Langkah mudah menuju hidup sehat.',
-      isFlowSlide: true, // Special flag for the flow slide
+      title: 'Gak Pake\nRibet',
+      description: 'Tinggal foto makananmu, biar AI yang hitung kalori dan porsinya.',
+      isFlowSlide: true, 
     ),
     OnboardingContent(
-      title: 'Dipercaya Komunitas\nSehat Indonesia',
-      description:
-          'Didukung database database makanan terlengkap. Mulai perjalanan sehatmu hari ini.',
-      icon: Icons.verified_user_outlined,
+      title: 'Teman Gizi\nYang Paling Ngerti',
+      description: 'Bukan nyuruh makan hambar tiap hari. Kita sesuaikan sama lidah dan budget-mu.',
+      icon: Icons.handshake_outlined,
       isLast: true,
     ),
   ];
@@ -60,13 +58,18 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     return Scaffold(
       body: Stack(
         children: [
-          // Background Gradient
+          // Background Color
           Container(
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                colors: [Color(0xFFF0FDF4), Colors.white],
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
+            color: AppColors.backgroundLight,
+          ),
+
+          // Brand Pattern Overlay
+          Positioned.fill(
+            child: Opacity(
+              opacity: 0.05,
+              child: SvgPicture.asset(
+                'assets/brand/Pattern-Brand.svg',
+                fit: BoxFit.cover,
               ),
             ),
           ),
@@ -82,7 +85,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 height: 300,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: AppColors.primary.withValues(alpha: 0.2),
+                  color: AppColors.primary.withValues(alpha: 0.15),
                 ),
               ),
             ),
@@ -98,7 +101,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     onPressed: () => context.go(AppRoutes.login),
                     child: Text(
                       'Lewati',
-                      style: GoogleFonts.outfit(
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         color: AppColors.textSecondary,
                         fontWeight: FontWeight.w600,
                       ),
@@ -149,13 +152,12 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       // CTA Button
                       GradientButton(
                         text: _currentPage == _contents.length - 1
-                            ? 'Mulai Perjalanan Sehatmu'
+                            ? 'Gass Mulai!'
                             : 'Lanjut',
                         onPressed: _onNext,
                         gradient: _currentPage == _contents.length - 1
-                            ? AppGradients
-                                  .primary // Green for start
-                            : AppGradients.accent, // Purple/Blue for next
+                            ? AppGradients.accent // Gold for start
+                            : AppGradients.primary, // Terracotta for next
                       ),
                       const SizedBox(height: 16),
                     ],
@@ -200,9 +202,9 @@ class _OnboardingPage extends StatelessWidget {
         children: [
           // Visual
           if (content.isFlowSlide)
-            _buildFlowVisual()
+            _buildFlowVisual(context)
           else
-            _buildStandardVisual(),
+            _buildStandardVisual(context),
 
           const SizedBox(height: 48),
 
@@ -230,9 +232,9 @@ class _OnboardingPage extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                _buildTrustBadge(Icons.star, '4.8 Rating'),
+                _buildTrustBadge(context, Icons.star, '4.8 Rating'),
                 const SizedBox(width: 16),
-                _buildTrustBadge(Icons.restaurant_menu, '10k+ Foods'),
+                _buildTrustBadge(context, Icons.restaurant_menu, '10k+ Foods'),
               ],
             ),
           ],
@@ -241,14 +243,14 @@ class _OnboardingPage extends StatelessWidget {
     );
   }
 
-  Widget _buildStandardVisual() {
+  Widget _buildStandardVisual(BuildContext context) {
     return Container(
       width: 240,
       height: 240,
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.surface,
         shape: BoxShape.circle,
-        boxShadow: AppShadows.large,
+        border: Border.all(color: AppColors.primary, width: 0.5),
       ),
       child: Center(
         child: Icon(
@@ -260,7 +262,7 @@ class _OnboardingPage extends StatelessWidget {
     );
   }
 
-  Widget _buildTrustBadge(IconData icon, String text) {
+  Widget _buildTrustBadge(BuildContext context, IconData icon, String text) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
@@ -274,23 +276,26 @@ class _OnboardingPage extends StatelessWidget {
           const SizedBox(width: 6),
           Text(
             text,
-            style: GoogleFonts.inter(fontWeight: FontWeight.w600, fontSize: 12),
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              fontWeight: FontWeight.w600,
+              fontSize: 12,
+            ),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildFlowVisual() {
+  Widget _buildFlowVisual(BuildContext context) {
     return Column(
       children: [
-        _buildFlowStep(1, 'Daftar', Icons.person_add, isFirst: true),
+        _buildFlowStep(context, 1, 'Foto', Icons.camera_alt, isFirst: true),
         _buildFlowConnector(),
-        _buildFlowStep(2, 'Scan / Input', Icons.qr_code_scanner),
+        _buildFlowStep(context, 2, 'Analisa', Icons.auto_awesome),
         _buildFlowConnector(),
-        _buildFlowStep(3, 'Analisa AI', Icons.auto_awesome),
+        _buildFlowStep(context, 3, 'Ngobar', Icons.chat_bubble_outline),
         _buildFlowConnector(),
-        _buildFlowStep(4, 'Sehat', Icons.favorite, isLast: true),
+        _buildFlowStep(context, 4, 'Sehat', Icons.favorite, isLast: true),
       ],
     );
   }
@@ -300,6 +305,7 @@ class _OnboardingPage extends StatelessWidget {
   }
 
   Widget _buildFlowStep(
+    BuildContext context,
     int index,
     String label,
     IconData icon, {
@@ -322,7 +328,7 @@ class _OnboardingPage extends StatelessWidget {
           ),
           child: Icon(
             icon,
-            color: isLast ? Colors.white : AppColors.secondary,
+            color: isLast ? AppColors.textLightPrimary : AppColors.secondary,
             size: 24,
           ),
         ),
@@ -331,9 +337,8 @@ class _OnboardingPage extends StatelessWidget {
           width: 100,
           child: Text(
             label,
-            style: GoogleFonts.outfit(
+            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
               fontWeight: FontWeight.w600,
-              fontSize: 16,
               color: AppColors.textPrimary,
             ),
           ),

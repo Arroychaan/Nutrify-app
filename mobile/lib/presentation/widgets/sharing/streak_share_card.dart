@@ -67,7 +67,7 @@ class StreakShareCard extends StatelessWidget {
                     Icon(Icons.spa_rounded, color: Colors.white, size: 28),
                     SizedBox(width: 8),
                     Text(
-                      'Nutrify',
+                      'AI Ate Indonesia',
                       style: TextStyle(
                         color: Colors.white,
                         fontSize: 24,
@@ -154,7 +154,7 @@ class StreakShareCard extends StatelessWidget {
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: const Text(
-                    'Try Nutrify App',
+                    'Try AI Ate Indonesia App',
                     style: TextStyle(
                       color: Colors.white,
                       fontSize: 12,

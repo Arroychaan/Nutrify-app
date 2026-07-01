@@ -1,66 +1,31 @@
 'use client'
 
-import { motion } from 'framer-motion'
-import { Utensils, Bot, PenSquare, BarChart } from 'lucide-react'
+import React from 'react'
 import Link from 'next/link'
+import { Plus, Camera, Search, Coffee } from 'lucide-react'
 
-const actions = [
-    {
-        title: 'Rencana Makan',
-        desc: 'Lihat menu minggu ini',
-        icon: Utensils,
-        color: 'forest',
-        href: '/meal-plan'
-    },
-    {
-        title: 'Coach AI',
-        desc: 'Tanya soal nutrisi',
-        icon: Bot,
-        color: 'amber',
-        href: '/chat'
-    },
-    {
-        title: 'Catat Makanan',
-        desc: 'Lacak kalori Anda',
-        icon: PenSquare,
-        color: 'terracotta',
-        href: '/dashboard/food-log'
-    },
-    {
-        title: 'Kemajuan',
-        desc: 'Lihat statistik Anda',
-        icon: BarChart,
-        color: 'brown',
-        href: '/dashboard/progress'
-    }
+const ACTIONS = [
+  { name: 'Scan Foto', icon: Camera, color: 'bg-primary-subtle text-primary border-primary/20', href: '/dashboard/scan' },
+  { name: 'Cari Makanan', icon: Search, color: 'bg-accent-subtle text-accent border-accent/20', href: '/search' },
+  { name: 'Input Manual', icon: Plus, color: 'bg-[#DBEAFE] text-[#3B82F6] border-[#3B82F6]/20', href: '/dashboard/food-log/add' },
+  { name: 'Air & Kopi', icon: Coffee, color: 'bg-[#F3E8FF] text-[#A855F7] border-[#A855F7]/20', href: '/dashboard/hydration' },
 ]
 
-const colorMap: Record<string, string> = {
-    forest: 'bg-secondary-50 dark:bg-secondary-950/20 text-secondary dark:text-secondary-400',
-    amber: 'bg-accent-50 dark:bg-accent-950/20 text-accent-700 dark:text-accent-400',
-    terracotta: 'bg-primary-action-50 dark:bg-primary-action-950/20 text-primary-action dark:text-primary-action-400',
-    brown: 'bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400',
-}
-
 export function QuickActions() {
-    return (
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            {actions.map((action, index) => (
-                <Link href={action.href} key={action.title}>
-                    <motion.div
-                        whileHover={{ y: -4, scale: 1.02 }}
-                        className="bg-white dark:bg-neutral-900 p-5 rounded-3xl border border-neutral-100 dark:border-neutral-800 shadow-sm h-full flex flex-col items-start gap-4 transition-shadow hover:shadow-lg"
-                    >
-                        <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${colorMap[action.color]}`}>
-                            <action.icon className="w-6 h-6" />
-                        </div>
-                        <div>
-                            <h3 className="font-bold text-neutral-900 dark:text-white font-display mb-1">{action.title}</h3>
-                            <p className="text-xs text-neutral-500 dark:text-neutral-400">{action.desc}</p>
-                        </div>
-                    </motion.div>
-                </Link>
-            ))}
-        </div>
-    )
+  return (
+    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      {ACTIONS.map((action) => (
+        <Link 
+          key={action.name} 
+          href={action.href}
+          className="flex flex-col items-center justify-center p-4 rounded-card bg-bg-surface border border-border hover:shadow-card-hover hover:-translate-y-1 transition-all group"
+        >
+          <div className={`w-12 h-12 rounded-full flex items-center justify-center mb-3 border ${action.color} group-hover:scale-110 transition-transform`}>
+            <action.icon className="w-5 h-5" />
+          </div>
+          <span className="text-sm font-medium text-text-primary text-center">{action.name}</span>
+        </Link>
+      ))}
+    </div>
+  )
 }

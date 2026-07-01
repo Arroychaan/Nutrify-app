@@ -12,6 +12,8 @@ import { MealPlanModule } from './meal-plan/meal-plan.module';
 import { ChatModule } from './chat/chat.module';
 import { FoodLogModule } from './food-log/food-log.module.js';
 import { NotificationModule } from './notification/notification.module.js';
+import { UserTargetsModule } from './user-targets/user-targets.module.js';
+import { TransactionsModule } from './transactions/transactions.module.js';
 import { BullModule } from '@nestjs/bullmq';
 
 @Module({
@@ -49,6 +51,8 @@ import { BullModule } from '@nestjs/bullmq';
     ChatModule,
     FoodLogModule,
     NotificationModule,
+    UserTargetsModule,
+    TransactionsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

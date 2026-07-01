@@ -157,7 +157,7 @@ class DailySummaryShareCard extends StatelessWidget {
 
               const Center(
                 child: Text(
-                  'Join the healthy movement on Nutrify App',
+                  'Join the healthy movement on AI Ate Indonesia App',
                   style: TextStyle(color: AppColors.textTertiary, fontSize: 12),
                 ),
               ),

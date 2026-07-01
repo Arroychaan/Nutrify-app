@@ -1,4 +1,4 @@
-# 🏗️ Nutrify - System Architecture Documentation
+# 🏗️ AI Ate Indonesia - System Architecture Documentation
 
 > **AI Dietician for Indonesia** - Personalized Meal Planning System
 > 
@@ -27,7 +27,7 @@
 
 ### Vision & Mission
 
-**Nutrify** adalah aplikasi AI Dietician yang dirancang khusus untuk masyarakat Indonesia dengan fokus pada:
+**AI Ate Indonesia** adalah aplikasi AI Dietician yang dirancang khusus untuk masyarakat Indonesia dengan fokus pada:
 
 - ✅ **Personalisasi** - Meal plan disesuaikan dengan kondisi medis, budaya, dan preferensi
 - ✅ **AKG Compliance** - Mengikuti Angka Kecukupan Gizi Indonesia
@@ -503,7 +503,7 @@ onDelete: Cascade
 ### RESTful API Design
 
 ```
-Base URL: https://api.nutrify.app/api/v1
+Base URL: https://api.aiate.app/api/v1
 ```
 
 ### API Endpoint Structure
@@ -710,7 +710,7 @@ const request = {
 
 // 2. Build system prompt
 const systemPrompt = `
-You are Nutrify, an expert AI Dietician for Indonesia.
+You are AI Ate Indonesia, an expert AI Dietician for Indonesia.
 
 User Profile:
 - Culture: Jawa
@@ -743,7 +743,7 @@ await prisma.mealPlan.create({ data: mealPlan })
 
 #### **Meal Plan Prompt Structure**
 ```
-[ROLE] → You are Nutrify, expert AI Dietician
+[ROLE] → You are AI Ate Indonesia, expert AI Dietician
 [CONTEXT] → User profile, medical conditions, preferences
 [CONSTRAINTS] → AKG limits, budget, cultural requirements
 [FORMAT] → JSON schema specification
@@ -754,7 +754,7 @@ await prisma.mealPlan.create({ data: mealPlan })
 #### **System Instructions**
 ```typescript
 const systemInstruction = {
-  role: "Nutrify AI Dietician",
+  role: "AI Ate Indonesia AI Dietician",
   expertise: [
     "AKG (Angka Kecukupan Gizi) Indonesia",
     "Local Indonesian cuisine (Jawa, Sunda, Minang, etc)",
@@ -878,7 +878,7 @@ const limiter = rateLimit({
 #### **3. CORS Policy**
 ```typescript
 cors({
-  origin: ['https://nutrify.app', 'http://localhost:3000'],
+  origin: ['https://aiate.app', 'http://localhost:3000'],
   credentials: true,
   methods: ['GET', 'POST', 'PATCH', 'DELETE']
 })
@@ -989,7 +989,7 @@ NODE_ENV=production
 PORT=3001
 
 # Database
-DATABASE_URL=postgresql://user:pass@host:5432/nutrify
+DATABASE_URL=postgresql://user:pass@host:5432/aiate
 
 # Redis
 REDIS_URL=redis://default:pass@host:6379
@@ -1004,13 +1004,13 @@ GEMINI_API_KEY=AIza...
 GEMINI_MODEL=gemini-1.5-flash
 
 # CORS
-ALLOWED_ORIGINS=https://nutrify.app,https://www.nutrify.app
+ALLOWED_ORIGINS=https://aiate.app,https://www.aiate.app
 ```
 
 #### **Frontend (.env.local)**
 ```bash
-NEXT_PUBLIC_API_URL=https://api.nutrify.app
-NEXT_PUBLIC_APP_URL=https://nutrify.app
+NEXT_PUBLIC_API_URL=https://api.aiate.app
+NEXT_PUBLIC_APP_URL=https://aiate.app
 NEXT_PUBLIC_ENVIRONMENT=production
 ```
 
@@ -1160,7 +1160,7 @@ User: "Apa makanan yang bagus untuk hipertensi?"
 └───────────┬────────────┘
             │
             │ 3. Generate response
-            │    System: "You are Nutrify..."
+            │    System: "You are AI Ate Indonesia..."
             │    Context: { medicalConditions: [...] }
             │    History: [...]
             ▼
@@ -1371,8 +1371,8 @@ const metrics = {
 
 **Developer:** Achmad Roychan  
 **Institution:** UNISSULA  
-**Project:** Nutrify - AI Dietician for Indonesia  
-**Repository:** https://github.com/Arroychaan/Nutrify-app  
+**Project:** AI Ate Indonesia - AI Dietician for Indonesia  
+**Repository:** https://github.com/Arroychaan/AI Ate Indonesia-app  
 
 **License:** MIT  
 

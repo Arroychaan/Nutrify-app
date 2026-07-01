@@ -339,3 +339,39 @@ export const foodApi = {
     return response.data?.data ?? response.data
   },
 }
+
+// User Targets API
+export const userTargetsApi = {
+  get: async () => {
+    const response = await api.get('/api/v1/user-targets')
+    return response.data?.data ?? response.data
+  },
+
+  update: async (data: { dailyCalorieTarget?: number; dailyBudget?: number }) => {
+    const response = await api.put('/api/v1/user-targets', data)
+    return response.data?.data ?? response.data
+  },
+}
+
+// Transactions API
+export const transactionsApi = {
+  getAll: async () => {
+    const response = await api.get('/api/v1/transactions')
+    return response.data?.data ?? response.data
+  },
+
+  getToday: async () => {
+    const response = await api.get('/api/v1/transactions/today')
+    return response.data?.data ?? response.data
+  },
+
+  create: async (data: { name: string; amount: number; category: string }) => {
+    const response = await api.post('/api/v1/transactions', data)
+    return response.data?.data ?? response.data
+  },
+
+  delete: async (id: string) => {
+    const response = await api.delete(`/api/v1/transactions/${id}`)
+    return response.data
+  },
+}

@@ -1,0 +1,27 @@
+services:
+  - type: web
+    name: ai-ate-backend
+    env: node
+    rootDir: backend
+    buildCommand: npm install && npm run build
+    startCommand: npm run start:prod
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      # Variables to be set in the Render Dashboard
+      - key: DIRECT_URL
+        sync: false
+      - key: DATABASE_URL
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: REFRESH_TOKEN_SECRET
+        sync: false
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: REDIS_URL
+        sync: false
+      - key: ALLOWED_ORIGINS
+        sync: false

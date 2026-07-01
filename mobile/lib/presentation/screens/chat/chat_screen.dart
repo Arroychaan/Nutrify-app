@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/network/api_client.dart';
 import '../../../core/theme/app_colors.dart';
-import 'package:google_fonts/google_fonts.dart'; // Added import
+import 'package:google_fonts/google_fonts.dart';
+import 'package:lottie/lottie.dart';
 import '../../../data/models/chat_model.dart';
 
 // Chat state
@@ -153,7 +154,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          'Coach Nutrify',
+          'Coach AI Ate Indonesia',
           style: GoogleFonts.outfit(fontWeight: FontWeight.bold),
         ),
         actions: [
@@ -251,7 +252,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                         borderSide: BorderSide.none,
                       ),
                       filled: true,
-                      fillColor: AppColors.background,
+                      fillColor: AppColors.backgroundLight,
                       contentPadding: const EdgeInsets.symmetric(
                         horizontal: 20,
                         vertical: 12,
@@ -305,20 +306,14 @@ class _EmptyChat extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Container(
-              width: 100,
-              height: 100,
-              decoration: BoxDecoration(
-                color: AppColors.primary.withValues(alpha: 0.1),
-                shape: BoxShape.circle,
-              ),
-              child: const Center(
-                child: Text('👋', style: TextStyle(fontSize: 50)),
-              ),
+            Image.asset(
+              'assets/illustrations/ai-ketiduran.png',
+              width: 140,
+              height: 140,
             ),
             const SizedBox(height: 24),
             Text(
-              'Halo! Saya Coach Nutrify',
+              'Halo! Saya Coach AI Ate Indonesia',
               style: Theme.of(context).textTheme.titleLarge?.copyWith(
                 fontWeight: FontWeight.bold,
                 fontFamily: GoogleFonts.outfit().fontFamily,
@@ -326,7 +321,7 @@ class _EmptyChat extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             Text(
-              'Saya di sini untuk bantu kamu capai target sehatmu. Bingung mau makan apa hari ini?',
+              'AI-nya lagi tidur. Ayo tanya menu makan siang untuk bangunin!',
               textAlign: TextAlign.center,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                 color: AppColors.textSecondary,
@@ -454,14 +449,15 @@ class _TypingIndicator extends StatelessWidget {
       child: Row(
         children: [
           Container(
-            width: 32,
-            height: 32,
-            decoration: BoxDecoration(
-              color: AppColors.primary.withValues(alpha: 0.1),
+            width: 48,
+            height: 48,
+            decoration: const BoxDecoration(
+              color: Colors.transparent,
               shape: BoxShape.circle,
             ),
-            child: const Center(
-              child: Text('🤖', style: TextStyle(fontSize: 16)),
+            child: Lottie.asset(
+              'assets/lottie/chatbot-live.json',
+              fit: BoxFit.contain,
             ),
           ),
           const SizedBox(width: 8),
@@ -477,15 +473,13 @@ class _TypingIndicator extends StatelessWidget {
               ),
               border: Border.all(color: AppColors.border),
             ),
-            child: const Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                _Dot(delay: 0),
-                SizedBox(width: 4),
-                _Dot(delay: 1),
-                SizedBox(width: 4),
-                _Dot(delay: 2),
-              ],
+            child: const Text(
+              'AI sedang mengetik...',
+              style: TextStyle(
+                color: AppColors.textSecondary,
+                fontStyle: FontStyle.italic,
+                fontSize: 12,
+              ),
             ),
           ),
         ],

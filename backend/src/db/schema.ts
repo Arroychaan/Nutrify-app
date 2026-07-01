@@ -77,6 +77,34 @@ export const users = pgTable('users', {
   lastActiveAt: timestamp('lastActiveAt').defaultNow().notNull(),
 });
 
+export const userTargets = pgTable('user_targets', {
+  id: uuid('id')
+    .default(sql`gen_random_uuid()`)
+    .primaryKey(),
+  userId: uuid('userId')
+    .references(() => users.id, { onDelete: 'cascade' })
+    .unique()
+    .notNull(),
+  dailyCalorieTarget: integer('dailyCalorieTarget').default(2000).notNull(),
+  dailyBudget: integer('dailyBudget').default(50000).notNull(),
+  createdAt: timestamp('createdAt').defaultNow().notNull(),
+  updatedAt: timestamp('updatedAt').defaultNow().notNull(),
+});
+
+export const userTransactions = pgTable('user_transactions', {
+  id: uuid('id')
+    .default(sql`gen_random_uuid()`)
+    .primaryKey(),
+  userId: uuid('userId')
+    .references(() => users.id, { onDelete: 'cascade' })
+    .notNull(),
+  name: text('name').notNull(),
+  amount: integer('amount').notNull(),
+  category: text('category').notNull(),
+  transactionDate: timestamp('transactionDate').defaultNow().notNull(),
+  createdAt: timestamp('createdAt').defaultNow().notNull(),
+});
+
 // ============================================================================
 // MEAL PLAN MODELS
 // ============================================================================
@@ -467,6 +495,11 @@ export const notificationLogs = pgTable('notification_logs', {
 // ============================================================================
 
 export const usersRelations = relations(users, ({ many, one }) => ({
+  targets: one(userTargets, {
+    fields: [users.id],
+    references: [userTargets.userId],
+  }),
+  transactions: many(userTransactions),
   biomarkers: many(biomarkerRecords),
   mealPlans: many(mealPlans),
   conversations: many(conversations),
@@ -480,6 +513,23 @@ export const usersRelations = relations(users, ({ many, one }) => ({
   notificationLogs: many(notificationLogs),
   notifications: many(notifications),
 }));
+
+export const userTargetsRelations = relations(userTargets, ({ one }) => ({
+  user: one(users, {
+    fields: [userTargets.userId],
+    references: [users.id],
+  }),
+}));
+
+export const userTransactionsRelations = relations(
+  userTransactions,
+  ({ one }) => ({
+    user: one(users, {
+      fields: [userTransactions.userId],
+      references: [users.id],
+    }),
+  }),
+);
 
 export const mealPlansRelations = relations(mealPlans, ({ one, many }) => ({
   user: one(users, {

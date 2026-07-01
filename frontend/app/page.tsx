@@ -1,25 +1,13 @@
 'use client'
 
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
-import { motion } from 'framer-motion'
-import {
-  Utensils,
-  HeartPulse,
-  Leaf,
-  BarChart3,
-  MessageCircle,
-  ArrowRight,
-  ShieldCheck,
-  ChefHat
-} from 'lucide-react'
-import { GradientButton } from '@/components/ui/GradientButton'
 
-// Native FadeInOnScroll using IntersectionObserver
-function FadeIn({ children, delay = 0 }: { children: React.ReactNode; delay?: number }) {
+// Elegant Fade-in component for Editorial style (slower, graceful)
+function FadeIn({ children, delay = 0, className = '' }: { children: React.ReactNode; delay?: number, className?: string }) {
   const [isVisible, setIsVisible] = useState(false)
-  const ref = useRef<HTMLDivElement>(null)
+  const ref = React.useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -29,30 +17,19 @@ function FadeIn({ children, delay = 0 }: { children: React.ReactNode; delay?: nu
           observer.unobserve(entry.target)
         }
       },
-      { 
-        threshold: 0.1,
-        rootMargin: '0px 0px -50px 0px'
-      }
+      { threshold: 0.1, rootMargin: '0px 0px -50px 0px' }
     )
-
     const currentRef = ref.current
-    if (currentRef) {
-      observer.observe(currentRef)
-    }
-
+    if (currentRef) observer.observe(currentRef)
     return () => {
-      if (currentRef) {
-        observer.unobserve(currentRef)
-      }
+      if (currentRef) observer.unobserve(currentRef)
     }
   }, [])
 
   return (
     <div
       ref={ref}
-      className={`transition-all duration-1000 ease-out transform ${
-        isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-12'
-      }`}
+      className={`transition-all duration-[1500ms] ease-[cubic-bezier(0.16,1,0.3,1)] transform ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'} ${className}`}
       style={{ transitionDelay: `${delay}ms` }}
     >
       {children}
@@ -60,390 +37,286 @@ function FadeIn({ children, delay = 0 }: { children: React.ReactNode; delay?: nu
   )
 }
 
-export default function Home() {
+export default function LandingPage() {
+  const [scrolled, setScrolled] = useState(false)
+
+  useEffect(() => {
+    const handleScroll = () => setScrolled(window.scrollY > 20)
+    window.addEventListener('scroll', handleScroll)
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [])
+
   return (
-    <main className="min-h-screen bg-background overflow-hidden selection:bg-primary-action/15 selection:text-primary-dark">
-      {/* Decorative texture overlay */}
-      <div className="fixed inset-0 pointer-events-none opacity-[0.03] bg-noise mix-blend-multiply" />
+    <main className="min-h-screen overflow-hidden bg-surface relative selection:bg-sage/20 selection:text-ink">
       
-      {/* Navigation */}
-      <nav className="relative z-50 px-4 sm:px-6 py-6 transition-all">
-        <div className="max-w-7xl mx-auto flex justify-between items-center bg-surface/80 backdrop-blur-md rounded-2xl px-6 py-4 border border-border/50 shadow-warm-sm">
-          {/* SVG Vector Wordmark Logo */}
-          <Link href="/" className="flex items-center gap-3 group animate-fade-in">
-            <svg viewBox="0 0 100 120" className="h-10 w-auto" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M50 8C65 20 72 32 72 45C72 60 62 72 50 72C38 72 28 60 28 45C28 32 35 20 50 8Z" fill="#C4603A"/>
-              <ellipse cx="50" cy="52" rx="13" ry="17" fill="#FAF0E0" className="transition-colors duration-300 group-hover:fill-white" />
-              <circle cx="50" cy="52" r="6" fill="#E8A838"/>
-              <rect x="44" y="71" width="12" height="16" rx="6" fill="#C4603A"/>
-            </svg>
-            <span className="text-2xl font-bold tracking-tight text-primary-dark group-hover:text-primary-action transition-colors duration-300 font-display">Nutrify</span>
+      {/* Subtle Texture Overlay - gives depth without clutter */}
+      <div className="fixed inset-0 pointer-events-none z-0 mix-blend-multiply opacity-[0.03] bg-[url('/assets/scrapbook/paper-recycled.jpg')] bg-repeat"></div>
+
+      {/* Editorial Navbar - Minimalist */}
+      <nav className={`fixed top-0 inset-x-0 z-50 transition-all duration-700 ${scrolled ? 'bg-surface/90 backdrop-blur-md py-4' : 'bg-transparent py-8'}`}>
+        <div className="max-w-[90rem] mx-auto px-6 sm:px-12 flex justify-between items-center border-b border-ink/10 pb-4">
+          <Link href="/" className="flex items-center gap-3 group">
+            <div className="relative w-8 h-8">
+               <Image src="/assets/brand/Logogram.svg" alt="AI Ate Logo" fill className="object-contain" />
+            </div>
+            <span className="font-editorial text-2xl font-bold text-ink tracking-tight">AI Ate.</span>
           </Link>
-          <div className="flex items-center gap-4">
-            <Link
-              href="/auth/login"
-              className="text-text-secondary hover:text-primary-action font-medium text-sm transition-colors px-4 py-2"
-            >
+          
+          <div className="hidden lg:flex items-center gap-12 font-editorial italic text-lg text-ink/70">
+            <Link href="#edisi" className="hover:text-ink transition-colors">Edisi Jurnal</Link>
+            <Link href="#kurasi" className="hover:text-ink transition-colors">Kurasi Nutrisi</Link>
+            <Link href="#langganan" className="hover:text-ink transition-colors">Langganan</Link>
+          </div>
+          
+          <div className="flex items-center gap-6 font-editorial">
+            <Link href="/auth/login" className="hidden sm:block text-ink/70 hover:text-ink transition-colors text-lg italic">
               Masuk
             </Link>
-            <Link href="/auth/register">
-              <GradientButton variant="primary" size="sm">
-                Mulai Gratis
-              </GradientButton>
+            <Link href="/auth/register" className="bg-ink text-surface px-6 py-2 rounded-none hover:bg-ink-2 transition-colors border border-ink text-lg uppercase tracking-widest text-sm">
+              Mulai
             </Link>
           </div>
         </div>
       </nav>
 
-      {/* Hero Section */}
-      <section className="relative z-10 pt-16 pb-24 lg:pt-0 lg:pb-0 px-4 sm:px-6 lg:px-0 overflow-hidden lg:min-h-[85vh] flex items-center bg-background">
-        <div className="w-full max-w-7xl mx-auto flex flex-col lg:flex-row items-center relative h-full">
+      {/* Hero Section - Magazine Cover Style */}
+      <section className="relative min-h-screen pt-32 pb-20 px-6 sm:px-12 flex items-center justify-center">
+        <div className="max-w-[90rem] mx-auto w-full grid grid-cols-1 lg:grid-cols-12 gap-12 items-center relative z-10">
           
-          {/* Left Column (Text) */}
-          <div className="w-full lg:w-[45%] relative z-20 pt-10 pb-16 lg:py-24 lg:pr-12">
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6 }}
-            >
-              <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold text-primary-dark leading-[1.1] mb-6 font-display tracking-tight text-balance">
-                Sehat Tanpa Meninggalkan <br className="hidden lg:block"/>
-                <span className="text-primary-action">Masakan Nusantara.</span>
+          {/* Left Column: Huge Typography */}
+          <div className="col-span-1 lg:col-span-7">
+            <FadeIn>
+              <div className="font-editorial italic text-sage text-xl mb-6">Vol. 1 — Inovasi Pangan Lokal</div>
+            </FadeIn>
+            
+            <FadeIn delay={200}>
+              <h1 className="text-[12vw] lg:text-[7.5rem] leading-[0.85] font-editorial text-ink tracking-tighter mb-8">
+                Cita Rasa <br />
+                <span className="italic text-ink-2">Nusantara.</span>
               </h1>
+            </FadeIn>
 
-              <p className="text-xl text-text-secondary mb-10 leading-relaxed font-light text-balance">
-                Rancang pola makan idealmu dengan AI yang memahami bahan masakan lokal dan tradisi kuliner Indonesia.
-              </p>
-
-              {/* CTA Button */}
-              <div className="flex">
-                <Link href="/auth/register">
-                  <GradientButton variant="primary" size="lg" icon={ArrowRight}>
-                    Buat Rencana Gizi
-                  </GradientButton>
-                </Link>
-              </div>
-            </motion.div>
-          </div>
-
-          {/* Right Column (Visual Full Bleed) */}
-          <motion.div 
-            className="w-full lg:absolute lg:top-0 lg:bottom-0 lg:right-0 lg:w-[55%] h-[400px] lg:h-auto z-10"
-            initial={{ opacity: 0, x: 50 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.8, delay: 0.2 }}
-          >
-            <div className="relative w-full h-full lg:rounded-l-[4rem] overflow-hidden shadow-warm-xl">
-              <Image 
-                src="/Nusantara.png" 
-                alt="Makanan Indonesia"
-                fill
-                className="object-cover"
-                priority
-              />
-              {/* Gradient overlays to blend into background */}
-              <div className="absolute inset-y-0 left-0 w-32 bg-gradient-to-r from-background to-transparent z-10 hidden lg:block" />
-              <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-background to-transparent z-10 block lg:hidden" />
-              <div className="absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-background to-transparent z-10 block lg:hidden" />
-            </div>
-          </motion.div>
-        </div>
-      </section>
-
-      {/* Horizontal Batik Accent Strip */}
-      <div className="h-6 w-full opacity-[0.06] pointer-events-none bg-repeat-x border-y border-border-warm/20" 
-           style={{ 
-             backgroundImage: 'url(/illustrations/batik-pattern.svg)', 
-             backgroundSize: '24px 24px',
-             backgroundPosition: 'center'
-           }} 
-      />
-
-      {/* Features Section */}
-      <section id="features" className="relative z-10 py-24 px-4 sm:px-6 bg-surface">
-        <div className="max-w-7xl mx-auto">
-          {/* Moved Stats inside FadeIn */}
-          <FadeIn>
-            <div className="flex justify-center items-center mb-24 pb-12 border-b border-border-warm">
-              <div className="flex items-center gap-4 text-sm font-medium text-text-muted">
-                <div className="flex -space-x-3">
-                  {[1, 2, 3].map((i) => (
-                    <div key={i} className="w-10 h-10 rounded-full bg-border-warm border-2 border-surface flex items-center justify-center text-xs text-text-muted">
-                      <UserIcon />
-                    </div>
-                  ))}
-                </div>
-                <p>Telah dipercaya oleh <span className="text-primary-dark font-semibold">1,000+</span> orang untuk hidup lebih sehat.</p>
-              </div>
-            </div>
-          </FadeIn>
-
-          <FadeIn>
-            <div className="max-w-3xl mb-20">
-              <span className="badge-action mb-6">Fitur Utama</span>
-              <h2 className="text-4xl sm:text-5xl font-bold text-primary-dark mb-6 font-display tracking-tight text-balance">
-                Didesain khusus untuk lidah dan kesehatan orang Indonesia
-              </h2>
-              <p className="text-xl text-text-secondary leading-relaxed font-light">
-                Bukan sekadar penghitung kalori biasa. Nutrify memahami konteks lokal dan kondisi medis spesifik Anda secara presisi.
-              </p>
-            </div>
-          </FadeIn>
-
-          {/* Editorial Feature 01 */}
-          <FadeIn>
-            <div className="grid lg:grid-cols-2 gap-12 lg:gap-20 items-center mt-12">
+            <FadeIn delay={400} className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-2xl mt-12 border-t border-ink/20 pt-8">
               <div>
-                <div className="text-8xl lg:text-9xl font-bold text-primary-action/10 font-display mb-4">01</div>
-                <h3 className="text-3xl sm:text-4xl font-bold text-primary-dark mb-6 font-display leading-tight">Database Kuliner Lokal Paling Lengkap</h3>
-                <p className="text-lg text-text-secondary leading-relaxed font-light mb-8">
-                  Temukan nilai gizi dari ribuan makanan khas Indonesia. Mulai dari Nasi Padang, Gado-Gado, hingga hidangan tradisional daerah, semuanya terverifikasi secara klinis.
-                </p>
+                <p className="font-body text-ink-2 leading-relaxed text-sm uppercase tracking-widest mb-2 font-bold">Visi Kami</p>
+                <p className="font-editorial text-lg text-ink leading-snug">Menghadirkan kecerdasan buatan ke meja makan Anda, dengan kearifan resep lokal.</p>
               </div>
-              
-              <div className="relative">
-                {/* Food Database Mockup */}
-                <div className="bg-surface border border-border-warm rounded-2xl p-6 shadow-warm-lg max-w-md mx-auto">
-                  <div className="flex items-center justify-between border-b border-border-warm pb-4 mb-4">
-                    <span className="text-xs font-bold uppercase tracking-wider text-text-muted">Cari Gizi Kuliner</span>
-                    <span className="badge-secondary text-[10px] px-2 py-0.5 rounded bg-secondary-50 text-secondary border border-secondary-200">1,000+ Bahan Lokal</span>
-                  </div>
-                  {/* Search Bar mockup */}
-                  <div className="bg-background-50 border border-border-warm rounded-lg p-2.5 flex items-center gap-2 mb-4 text-sm text-text-muted">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="w-4 h-4">
-                      <circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" />
-                    </svg>
-                    <span>Nasi Padang...</span>
-                  </div>
-                  {/* Food Item list */}
-                  <div className="space-y-3">
-                    <div className="bg-background border border-border-light rounded-xl p-3 flex items-center justify-between">
-                      <div>
-                        <div className="font-bold text-primary-dark text-sm flex items-center gap-1.5">
-                          Nasi Rendang Padang
-                          <span className="text-[9px] bg-secondary-50 text-secondary border border-secondary-200 px-1 py-0.5 rounded font-medium">AI Verified</span>
-                        </div>
-                        <div className="text-[11px] text-text-secondary mt-0.5">Porsi sedang (1 piring)</div>
-                      </div>
-                      <div className="text-right">
-                        <div className="font-bold text-primary-action text-sm">730 kcal</div>
-                        <div className="text-[10px] text-text-muted">Karbo: 85g • Prot: 25g</div>
-                      </div>
-                    </div>
-
-                    <div className="bg-background border border-border-light rounded-xl p-3 flex items-center justify-between opacity-80">
-                      <div>
-                        <div className="font-bold text-primary-dark text-sm flex items-center gap-1.5">
-                          Gado-Gado Lontong
-                          <span className="text-[9px] bg-secondary-50 text-secondary border border-secondary-200 px-1 py-0.5 rounded font-medium">AI Verified</span>
-                        </div>
-                        <div className="text-[11px] text-text-secondary mt-0.5">Bumbu kacang dipisah</div>
-                      </div>
-                      <div className="text-right">
-                        <div className="font-bold text-primary-action text-sm">380 kcal</div>
-                        <div className="text-[10px] text-text-muted">Karbo: 45g • Prot: 12g</div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </FadeIn>
-        </div>
-      </section>
-
-      {/* Feature 02 Highlight */}
-      <section className="relative z-10 py-24 lg:py-32 px-4 sm:px-6 bg-background">
-        <div className="max-w-7xl mx-auto">
-          <FadeIn>
-            <div className="grid lg:grid-cols-2 gap-12 lg:gap-20 items-center">
-              <div className="lg:order-2">
-                <div className="text-8xl lg:text-9xl font-bold text-secondary/15 font-display mb-4">02</div>
-                <h3 className="text-3xl sm:text-4xl font-bold text-primary-dark mb-6 font-display leading-tight">Personalisasi Medis Otomatis</h3>
-                <p className="text-lg text-text-secondary leading-relaxed font-light mb-8">
-                  Atur kondisi medis Anda seperti diabetes, hipertensi, atau kolesterol. Sistem kami secara cerdas memfilter bahan makanan berbahaya dan menyarankan alternatif sehat.
-                </p>
-              </div>
-              
-              <div className="lg:order-1">
-                {/* Medical Profiling Mockup */}
-                <div className="bg-surface border border-border-warm rounded-2xl p-6 shadow-warm-lg max-w-md mx-auto">
-                  <div className="flex items-center justify-between border-b border-border-warm pb-4 mb-4">
-                    <span className="text-xs font-bold uppercase tracking-wider text-text-muted">Profil Medis Anda</span>
-                    <span className="badge-action text-[10px] px-2 py-0.5 rounded bg-primary-action-50 text-primary-action border border-primary-action-200">Terproteksi</span>
-                  </div>
-                  <div className="space-y-4 text-left">
-                    <div>
-                      <label className="text-xs font-bold text-primary-dark block mb-2">Kondisi Kesehatan & Pantangan</label>
-                      <div className="flex flex-wrap gap-2">
-                        <span className="px-3 py-1.5 rounded-lg text-xs font-bold bg-primary-action text-white flex items-center gap-1">
-                          ✓ Diabetes Mellitus
-                        </span>
-                        <span className="px-3 py-1.5 rounded-lg text-xs font-bold bg-primary-action text-white flex items-center gap-1">
-                          ✓ Kolesterol Tinggi
-                        </span>
-                        <span className="px-3 py-1.5 rounded-lg text-xs font-medium bg-background border border-border-warm text-text-secondary">
-                          + Hipertensi
-                        </span>
-                      </div>
-                    </div>
-                    <div className="bg-primary-action-50 border border-primary-action-100 rounded-xl p-3 text-xs text-primary-action-900 leading-relaxed font-light">
-                      <strong>Rekomendasi AI:</strong> Mengingat kondisi Diabetes & Kolesterol Anda, kami akan menyarankan menu rendah indeks glikemik serta membatasi santan berlebih pada resep harian Anda secara otomatis.
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </FadeIn>
-        </div>
-      </section>
-
-      {/* Feature 03 Highlight */}
-      <section className="relative z-10 py-24 lg:py-32 px-4 sm:px-6 bg-surface">
-        <div className="max-w-7xl mx-auto">
-          <FadeIn>
-            <div className="grid lg:grid-cols-2 gap-12 lg:gap-20 items-center">
               <div>
-                <div className="text-8xl lg:text-9xl font-bold text-accent/20 font-display mb-4">03</div>
-                <h3 className="text-3xl sm:text-4xl font-bold text-primary-dark mb-6 font-display leading-tight">Konsultasi AI Nutritionist 24/7</h3>
-                <p className="text-lg text-text-secondary leading-relaxed font-light mb-8">
-                  Tanyakan kecocokan gizi, saran menu harian, atau tips pola makan langsung ke asisten nutrisi berbasis Gemini AI yang terverifikasi klinis.
-                </p>
+                <p className="font-body text-ink-2 leading-relaxed text-sm uppercase tracking-widest mb-2 font-bold">Pendekatan</p>
+                <p className="font-editorial text-lg text-ink leading-snug">Gizi yang dipersonalisasi secara presisi, ramah kantong, dan divalidasi secara medis.</p>
               </div>
-              
-              <div>
-                {/* Chat Mockup */}
-                <div className="bg-surface border border-border-warm rounded-2xl p-6 shadow-warm-lg max-w-md mx-auto">
-                  <div className="flex items-center justify-between border-b border-border-warm pb-4 mb-4">
-                    <span className="text-xs font-bold uppercase tracking-wider text-text-muted">Chat Asisten Nutrify</span>
-                    <span className="w-2.5 h-2.5 rounded-full bg-secondary animate-pulse" />
-                  </div>
-                  <div className="space-y-3 pr-1 text-left">
-                    <div className="flex flex-col items-end">
-                      <div className="bg-primary-action text-white text-xs rounded-2xl rounded-tr-none px-4 py-2.5 max-w-[85%] shadow-warm-sm">
-                        Apakah aman bagi penderita diabetes makan mangga arumanis?
-                      </div>
-                      <span className="text-[9px] text-text-muted mt-1 mr-1">10:45 AM</span>
-                    </div>
-                    <div className="flex flex-col items-start">
-                      <div className="bg-background border border-border-warm text-primary-dark text-xs rounded-2xl rounded-tl-none px-4 py-2.5 max-w-[85%] leading-relaxed font-light">
-                        Mangga arumanis memiliki indeks glikemik sedang. Aman dikonsumsi porsi kecil (50-100g) dan sebaiknya dikonsumsi bersama kacang almond untuk memperlambat lonjakan gula darah Anda.
-                      </div>
-                      <span className="text-[9px] text-text-muted mt-1 ml-1">Nutrify AI • 10:45 AM</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </FadeIn>
-        </div>
-      </section>
-
-      {/* CTA Section */}
-      <section className="relative z-10 py-32 px-4 sm:px-6 bg-background">
-        <div className="max-w-5xl mx-auto">
-          <FadeIn>
-            <div className="bg-primary-dark rounded-[2.5rem] p-12 md:p-20 text-center relative overflow-hidden shadow-warm-xl">
-              {/* Subtle Batik Pattern Overlay */}
-              <div className="absolute inset-0 opacity-[0.05] pointer-events-none mix-blend-overlay text-white" 
-                   style={{ 
-                     backgroundImage: 'url(/illustrations/batik-pattern.svg)', 
-                     backgroundRepeat: 'repeat',
-                     backgroundSize: '80px 80px' 
-                   }} 
-              />
-
-              {/* Abstract Background Design */}
-              <div className="absolute top-0 right-0 w-96 h-96 bg-primary-action rounded-full blur-[100px] -translate-y-1/2 translate-x-1/3 opacity-30" />
-              <div className="absolute bottom-0 left-0 w-96 h-96 bg-secondary rounded-full blur-[100px] translate-y-1/2 -translate-x-1/3 opacity-20" />
-
-              <div className="relative z-10">
-                <h2 className="text-4xl sm:text-5xl font-bold text-surface mb-6 font-display tracking-tight text-balance">
-                  Siap mengubah cara Anda menikmati makanan?
-                </h2>
-                <p className="text-surface-alt/80 text-lg mb-10 max-w-xl mx-auto font-light">
-                  Bergabunglah dengan ribuan pengguna lainnya yang telah menemukan keseimbangan antara kesehatan dan kelezatan hidangan Nusantara.
-                </p>
-                <Link href="/auth/register">
-                  <GradientButton variant="primary" size="lg" className="bg-primary-action text-white">
-                    Mulai Perjalanan Sehatmu
-                  </GradientButton>
-                </Link>
-              </div>
-            </div>
-          </FadeIn>
-        </div>
-      </section>
-
-      {/* Footer */}
-      <footer className="relative z-10 pt-20 pb-10 px-4 sm:px-6 border-t border-border/60 bg-surface">
-        <div className="max-w-7xl mx-auto">
-          <div className="grid grid-cols-1 md:grid-cols-5 gap-12 mb-16">
-            <div className="md:col-span-2">
-              <Link href="/" className="flex items-center gap-3 mb-6 group">
-                <svg viewBox="0 0 100 120" className="h-10 w-auto" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M50 8C65 20 72 32 72 45C72 60 62 72 50 72C38 72 28 60 28 45C28 32 35 20 50 8Z" fill="#C4603A"/>
-                  <ellipse cx="50" cy="52" rx="13" ry="17" fill="#FAF0E0" className="transition-colors duration-300 group-hover:fill-white" />
-                  <circle cx="50" cy="52" r="6" fill="#E8A838"/>
-                  <rect x="44" y="71" width="12" height="16" rx="6" fill="#C4603A"/>
-                </svg>
-                <span className="text-2xl font-bold tracking-tight text-primary-dark group-hover:text-primary-action transition-colors duration-300 font-display">Nutrify</span>
-              </Link>
-              <p className="text-text-secondary max-w-sm font-light leading-relaxed mb-6">
-                Platform nutrisi pintar yang memahami kekayaan kuliner Nusantara dan mengutamakan kesehatan holistik Anda.
-              </p>
-            </div>
-            
-            {/* Real link Category 1 */}
-            <div>
-              <h4 className="font-bold text-primary-dark mb-6 font-display text-sm tracking-wide uppercase">Layanan Gizi</h4>
-              <ul className="space-y-4 text-text-secondary font-medium text-sm">
-                <li><Link href="/auth/register" className="hover:text-primary-action transition-colors">Database Gizi Lokal</Link></li>
-                <li><Link href="/auth/register" className="hover:text-primary-action transition-colors">Perencana Menu AI</Link></li>
-                <li><Link href="/auth/register" className="hover:text-primary-action transition-colors">Konsultasi Nutrisi</Link></li>
-              </ul>
-            </div>
-            
-            {/* Real link Category 2 */}
-            <div>
-              <h4 className="font-bold text-primary-dark mb-6 font-display text-sm tracking-wide uppercase">Program Diet</h4>
-              <ul className="space-y-4 text-text-secondary font-medium text-sm">
-                <li><Link href="/auth/register" className="hover:text-primary-action transition-colors">Diet Diabetes Mellitus</Link></li>
-                <li><Link href="/auth/register" className="hover:text-primary-action transition-colors">Diet Hipertensi</Link></li>
-                <li><Link href="/auth/register" className="hover:text-primary-action transition-colors">Diet Kolesterol Tinggi</Link></li>
-              </ul>
-            </div>
-
-            {/* Real link Category 3 */}
-            <div>
-              <h4 className="font-bold text-primary-dark mb-6 font-display text-sm tracking-wide uppercase">Edukasi & Alat</h4>
-              <ul className="space-y-4 text-text-secondary font-medium text-sm">
-                <li><Link href="/help" className="hover:text-primary-action transition-colors">Panduan Bahan Lokal</Link></li>
-                <li><Link href="/help" className="hover:text-primary-action transition-colors">Kalkulator BMI Harian</Link></li>
-                <li><Link href="/help" className="hover:text-primary-action transition-colors">Artikel Gizi Klinis</Link></li>
-              </ul>
-            </div>
+            </FadeIn>
           </div>
           
-          <div className="pt-8 border-t border-border flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-text-muted">
-            <p>© {new Date().getFullYear()} Nutrify Indonesia. Powered by Gemini AI. Hak cipta dilindungi.</p>
-            <div className="flex gap-4">
-              <div className="w-8 h-8 rounded-full bg-border-warm flex items-center justify-center hover:bg-primary-action hover:text-white transition-colors cursor-pointer" />
-              <div className="w-8 h-8 rounded-full bg-border-warm flex items-center justify-center hover:bg-primary-action hover:text-white transition-colors cursor-pointer" />
-              <div className="w-8 h-8 rounded-full bg-border-warm flex items-center justify-center hover:bg-primary-action hover:text-white transition-colors cursor-pointer" />
+          {/* Right Column: Hero Art Piece */}
+          <div className="col-span-1 lg:col-span-5 relative flex justify-center lg:justify-end">
+            <FadeIn delay={600} className="relative w-full max-w-[500px] aspect-[3/4]">
+              {/* Frame */}
+              <div className="absolute inset-0 border border-ink/10 bg-surface-2 p-4">
+                <div className="relative w-full h-full border border-ink/5 bg-surface overflow-hidden group">
+                  {/* Subtle Stamp Watermark */}
+                  <div className="absolute top-4 right-4 z-10 opacity-30 mix-blend-multiply w-20 h-20 rotate-12">
+                     <Image src="/assets/scrapbook/stamp-gold.png" alt="Stamp" fill className="object-contain" />
+                  </div>
+                  
+                  {/* Hero 3D Asset */}
+                  <div className="absolute inset-0 flex items-center justify-center p-8">
+                    <div className="relative w-full h-full transform group-hover:scale-105 transition-transform duration-[2000ms] ease-out">
+                      <Image src="/assets/3d-foods/Nasi-padang.png" alt="Nasi Padang" fill className="object-contain drop-shadow-2xl" priority />
+                    </div>
+                  </div>
+
+                  {/* Caption */}
+                  <div className="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-surface to-transparent">
+                    <p className="font-editorial italic text-2xl text-ink">Nasi Padang Sehat</p>
+                    <div className="w-12 h-[1px] bg-ink mt-2 mb-2"></div>
+                    <p className="font-body text-xs text-ink-2 uppercase tracking-widest">450 Kkal • Tinggi Protein</p>
+                  </div>
+                </div>
+              </div>
+            </FadeIn>
+          </div>
+        </div>
+      </section>
+
+      {/* Marquee or Separator */}
+      <div className="border-y border-ink/10 py-6 overflow-hidden flex items-center bg-surface-2">
+        <div className="font-editorial italic text-2xl text-ink/60 whitespace-nowrap px-4 tracking-wider flex gap-12">
+          <span>Keakuratan Medis</span>
+          <span className="text-sage">•</span>
+          <span>100% Pangan Lokal</span>
+          <span className="text-sage">•</span>
+          <span>Kecerdasan Buatan Terdepan</span>
+          <span className="text-sage">•</span>
+          <span>Personalisasi Sempurna</span>
+          <span className="text-sage">•</span>
+          <span>Keakuratan Medis</span>
+        </div>
+      </div>
+
+      {/* Editorial Features - 3 Columns Layout */}
+      <section id="kurasi" className="py-32 px-6 sm:px-12 bg-surface relative z-10">
+        <div className="max-w-[90rem] mx-auto">
+          <FadeIn>
+            <div className="mb-20">
+              <h2 className="text-5xl lg:text-7xl font-editorial text-ink tracking-tight mb-6">Kurasi <br/><span className="italic text-ink-2">Masa Depan.</span></h2>
+              <div className="w-24 h-[1px] bg-ink"></div>
             </div>
+          </FadeIn>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-12 lg:gap-24">
+            
+            {/* Feature 1 */}
+            <FadeIn delay={100}>
+              <div className="border-t border-ink/20 pt-6">
+                <span className="block font-editorial text-5xl text-ink/20 mb-6 italic">01</span>
+                <h3 className="text-3xl font-editorial font-bold text-ink mb-4">Pustaka Nusantara</h3>
+                <p className="text-ink-2 font-body leading-relaxed mb-8">Dari tempe mendoan hingga cakalang fufu. Kami telah mengkurasi dan menghitung nilai gizi dari 1.200+ resep otentik Indonesia secara akurat.</p>
+                <div className="relative w-full aspect-square bg-surface-2 border border-ink/10 p-8 flex items-center justify-center">
+                  <Image src="/assets/3d-foods/sate-ayam.png" alt="Sate Ayam" fill className="object-contain p-8 hover:scale-110 transition-transform duration-[1500ms]" />
+                </div>
+              </div>
+            </FadeIn>
+
+            {/* Feature 2 */}
+            <FadeIn delay={200}>
+              <div className="border-t border-ink/20 pt-6">
+                <span className="block font-editorial text-5xl text-ink/20 mb-6 italic">02</span>
+                <h3 className="text-3xl font-editorial font-bold text-ink mb-4">Asisten Cerdas</h3>
+                <p className="text-ink-2 font-body leading-relaxed mb-8">Bukan sekadar pencatat kalori. AI kami menganalisis kondisi medis, anggaran, dan preferensi lidah Anda untuk menyusun menu ideal.</p>
+                <div className="relative w-full aspect-square bg-surface-2 border border-ink/10 p-8 flex items-center justify-center overflow-hidden">
+                  <div className="absolute inset-0 opacity-10 bg-[url('/assets/brand/Pattern-Brand.svg')] bg-cover mix-blend-multiply"></div>
+                  <Image src="/assets/illustrations/ai-bingung.png" alt="AI Assistant" fill className="object-contain p-12 hover:-rotate-3 transition-transform duration-[1500ms]" />
+                </div>
+              </div>
+            </FadeIn>
+
+            {/* Feature 3 */}
+            <FadeIn delay={300}>
+              <div className="border-t border-ink/20 pt-6">
+                <span className="block font-editorial text-5xl text-ink/20 mb-6 italic">03</span>
+                <h3 className="text-3xl font-editorial font-bold text-ink mb-4">Pantauan Medis</h3>
+                <p className="text-ink-2 font-body leading-relaxed mb-8">Dilengkapi dengan validasi ahli gizi, sistem kami akan memperingatkan jika sebuah menu berpotensi memicu masalah kesehatan Anda.</p>
+                <div className="relative w-full aspect-square bg-surface-2 border border-ink/10 p-8 flex items-center justify-center">
+                   <div className="relative w-32 h-32">
+                     <Image src="/assets/badges/medali-kalori-streak.png" alt="Medical Badge" fill className="object-contain drop-shadow-xl" />
+                   </div>
+                </div>
+              </div>
+            </FadeIn>
+
+          </div>
+        </div>
+      </section>
+
+      {/* Pricing - Minimalist Table/Block */}
+      <section id="langganan" className="py-32 px-6 sm:px-12 bg-surface-2 border-y border-ink/10">
+        <div className="max-w-[90rem] mx-auto grid grid-cols-1 lg:grid-cols-2 gap-20">
+          
+          <div className="flex flex-col justify-center">
+            <FadeIn>
+              <h2 className="text-5xl lg:text-7xl font-editorial text-ink tracking-tight mb-8">Berlangganan <br/><span className="italic text-ink-2">Edisi Jurnal.</span></h2>
+              <p className="text-xl font-editorial text-ink-2 max-w-md leading-relaxed mb-12">
+                Pilih edisi yang sesuai dengan kedalaman perjalanan diet dan gaya hidup Anda.
+              </p>
+              <div className="hidden lg:block">
+                 <Image src="/assets/brand/Wordmark.svg" alt="Wordmark" width={180} height={40} className="opacity-50" />
+              </div>
+            </FadeIn>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
+            <FadeIn delay={100} className="bg-surface border border-ink/20 p-10 flex flex-col justify-between">
+              <div>
+                <h3 className="text-2xl font-editorial font-bold text-ink mb-2">Edisi Standar</h3>
+                <div className="w-8 h-[1px] bg-ink mb-6"></div>
+                <div className="text-4xl font-editorial text-ink mb-8">Gratis</div>
+                <ul className="space-y-4 font-body text-sm text-ink-2 mb-12">
+                  <li className="flex items-start gap-4">
+                    <span className="block mt-1 w-1 h-1 bg-ink rounded-full"></span> 
+                    Akses 500+ resep dasar Nusantara
+                  </li>
+                  <li className="flex items-start gap-4">
+                    <span className="block mt-1 w-1 h-1 bg-ink rounded-full"></span> 
+                    Pencatatan kalori manual harian
+                  </li>
+                </ul>
+              </div>
+              <Link href="/auth/register" className="block text-center border border-ink py-4 uppercase tracking-widest text-xs font-bold hover:bg-ink hover:text-surface transition-colors">
+                Mulai Membaca
+              </Link>
+            </FadeIn>
+
+            <FadeIn delay={200} className="bg-ink text-surface border border-ink p-10 flex flex-col justify-between relative">
+              <div className="absolute top-0 right-0 p-4">
+                 <Image src="/assets/scrapbook/stamp-gold.png" alt="Premium" width={60} height={60} className="opacity-80 rotate-[15deg]" />
+              </div>
+              <div>
+                <h3 className="text-2xl font-editorial font-bold text-surface mb-2">Edisi Premium</h3>
+                <div className="w-8 h-[1px] bg-surface mb-6"></div>
+                <div className="text-4xl font-editorial text-surface mb-8">Rp 49rb<span className="text-lg italic text-surface/60">/bln</span></div>
+                <ul className="space-y-4 font-body text-sm text-surface-2 mb-12">
+                  <li className="flex items-start gap-4">
+                    <span className="block mt-1 w-1 h-1 bg-sage-light rounded-full"></span> 
+                    Analisis AI Nutrisi Personal 24/7
+                  </li>
+                  <li className="flex items-start gap-4">
+                    <span className="block mt-1 w-1 h-1 bg-sage-light rounded-full"></span> 
+                    Rencana Menu 30 Hari Otomatis
+                  </li>
+                  <li className="flex items-start gap-4">
+                    <span className="block mt-1 w-1 h-1 bg-sage-light rounded-full"></span> 
+                    Kesesuaian Data Rekam Medis
+                  </li>
+                </ul>
+              </div>
+              <Link href="/auth/register" className="block text-center bg-surface text-ink border border-surface py-4 uppercase tracking-widest text-xs font-bold hover:bg-surface-2 transition-colors">
+                Berlangganan
+              </Link>
+            </FadeIn>
+          </div>
+
+        </div>
+      </section>
+
+      {/* Footer - Editorial Colophon */}
+      <footer className="bg-surface pt-24 pb-12 px-6 sm:px-12 border-t-[8px] border-ink">
+        <div className="max-w-[90rem] mx-auto grid grid-cols-1 md:grid-cols-4 gap-16 mb-20">
+          
+          <div className="md:col-span-2">
+            <h2 className="font-editorial text-4xl text-ink tracking-tight mb-6">AI Ate<span className="italic">.</span></h2>
+            <p className="text-ink-2 font-editorial italic text-xl max-w-md leading-relaxed">
+              Sebuah terbitan kesehatan digital yang memadukan keindahan resep warisan leluhur dengan kecerdasan teknologi komputasi presisi.
+            </p>
+          </div>
+          
+          <div>
+            <h4 className="font-body text-xs font-bold uppercase tracking-widest text-ink mb-8">Indeks</h4>
+            <ul className="space-y-3 font-editorial text-lg text-ink-2">
+              <li><Link href="#kurasi" className="hover:text-ink hover:italic transition-all">Kurasi & Fitur</Link></li>
+              <li><Link href="#langganan" className="hover:text-ink hover:italic transition-all">Berlangganan</Link></li>
+              <li><Link href="/auth/login" className="hover:text-ink hover:italic transition-all">Masuk Akun</Link></li>
+            </ul>
+          </div>
+          
+          <div>
+            <h4 className="font-body text-xs font-bold uppercase tracking-widest text-ink mb-8">Redaksi</h4>
+            <ul className="space-y-3 font-editorial text-lg text-ink-2">
+              <li>halo@aiate.id</li>
+              <li>@aiate.indonesia</li>
+              <li>Jakarta, Indonesia</li>
+            </ul>
+          </div>
+        </div>
+
+        <div className="max-w-[90rem] mx-auto border-t border-ink/20 pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-xs font-body text-ink-3 uppercase tracking-widest">
+          <p>© {new Date().getFullYear()} AI Ate Indonesia. Hak cipta dilindungi.</p>
+          <div className="flex gap-8">
+            <Link href="#" className="hover:text-ink transition-colors">Privasi</Link>
+            <Link href="#" className="hover:text-ink transition-colors">Ketentuan</Link>
           </div>
         </div>
       </footer>
     </main>
-  )
-}
-
-function UserIcon() {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4">
-      <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
-      <circle cx="12" cy="7" r="4" />
-    </svg>
   )
 }

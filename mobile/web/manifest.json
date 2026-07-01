@@ -1,6 +1,6 @@
 {
-    "name": "nutrify_app",
-    "short_name": "nutrify_app",
+    "name": "ai_ate_app",
+    "short_name": "ai_ate_app",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

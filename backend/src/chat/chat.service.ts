@@ -260,7 +260,7 @@ export class ChatService {
   }
 
   private buildSystemPrompt(context: any): string {
-    let prompt = `You are Nutrify, an expert AI Dietician specializing in Indonesian nutrition.
+    let prompt = `You are AI Ate Indonesia, an expert AI Dietician specializing in Indonesian nutrition.
 You are a personal nutritionist who KNOWS the user personally and has access to their complete health profile.
 
 Your expertise includes:

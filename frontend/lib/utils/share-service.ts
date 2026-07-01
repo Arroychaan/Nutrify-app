@@ -27,8 +27,8 @@ export const generateAndShareImage = async (elementId: string, fileName: string)
             if (navigator.canShare && navigator.canShare({ files: [file] })) {
                 await navigator.share({
                     files: [file],
-                    title: 'Nutrify Achievement',
-                    text: 'Check out my progress on Nutrify! 🚀',
+                    title: 'AI Ate Indonesia Achievement',
+                    text: 'Check out my progress on AI Ate Indonesia! 🚀',
                 })
                 return
             }

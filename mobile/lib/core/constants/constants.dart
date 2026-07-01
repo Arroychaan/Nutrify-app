@@ -1,13 +1,13 @@
 import 'package:flutter/foundation.dart';
 
-/// API Constants for Nutrify backend
+/// API Constants for AI Ate Indonesia backend
 class ApiConstants {
   // Toggle this to switch between Production and Local Development
   static const bool useProduction = true;
 
   // Base URLs
   static const String prodBaseUrl =
-      'https://nutrify-app-production.up.railway.app';
+      'https://aiate-app-production.up.railway.app';
 
   // IP LAPTOP (Untuk Android Fisik/Emulator)
   static const String androidLocalIp = 'http://192.168.1.5:3001';
@@ -77,7 +77,7 @@ class StorageKeys {
 
 /// App-wide constants
 class AppConstants {
-  static const String appName = 'Nutrify';
+  static const String appName = 'AI Ate Indonesia';
   static const String tagline = 'AI Dietician untuk Indonesia';
 
   // Activity levels

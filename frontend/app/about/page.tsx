@@ -26,7 +26,7 @@ export default function AboutPage() {
                         <ArrowLeft className="w-5 h-5 text-gray-600 dark:text-gray-400" />
                     </Link>
                     <div>
-                        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Tentang Nutrify</h1>
+                        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Tentang AI Ate Indonesia</h1>
                         <p className="text-sm text-gray-500">Informasi aplikasi</p>
                     </div>
                 </div>
@@ -40,7 +40,7 @@ export default function AboutPage() {
                     <div className="w-20 h-20 bg-gradient-to-br from-emerald-400 to-teal-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-emerald-500/25">
                         <span className="text-3xl font-bold text-white">N</span>
                     </div>
-                    <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-1">Nutrify</h2>
+                    <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-1">AI Ate Indonesia</h2>
                     <p className="text-gray-500 mb-4">Partner Kesehatanmu</p>
                     <div className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-50 dark:bg-emerald-900/20 rounded-full">
                         <span className="text-sm font-medium text-emerald-600 dark:text-emerald-400">Versi 1.0.0</span>
@@ -141,7 +141,7 @@ export default function AboutPage() {
                     className="flex justify-center gap-4"
                 >
                     <a
-                        href="https://github.com/nutrify-app"
+                        href="https://github.com/aiate-app"
                         target="_blank"
                         rel="noopener noreferrer"
                         className="flex items-center gap-2 px-4 py-2 bg-gray-900 dark:bg-white text-white dark:text-gray-900 font-medium rounded-xl hover:opacity-90 transition-opacity"
@@ -150,7 +150,7 @@ export default function AboutPage() {
                         GitHub
                     </a>
                     <a
-                        href="https://nutrify.app"
+                        href="https://aiate.app"
                         target="_blank"
                         rel="noopener noreferrer"
                         className="flex items-center gap-2 px-4 py-2 bg-emerald-500 text-white font-medium rounded-xl hover:bg-emerald-600 transition-colors"
@@ -163,7 +163,7 @@ export default function AboutPage() {
                 {/* Footer */}
                 <p className="text-center text-xs text-gray-400 mt-8">
                     Dibuat dengan ❤️ di Indonesia<br />
-                    © 2025 Nutrify. Semua hak dilindungi.
+                    © 2025 AI Ate Indonesia. Semua hak dilindungi.
                 </p>
             </div>
         </div>

@@ -75,7 +75,7 @@ export default function TDEEExplanationModal({ isOpen, onClose, user, caloriesGo
                             </button>
                         </div>
                         <p className="text-emerald-100 text-sm">
-                            Bagaimana Nutrify menghitung kebutuhan harianmu?
+                            Bagaimana AI Ate Indonesia menghitung kebutuhan harianmu?
                         </p>
                     </div>
 

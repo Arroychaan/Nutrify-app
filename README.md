@@ -1,6 +1,6 @@
-# 🥗 Nutrify - AI Dietician untuk Indonesia
+# 🥗 AI Ate Indonesia - AI Dietician untuk Indonesia
 
-Nutrify adalah aplikasi AI Dietician yang dirancang khusus untuk masyarakat Indonesia. Aplikasi ini memberikan rekomendasi meal plan personal berdasarkan kondisi medis, budaya, dan preferensi makanan lokal.
+AI Ate Indonesia adalah aplikasi AI Dietician yang dirancang khusus untuk masyarakat Indonesia. Aplikasi ini memberikan rekomendasi meal plan personal berdasarkan kondisi medis, budaya, dan preferensi makanan lokal.
 
 ## ✨ Fitur Utama
 
@@ -25,7 +25,7 @@ Nutrify adalah aplikasi AI Dietician yang dirancang khusus untuk masyarakat Indo
 
 ```bash
 # 1. Clone atau extract project
-cd nutrify/backend
+cd aiate/backend
 
 # 2. Install dependencies
 npm install
@@ -80,7 +80,7 @@ npx prisma db seed
 
 ```bash
 # Jalankan PostgreSQL di Docker
-docker run --name nutrify-postgres -e POSTGRES_PASSWORD=nutrify123 -p 5432:5432 -d postgres
+docker run --name aiate-postgres -e POSTGRES_PASSWORD=aiate123 -p 5432:5432 -d postgres
 
 # Setup database
 cd backend
@@ -91,7 +91,7 @@ npx prisma db seed
 ## 📁 Struktur Project
 
 ```
-nutrify/
+aiate/
 ├── backend/                 # Backend API (Node.js + Express + TypeScript)
 │   ├── src/
 │   │   ├── config/         # Konfigurasi (database, redis, logger)
@@ -257,7 +257,7 @@ GEMINI_MODEL=gemini-1.5-flash      # Model yang dipakai
 
 **Developer:** Achmad Roychan  
 **Institution:** UNISSULA  
-**Project:** Nutrify - AI Dietician for Indonesia
+**Project:** AI Ate Indonesia - AI Dietician for Indonesia
 
 ---
 

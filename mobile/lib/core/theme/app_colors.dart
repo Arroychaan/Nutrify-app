@@ -1,42 +1,69 @@
 import 'package:flutter/material.dart';
 
-/// Nutrify Color Palette V1.1 (Premium)
+/// AI Ate Indonesia Color Palette - Master Brief (Earthy Premium)
 class AppColors {
-  // Primary - Dynamic Emerald Gradient
-  static const Color primary = Color(0xFF10B981); // Emerald 500
-  static const Color primaryDark = Color(0xFF059669); // Emerald 600
-  static const Color primaryLight = Color(0xFF6EE7B7); // Emerald 300
+  // Primary Backgrounds (Light & Dark Earthy)
+  static const Color backgroundLight = Color(0xFFFDFBF7); // Cream
+  static const Color backgroundDark = Color(0xFF1E1810); // Dark Earthy
+  
+  // Surfaces
+  static const Color surfaceLight = Color(0xFFFFFFFF);
+  static const Color surfaceLight2 = Color(0xFFF4F0E6);
+  static const Color surfaceDark = Color(0xFF2A241D);
+  static const Color surfaceDark2 = Color(0xFF362E25);
 
-  // Secondary - Accent Purple (Modern Tech feel)
-  static const Color secondary = Color(0xFF6366F1); // Indigo 500
-  static const Color secondaryLight = Color(0xFF818CF8);
+  // Text Light Theme (Dark Ink)
+  static const Color textLightPrimary = Color(0xFF1E1810);
+  static const Color textLightSecondary = Color(0xFF4A3F35);
+  static const Color textLightTertiary = Color(0xFF8A7A6A);
+  
+  // Text Dark Theme (Cream/Muted)
+  static const Color textDarkPrimary = Color(0xFFFAF0E0);
+  static const Color textDarkSecondary = Color(0xFF8A7A6A);
+  static const Color textDarkTertiary = Color(0xFF6A5A4A);
 
-  // Neutrals - Soft & Clean
-  static const Color background = Color(0xFFF8FAFC); // Slate 50
-  static const Color surface = Color(0xFFFFFFFF);
-  static const Color textPrimary = Color(
-    0xFF0F172A,
-  ); // Slate 900 (Darker, sharper)
-  static const Color textSecondary = Color(0xFF475569); // Slate 600
-  static const Color textTertiary = Color(0xFF94A3B8); // Slate 400
+  // Accents
+  static const Color primary = Color(0xFFC4603A); // Terracotta (Action)
+  static const Color primaryDark = Color(0xFF9A4C2E);
+  static const Color primaryLight = Color(0xFFD5724D);
+  static const Color primaryMuted = Color(0xFF4A281A);
 
-  static const Color border = Color(0xFFE2E8F0); // Slate 200
-  static const Color divider = Color(0xFFF1F5F9); // Slate 100
-  static const Color barrier = Color(0x660F172A); // Modal barrier
+  static const Color secondary = Color(0xFFE8A838); // Gold (Highlights)
+  static const Color secondaryDark = Color(0xFFC88A20);
+  static const Color secondaryLight = Color(0xFFF0C060);
+  static const Color secondaryPale = Color(0xFF2A2010);
 
-  // Status Colors (Vibrant)
-  static const Color success = Color(0xFF22C55E);
-  static const Color warning = Color(0xFFF59E0B);
-  static const Color error = Color(0xFFEF4444);
-  static const Color info = Color(0xFF0EA5E9); // Sky 500
+  static const Color premium = Color(0xFFE090C0); // Pink (Pro)
+  static const Color premiumLight = Color(0xFFF0A0D0);
 
-  // BMI Colors
-  static const Color bmiUnderweight = Color(0xFFEAB308);
-  static const Color bmiNormal = Color(0xFF22C55E);
-  static const Color bmiOverweight = Color(0xFFF97316);
-  static const Color bmiObese = Color(0xFFEF4444);
+  static const Color success = Color(0xFF3D6B4F); // Green
+  static const Color successLight = Color(0xFF7FD49A);
+  static const Color successMuted = Color(0xFF1A3A20);
 
-  // Get BMI color based on value
+  // Structural & Borders
+  static const Color borderLight = Color(0xFFEBE4D5); // Soft border for light
+  static const Color borderDark = Color(0x1AFAF0E0);
+  static const Color dividerLight = Color(0xFFEBE4D5);
+  static const Color dividerDark = Color(0x1AFAF0E0);
+  static const Color barrier = Color(0x99000000); 
+
+  // Status Colors
+  static const Color warning = Color(0xFFE8A838);
+  static const Color error = Color(0xFFC4603A);
+  static const Color info = Color(0xFF70C0E8);
+
+  // BMI Colors (Semantic mapping)
+  static const Color bmiUnderweight = Color(0xFFE8A838);
+  static const Color bmiNormal = Color(0xFF3D6B4F);
+  static const Color bmiOverweight = Color(0xFFC4603A);
+  static const Color bmiObese = Color(0xFF9A4C2E);
+
+  static const Color surface = surfaceLight;
+  static const Color textPrimary = textLightPrimary;
+  static const Color textSecondary = textLightSecondary;
+  static const Color textTertiary = textLightTertiary;
+  static const Color border = borderLight;
+
   static Color getBmiColor(double bmi) {
     if (bmi < 18.5) return bmiUnderweight;
     if (bmi < 25) return bmiNormal;
@@ -48,13 +75,13 @@ class AppColors {
 /// Premium V1.1 Gradients
 class AppGradients {
   static const LinearGradient primary = LinearGradient(
-    colors: [Color(0xFF10B981), Color(0xFF059669)], // Emerald to Teal
+    colors: [AppColors.primary, AppColors.primaryLight], // Terracotta
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
   );
 
   static const LinearGradient accent = LinearGradient(
-    colors: [Color(0xFF6366F1), Color(0xFF4F46E5)], // Indigo
+    colors: [AppColors.secondary, AppColors.secondaryLight], // Gold
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
   );

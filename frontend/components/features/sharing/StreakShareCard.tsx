@@ -33,7 +33,7 @@ export default function StreakShareCard({ id, userName, streakDays }: StreakShar
                             <path d="M12 2.69l5.74 5.74c.84.84.84 2.21 0 3.05l-5.74 5.74-5.74-5.74c-.84-.84-.84-2.21 0-3.05L12 2.69z" />
                         </svg>
                     </div>
-                    <span className="text-3xl font-bold tracking-widest">NUTRIFY</span>
+                    <span className="text-3xl font-bold tracking-widest font-editorial">AI Ate Indonesia</span>
                 </div>
 
                 {/* Main Content */}

@@ -56,7 +56,7 @@ export class NotificationService implements OnModuleInit {
 
     if (vapidPublicKey && vapidPrivateKey) {
       webpush.setVapidDetails(
-        'mailto:support@nutrify.app',
+        'mailto:support@aiate.app',
         vapidPublicKey,
         vapidPrivateKey,
       );

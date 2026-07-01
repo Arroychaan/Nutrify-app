@@ -1,4 +1,4 @@
-// Indonesian and English translations for Nutrify app
+// Indonesian and English translations for AI Ate Indonesia app
 
 export type Language = 'id' | 'en'
 
@@ -72,7 +72,7 @@ export const translations = {
       download: { id: 'Unduh Gambar', en: 'Download Image' },
       greatJob: { id: 'Kerja Bagus', en: 'Great Job' },
       quote: { id: 'Konsistensi adalah jembatan antara tujuan dan pencapaian.', en: 'Consistency is the bridge between goals and accomplishment.' },
-      join: { id: 'Bergabunglah di Nutrify App 🚀', en: 'Join us on Nutrify App 🚀' },
+      join: { id: 'Bergabunglah di AI Ate Indonesia App 🚀', en: 'Join us on AI Ate Indonesia App 🚀' },
       dailySummary: { id: 'Ringkasan Harian', en: 'Daily Summary' },
       totalIntake: { id: 'Total Asupan', en: 'Total Intake' },
     },

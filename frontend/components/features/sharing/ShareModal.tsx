@@ -22,7 +22,7 @@ export default function ShareModal({ isOpen, onClose, type, data }: ShareModalPr
     const handleShare = async () => {
         setIsSharing(true)
         const elementId = type === 'streak' ? 'streak-share-card' : 'daily-share-card'
-        const fileName = type === 'streak' ? `nutrify-streak-${data.streakDays}` : `nutrify-daily-${data.date}`
+        const fileName = type === 'streak' ? `aiate-streak-${data.streakDays}` : `aiate-daily-${data.date}`
 
         try {
             await generateAndShareImage(elementId, fileName)

@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/router_provider.dart';
+import '../../../core/theme/theme_provider.dart';
 import '../../widgets/common/app_button.dart';
 
 class ProfileScreen extends ConsumerWidget {
@@ -21,6 +22,16 @@ class ProfileScreen extends ConsumerWidget {
       appBar: AppBar(
         title: const Text('Profil'),
         actions: [
+          IconButton(
+            icon: Icon(
+              Theme.of(context).brightness == Brightness.dark
+                  ? Icons.light_mode
+                  : Icons.dark_mode,
+            ),
+            onPressed: () {
+              ref.read(themeProvider.notifier).toggleTheme();
+            },
+          ),
           IconButton(
             icon: const Icon(Icons.edit),
             onPressed: () {

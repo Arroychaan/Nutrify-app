@@ -60,18 +60,18 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   child: Column(
                     children: [
                       SvgPicture.asset(
-                        'assets/images/nutrify_logo.svg',
-                        width: 120,
-                        height: 120,
+                        'assets/brand/Logogram.svg',
+                        width: 100,
+                        height: 100,
                       ),
                       const SizedBox(height: 16),
                       Text(
-                        'Selamat Datang!',
+                        'Eh, Balik Lagi!',
                         style: Theme.of(context).textTheme.headlineMedium,
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        'Masuk ke akun Nutrify kamu',
+                        'Yuk masuk dan lanjutin makan enak tanpa worry.',
                         style: Theme.of(context).textTheme.bodyMedium,
                       ),
                     ],

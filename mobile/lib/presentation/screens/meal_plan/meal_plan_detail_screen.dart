@@ -274,7 +274,7 @@ class _DayCard extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: const BoxDecoration(
-              color: AppColors.background,
+              color: AppColors.backgroundLight,
               borderRadius: BorderRadius.vertical(
                 top: Radius.circular(20),
               ),
@@ -346,10 +346,11 @@ class _MealItem extends StatelessWidget {
             color: _getMealColor(meal.mealType).withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(16),
           ),
-          child: Center(
-            child: Text(
-              _getMealIcon(meal.mealType),
-              style: const TextStyle(fontSize: 24),
+          child: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Image.asset(
+              _getMealImage(meal.mealType),
+              fit: BoxFit.contain,
             ),
           ),
         ),
@@ -432,18 +433,18 @@ class _MealItem extends StatelessWidget {
     }
   }
 
-  String _getMealIcon(String type) {
+  String _getMealImage(String type) {
     switch (type.toLowerCase()) {
       case 'breakfast':
-        return '🍳';
+        return 'assets/3d-foods/bubur.png';
       case 'lunch':
-        return '🍱';
+        return 'assets/3d-foods/Nasi-padang.png';
       case 'dinner':
-        return '🍽️';
+        return 'assets/3d-foods/sate-ayam.png';
       case 'snack':
-        return '🍎';
+        return 'assets/3d-foods/apel.png';
       default:
-        return '🍲';
+        return 'assets/3d-foods/Kalori.png';
     }
   }
 

@@ -94,7 +94,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                           child: Padding(
                             padding: const EdgeInsets.all(16.0),
                             child: Image.asset(
-                              'assets/images/Nusantara.png',
+                              'assets/photos/Nusantara.png',
                               fit: BoxFit.contain,
                             ),
                           ),
@@ -104,7 +104,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
 
                       // App name
                       const Text(
-                        'Nutrify',
+                        'AI Ate Indonesia',
                         style: TextStyle(
                           fontSize: 36,
                           fontWeight: FontWeight.bold,

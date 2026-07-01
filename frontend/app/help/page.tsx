@@ -22,12 +22,12 @@ const faqs = [
         category: 'Umum',
         items: [
             {
-                question: 'Apa itu Nutrify?',
-                answer: 'Nutrify adalah aplikasi pelacak nutrisi yang membantu Anda memantau asupan makanan harian, membuat meal plan yang dipersonalisasi, dan memberikan saran kesehatan berdasarkan profil Anda.'
+                question: 'Apa itu AI Ate Indonesia?',
+                answer: 'AI Ate Indonesia adalah aplikasi pelacak nutrisi yang membantu Anda memantau asupan makanan harian, membuat meal plan yang dipersonalisasi, dan memberikan saran kesehatan berdasarkan profil Anda.'
             },
             {
-                question: 'Apakah Nutrify gratis?',
-                answer: 'Ya! Nutrify gratis untuk digunakan dengan semua fitur dasar. Kami mungkin akan menambahkan fitur premium di masa depan, tetapi fitur inti akan tetap gratis.'
+                question: 'Apakah AI Ate Indonesia gratis?',
+                answer: 'Ya! AI Ate Indonesia gratis untuk digunakan dengan semua fitur dasar. Kami mungkin akan menambahkan fitur premium di masa depan, tetapi fitur inti akan tetap gratis.'
             }
         ]
     },
@@ -194,7 +194,7 @@ export default function HelpPage() {
                     <p className="text-sm text-gray-500 mb-4">Tim kami siap membantu Anda</p>
                     <div className="flex justify-center gap-3">
                         <a
-                            href="mailto:support@nutrify.app"
+                            href="mailto:support@aiate.app"
                             className="flex items-center gap-2 px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white font-medium rounded-xl transition-colors"
                         >
                             <Mail className="w-4 h-4" />

@@ -52,3 +52,7 @@ out/
 backend-old/
 *.mp4
 nutrify_app_brutal_audit.html
+
+# Sync Assets
+/frontend/public/assets/
+/mobile/assets/

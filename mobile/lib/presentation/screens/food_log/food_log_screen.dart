@@ -173,7 +173,7 @@ class _DailySummaryCard extends ConsumerWidget {
             widget: shareWidget,
             context: context,
             text:
-                'Nutrisi harian saya hari ini di Nutrify! 🥗 Tetap sehat, tetap semangat! #NutrifyDaily',
+                'Nutrisi harian saya hari ini di AI Ate Indonesia! 🥗 Tetap sehat, tetap semangat! #AI Ate IndonesiaDaily',
           );
     } catch (e) {
       if (context.mounted) {

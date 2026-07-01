@@ -38,7 +38,7 @@ export default function ForgotPasswordPage() {
                         <div className="w-10 h-10 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-xl flex items-center justify-center group-hover:scale-105 transition-transform">
                             <Leaf className="w-6 h-6 text-white" />
                         </div>
-                        <span className="text-xl font-bold text-gray-900 dark:text-white font-display">Nutrify</span>
+                        <span className="text-xl font-bold text-gray-900 dark:text-white font-display">AI Ate Indonesia</span>
                     </Link>
                     <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2 font-display">Lupa Password?</h1>
                     <p className="text-gray-500 dark:text-gray-400">

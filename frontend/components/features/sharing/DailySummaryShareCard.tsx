@@ -32,13 +32,13 @@ export default function DailySummaryShareCard({
 
                 {/* Background Watermark */}
                 <div className="absolute -bottom-20 -right-20 text-emerald-50 opacity-20 transform -rotate-12">
-                    <span className="text-[300px] font-black">N</span>
+                    <span className="text-[250px] font-black">AI</span>
                 </div>
 
                 {/* Header */}
                 <div className="flex justify-between items-start mb-12">
                     <div>
-                        <h1 className="text-4xl font-extrabold text-emerald-600 tracking-wider">NUTRIFY</h1>
+                        <h1 className="text-3xl font-extrabold text-emerald-600 tracking-wider font-editorial">AI Ate Indonesia</h1>
                         <p className="text-gray-400 font-bold tracking-[0.2em] text-sm mt-1">{t('dashboard.share.dailySummary').toUpperCase()}</p>
                     </div>
                     <div className="bg-emerald-600 text-white px-6 py-2 rounded-full font-bold text-lg shadow-lg">

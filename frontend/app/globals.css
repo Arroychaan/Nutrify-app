@@ -1,244 +1,26 @@
+@import '../styles/design-tokens.css';
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* ===================================================================
-   NUTRIFY DESIGN SYSTEM — Indonesian Earth Tones
-   Palet: Terracotta #C4603A | Forest #3D6B4F | Amber #E8A838
-   Background: Warm Cream #FAF0E0 | Dark: #1E1810
-   =================================================================== */
-
-:root {
-  /* Core palette — RGB values for opacity support */
-  --primary-dark: 30, 24, 16;
-  --primary-action: 196, 96, 58;
-  --secondary: 61, 107, 79;
-  --background: 250, 240, 224;
-  --accent: 232, 168, 56;
-
-  /* Surfaces */
-  --surface: 255, 250, 242;
-  --surface-alt: 245, 235, 216;
-  --surface-foreground: 30, 24, 16;
-
-  /* Text */
-  --text-primary: 30, 24, 16;
-  --text-secondary: 92, 79, 61;
-  --text-muted: 140, 126, 106;
-
-  /* Borders */
-  --border: 232, 223, 208;
-  --border-light: 240, 232, 218;
-
-  /* Status */
-  --success: 61, 107, 79;
-  --error: 196, 75, 58;
-  --warning: 232, 168, 56;
-
-  /* UI */
-  --radius: 12px;
-  --radius-sm: 8px;
-  --radius-lg: 16px;
-  --radius-xl: 24px;
-}
-
-/* ===================================================================
-   BASE LAYER
-   =================================================================== */
-
 @layer base {
-  * {
-    border-color: rgb(var(--border) / 0.6);
-  }
-
-  html {
-    scroll-behavior: smooth;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-  }
-
+  html,
   body {
-    background-color: rgb(var(--background));
-    color: rgb(var(--text-primary));
-    font-family: var(--font-jakarta), 'Plus Jakarta Sans', system-ui, sans-serif;
+    background-color: var(--color-bg-base);
+    color: var(--color-text-primary);
   }
 
-  /* Typography scale */
-  h1, h2, h3 {
-    font-family: var(--font-fraunces), 'Fraunces', Georgia, serif;
-    font-weight: 600;
-    color: rgb(var(--primary-dark));
-    letter-spacing: -0.02em;
-    line-height: 1.15;
-  }
-
-  h1 { font-size: clamp(2.25rem, 5vw, 3.75rem); }
-  h2 { font-size: clamp(1.75rem, 3.5vw, 2.5rem); }
-  h3 { font-size: clamp(1.25rem, 2.5vw, 1.5rem); }
-
-  /* Selection */
-  ::selection {
-    background-color: rgba(196, 96, 58, 0.15);
-    color: #1E1810;
-  }
-
-  /* Scrollbar */
-  ::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
-  }
-  ::-webkit-scrollbar-track {
-    background: rgb(var(--background));
-  }
-  ::-webkit-scrollbar-thumb {
-    background: rgb(var(--border));
-    border-radius: 3px;
-  }
-  ::-webkit-scrollbar-thumb:hover {
-    background: rgb(var(--text-muted));
+  * {
+    border-color: var(--color-border);
   }
 }
-
-/* ===================================================================
-   COMPONENT LAYER
-   =================================================================== */
-
-@layer components {
-  /* Button variants */
-  .btn-primary {
-    @apply inline-flex items-center justify-center gap-2
-           bg-primary-action text-white font-semibold
-           py-3 px-6 rounded-button
-           transition-all duration-200
-           hover:bg-primary-action-600
-           shadow-warm-sm hover:shadow-glow-action
-           active:scale-[0.98];
-  }
-
-  .btn-secondary {
-    @apply inline-flex items-center justify-center gap-2
-           bg-surface text-primary-dark font-semibold
-           py-3 px-6 rounded-button
-           border border-border-warm
-           transition-all duration-200
-           hover:border-primary-action-300 hover:bg-background-100
-           active:scale-[0.98];
-  }
-
-  .btn-ghost {
-    @apply inline-flex items-center justify-center gap-2
-           bg-transparent text-text-secondary font-medium
-           py-2 px-4 rounded-button
-           transition-all duration-200
-           hover:bg-background-300/30 hover:text-primary-dark;
-  }
-
-  /* Card */
-  .card {
-    @apply bg-surface rounded-card border border-border-warm
-           shadow-card transition-all duration-300;
-  }
-
-  .card-hover {
-    @apply hover:shadow-card-hover hover:-translate-y-1;
-  }
-
-  /* Badge */
-  .badge {
-    @apply inline-flex items-center gap-1.5
-           px-3 py-1 rounded-badge
-           text-xs font-semibold uppercase tracking-wider;
-  }
-
-  .badge-action {
-    @apply badge bg-primary-action-50 text-primary-action-700
-           border border-primary-action-100;
-  }
-
-  .badge-secondary {
-    @apply badge bg-secondary-50 text-secondary-700
-           border border-secondary-100;
-  }
-
-  .badge-accent {
-    @apply badge bg-accent-50 text-accent-700
-           border border-accent-100;
-  }
-
-  /* Section spacing */
-  .section {
-    @apply py-20 md:py-28 px-4 sm:px-6;
-  }
-
-  .section-narrow {
-    @apply max-w-5xl mx-auto;
-  }
-
-  .section-wide {
-    @apply max-w-7xl mx-auto;
-  }
-
-  /* Label / Caption */
-  .label {
-    @apply text-xs font-semibold uppercase tracking-[0.08em]
-           text-text-muted;
-  }
-}
-
-/* ===================================================================
-   UTILITY LAYER
-   =================================================================== */
 
 @layer utilities {
-  .text-balance {
-    text-wrap: balance;
+  .font-handwritten {
+    font-family: 'Caveat', cursive;
   }
 
-  .text-gradient-action {
-    @apply bg-clip-text text-transparent
-           bg-gradient-to-r from-primary-action to-primary-action-700;
-  }
-
-  .text-gradient-warm {
-    @apply bg-clip-text text-transparent
-           bg-gradient-to-r from-accent to-primary-action;
-  }
-
-  /* Warm glass effect */
-  .glass-warm {
-    @apply bg-surface/80 backdrop-blur-md
-           border border-border-warm/60;
-  }
-
-  /* Focus ring */
-  .focus-ring {
-    @apply focus:outline-none focus:ring-2 focus:ring-primary-action/30 focus:ring-offset-2 focus:ring-offset-background;
-  }
-}
-
-/* ===================================================================
-   ANIMATIONS (Global, not Tailwind-dependent)
-   =================================================================== */
-
-/* Staggered children animation */
-.stagger-children > * {
-  opacity: 0;
-  animation: fade-up 0.6s ease-out forwards;
-}
-.stagger-children > *:nth-child(1) { animation-delay: 0s; }
-.stagger-children > *:nth-child(2) { animation-delay: 0.1s; }
-.stagger-children > *:nth-child(3) { animation-delay: 0.2s; }
-.stagger-children > *:nth-child(4) { animation-delay: 0.3s; }
-.stagger-children > *:nth-child(5) { animation-delay: 0.4s; }
-.stagger-children > *:nth-child(6) { animation-delay: 0.5s; }
-
-@keyframes fade-up {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
+  .font-editorial {
+    font-family: 'Playfair Display', serif;
   }
 }

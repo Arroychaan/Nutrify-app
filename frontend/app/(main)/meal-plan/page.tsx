@@ -1,753 +1,230 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
-import axios from 'axios'
-import Toast from '@/components/Toast'
-import ConfirmDialog from '@/components/ConfirmDialog'
-import {
-  Utensils,
-  Trash2,
-  Plus,
-  X,
-  ChevronDown,
-  ChevronRight,
-  Flame,
-  Beef,
-  Wheat,
-  Droplet,
-  Sunrise,
-  Sun,
-  Moon,
-  Cookie,
-  Sparkles,
-  Calendar,
-  Clock,
-  Loader2,
-  RefreshCw,
-  ShoppingCart,
-  Check
-} from 'lucide-react'
-import { mealPlanApi } from '@/lib/api'
+import React, { useState, useEffect } from 'react'
+import Image from 'next/image'
+import { Card } from '@/components/ui/Card'
+import { Button } from '@/components/ui/Button'
+import { ChevronRight, Edit2, Plus, Search, SlidersHorizontal, Check } from 'lucide-react'
+import { useAppStore, FoodItem } from '@/lib/store'
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
-
-interface MealPlan {
-  id: string
-  date: string
-  breakfast: any
-  lunch: any
-  dinner: any
-  snacks: any[]
-  totalCalories: number
-  totalProtein: number
-  totalCarbs: number
-  totalFat: number
-  createdAt: string
-  days: any[]
+// Helper for dynamic dates
+const generateWeekDays = () => {
+  const days = []
+  const today = new Date()
+  const dayNames = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab']
+  
+  for (let i = 0; i < 7; i++) {
+    const nextDate = new Date(today)
+    nextDate.setDate(today.getDate() + i)
+    days.push({
+      label: dayNames[nextDate.getDay()],
+      date: nextDate.getDate(),
+      fullDate: nextDate.toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })
+    })
+  }
+  return days
 }
 
 export default function MealPlanPage() {
-  const [loading, setLoading] = useState(false)
-  const [generating, setGenerating] = useState(false)
-  const [mealPlans, setMealPlans] = useState<MealPlan[]>([])
-  const [showForm, setShowForm] = useState(false)
-  const [expandedPlan, setExpandedPlan] = useState<string | null>(null)
-  const [formData, setFormData] = useState({
-    targetCalories: 2000,
-    dietType: 'balanced',
-    meals: 3,
-    includeSnacks: true,
-  })
-  const [toast, setToast] = useState({ isVisible: false, message: '', type: 'info' as 'success' | 'error' | 'info' | 'warning' })
-  const [confirmDialog, setConfirmDialog] = useState({ isOpen: false, mealPlanId: '' })
-  const [shoppingListModal, setShoppingListModal] = useState({ isOpen: false, mealPlanId: '' })
+  const [activeDayIdx, setActiveDayIdx] = useState(0)
+  const [isClient, setIsClient] = useState(false)
+  const [weekDays, setWeekDays] = useState<{label: string, date: number, fullDate: string}[]>([])
+  const store = useAppStore()
 
-  const showToast = (message: string, type: 'success' | 'error' | 'info' | 'warning' = 'info') => {
-    setToast({ isVisible: true, message, type })
-  }
-
-  const hideToast = () => {
-    setToast({ ...toast, isVisible: false })
-  }
-
-  // Auto expand first plan
   useEffect(() => {
-    if (mealPlans.length > 0 && !expandedPlan) {
-      setExpandedPlan(mealPlans[0].id)
-    }
-  }, [mealPlans, expandedPlan])
-
-  const loadData = useCallback(async () => {
-    try {
-      setLoading(true)
-      const token = localStorage.getItem('token')
-
-      // Load Plans & User Profile concurrently
-      const [plansRes, userRes] = await Promise.all([
-        axios.get(`${API_URL}/api/v1/meal-plans`, { headers: { Authorization: `Bearer ${token}` } }),
-        axios.get(`${API_URL}/api/v1/auth/me`, { headers: { Authorization: `Bearer ${token}` } }).catch(() => null)
-      ])
-
-      setMealPlans(plansRes.data.data || [])
-
-      // Pre-fill form with user data if available
-      if (userRes?.data?.data) {
-        const user = userRes.data.data
-        const weight = Number(user.currentWeightKg) || 60
-        const calculatedTarget = Math.round(weight * 30) // Crude maintenance estimation
-
-        setFormData(prev => ({
-          ...prev,
-          targetCalories: calculatedTarget > 1200 ? calculatedTarget : 2000
-        }))
-      }
-    } catch (error) {
-      console.error('Failed to load data', error)
-      showToast('Gagal memuat data. Periksa koneksi internet Anda.', 'error')
-    } finally {
-      setLoading(false)
-    }
+    setWeekDays(generateWeekDays())
+    setIsClient(true)
   }, [])
 
-  useEffect(() => {
-    loadData()
-  }, [loadData])
+  if (!isClient || weekDays.length === 0) return null
 
-  const loadMealPlans = async (silent = false) => {
-    // Legacy single loader kept for specialized reloading if needed, but normally use loadData
-    try {
-      const token = localStorage.getItem('token')
-      const response = await axios.get(`${API_URL}/api/v1/meal-plans`, {
-        headers: { Authorization: `Bearer ${token}` }
-      })
-      setMealPlans(response.data.data || [])
-    } catch (e) {
-      console.error(e)
-      if (!silent) showToast('Gagal memuat rencana makan', 'error')
-    }
-  }
-
-  const generateMealPlan = async () => {
-    try {
-      setGenerating(true)
-      const token = localStorage.getItem('token')
-      const response = await axios.post(
-        `${API_URL}/api/v1/meal-plans/generate`,
-        formData,
-        {
-          headers: { Authorization: `Bearer ${token}` }
-        }
-      )
-
-      if (response.data.success) {
-        await loadMealPlans()
-        setShowForm(false)
-        showToast('Rencana makan berhasil dibuat! 🎉', 'success')
-      }
-    } catch (error: any) {
-      console.error('Failed to generate meal plan', error)
-      showToast(error.response?.data?.error?.message || 'Gagal membuat rencana makan', 'error')
-    } finally {
-      setGenerating(false)
-    }
-  }
-
-  const deleteMealPlan = async (id: string) => {
-    try {
-      const token = localStorage.getItem('token')
-      await axios.delete(`${API_URL}/api/v1/meal-plans/${id}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      })
-      await loadMealPlans()
-      showToast('Rencana makan berhasil dihapus', 'success')
-    } catch (error) {
-      console.error('Failed to delete meal plan', error)
-      showToast('Gagal menghapus rencana makan', 'error')
-    }
-  }
-
-  const handleSwapMeal = async (mealPlanId: string, mealPlanDayId: string, mealType: string, currentMealId: string) => {
-    try {
-      const token = localStorage.getItem('token')
-      const response = await axios.put(
-        `${API_URL}/api/v1/meal-plans/${mealPlanId}/swap`,
-        { mealPlanDayId, mealType, currentMealId },
-        { headers: { Authorization: `Bearer ${token}` } }
-      )
-
-      if (response.data.success) {
-        await loadMealPlans()
-        showToast('Menu berhasil ditukar! 🔄', 'success')
-      }
-    } catch (error) {
-      console.error('Failed to swap meal', error)
-      showToast('Gagal menukar menu', 'error')
-    }
-  }
-
-  const handleDeleteClick = (id: string) => {
-    setConfirmDialog({ isOpen: true, mealPlanId: id })
-  }
-
-  const handleConfirmDelete = () => {
-    if (confirmDialog.mealPlanId) {
-      deleteMealPlan(confirmDialog.mealPlanId)
-    }
-  }
-
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString)
-    return date.toLocaleDateString('id-ID', {
-      weekday: 'long',
-      day: 'numeric',
-      month: 'long',
-      year: 'numeric'
-    })
-  }
-
-  const formatShortDate = (dateString: string) => {
-    const date = new Date(dateString)
-    return date.toLocaleDateString('id-ID', {
-      day: 'numeric',
-      month: 'short'
-    })
-  }
-
-  const dietOptions = [
-    { id: 'balanced', label: 'Seimbang', desc: 'Karbo, protein, lemak seimbang' },
-    { id: 'high-protein', label: 'Tinggi Protein', desc: 'Untuk membangun otot' },
-    { id: 'low-carb', label: 'Rendah Karbo', desc: 'Keto / Low carb diet' },
-    { id: 'vegetarian', label: 'Vegetarian', desc: 'Tanpa daging' },
+  // Hardcode some mock items in the store if it's empty for demonstration purposes
+  const breakfastItems = store.meals.breakfast.length > 0 ? store.meals.breakfast : [
+    { id: '1', name: 'Bubur Ayam Jawa', cal: 320, price: 15000, protein: 15, carbs: 45, fat: 10, image: '/assets/3d-foods/bubur.png', category: 'Sarapan' }
+  ]
+  
+  const lunchItems = store.meals.lunch.length > 0 ? store.meals.lunch : [
+    { id: '2', name: 'Nasi Rendang Padang', cal: 450, price: 25000, protein: 25, carbs: 50, fat: 20, image: '/assets/3d-foods/Nasi-padang.png', category: 'Makan Siang' }
   ]
 
-  if (loading) {
-    return (
-      <div className="max-w-4xl mx-auto pb-24 md:pb-8">
-        <div className="mb-8 animate-pulse">
-          <div className="h-8 w-48 bg-gray-200 dark:bg-gray-800 rounded-lg mb-2" />
-          <div className="h-4 w-64 bg-gray-200 dark:bg-gray-800 rounded-lg" />
-        </div>
-        <div className="space-y-4">
-          {[1, 2, 3].map(i => (
-            <div key={i} className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-4 animate-pulse">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-gray-200 dark:bg-gray-700 rounded-2xl" />
-                <div className="flex-1 space-y-2">
-                  <div className="h-5 w-1/3 bg-gray-200 dark:bg-gray-700 rounded" />
-                  <div className="h-3 w-1/2 bg-gray-100 dark:bg-gray-800 rounded" />
-                </div>
-              </div>
+  const meals = [
+    { type: 'SARAPAN', time: '07:00', icon: '🌅', items: breakfastItems },
+    { type: 'MAKAN SIANG', time: '12:30', icon: '☀️', items: lunchItems },
+    { type: 'MAKAN MALAM', time: '19:00', icon: '🌙', items: store.meals.dinner }
+  ]
+
+  const calculateTotals = () => {
+    let cal = 0, protein = 0, price = 0
+    meals.forEach(m => m.items.forEach(item => {
+      cal += item.cal
+      protein += item.protein
+      price += item.price
+    }))
+    return { cal, protein, price }
+  }
+
+  const totals = calculateTotals()
+
+  return (
+    <div className="relative pb-24">
+      {/* 7-day calendar strip */}
+      <div className="flex items-center gap-3 mb-8 overflow-x-auto pb-4 snap-x scrollbar-hide w-full">
+        {weekDays.map((day, idx) => (
+          <div 
+            key={idx}
+            onClick={() => setActiveDayIdx(idx)}
+            className={`min-w-[4.5rem] snap-start flex flex-col items-center justify-center py-4 px-2 rounded-[20px] cursor-pointer transition-all duration-300 ${
+              activeDayIdx === idx 
+                ? 'bg-ink text-white shadow-lg scale-105 transform' 
+                : 'bg-white text-ink-2 hover:bg-surface-2 border border-border/50'
+            }`}
+          >
+            <span className={`text-[10px] font-bold uppercase tracking-widest mb-1.5 ${activeDayIdx === idx ? 'text-sage' : 'text-ink-3'}`}>
+              {day.label}
+            </span>
+            <span className="text-2xl font-editorial font-bold">{day.date}</span>
+          </div>
+        ))}
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        <div className="lg:col-span-8 space-y-6">
+          <div className="flex justify-between items-end mb-4">
+            <div>
+              <h1 className="text-3xl font-editorial font-bold text-ink mb-1">Rencana Makan</h1>
+              <p className="text-ink-2 font-medium">{weekDays[activeDayIdx].fullDate}</p>
             </div>
+            <Button variant="outline" size="sm" className="hidden sm:flex border-border bg-white text-ink hover:bg-surface-2 font-bold uppercase tracking-wider text-xs h-10 px-4">
+              <Search className="w-4 h-4 mr-2" /> Eksplor Menu
+            </Button>
+          </div>
+
+          {meals.map((meal, idx) => (
+            <Card key={idx} className="overflow-hidden border-border/50">
+              <div className="bg-surface-2/50 p-4 flex justify-between items-center border-b border-border/50">
+                <div className="flex items-center gap-3">
+                  <span className="text-lg">{meal.icon}</span>
+                  <h2 className="font-bold text-ink text-xs uppercase tracking-widest">{meal.type}</h2>
+                  <span className="text-ink-3 text-xs font-medium ml-2 px-2 py-0.5 bg-white rounded-full border border-border/50">{meal.time}</span>
+                </div>
+                <button className="text-ink-3 hover:text-ink transition-colors flex items-center justify-center p-2 rounded-full hover:bg-white border border-transparent hover:border-border/50">
+                  <Edit2 className="w-4 h-4" />
+                </button>
+              </div>
+              
+              <div className="p-4 space-y-3 bg-white">
+                {meal.items.length > 0 ? (
+                  meal.items.map((item, i) => (
+                    <div key={i} className="flex items-center gap-4 p-3 bg-surface rounded-2xl border border-transparent hover:border-border/50 transition-colors group cursor-pointer">
+                      <div className="relative w-16 h-16 rounded-xl bg-white border border-border/40 flex-shrink-0 flex items-center justify-center overflow-hidden">
+                        <Image src={item.image} alt={item.name} fill className="object-contain p-1 transform group-hover:scale-110 transition-transform duration-500" />
+                      </div>
+                      <div className="flex-1">
+                        <p className="font-bold font-editorial text-lg text-ink">{item.name}</p>
+                        <div className="flex items-center gap-3 text-xs text-ink-3 mt-1 font-medium tracking-wide">
+                          <span className="text-sage">{item.cal} kkal</span>
+                          <span className="w-1 h-1 rounded-full bg-border" />
+                          <span>Rp {item.price.toLocaleString('id-ID')}</span>
+                        </div>
+                      </div>
+                      <div className="w-8 h-8 rounded-full border border-border/50 flex items-center justify-center text-ink-3 group-hover:bg-ink group-hover:text-white transition-colors">
+                        <ChevronRight className="w-4 h-4" />
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="py-6 flex flex-col items-center justify-center text-center bg-surface-2/30 rounded-2xl border border-dashed border-border/50">
+                    <p className="text-sm font-medium text-ink-3 mb-3">Belum ada menu direncanakan</p>
+                    <Button variant="outline" size="sm" className="h-9 border-ink text-ink hover:bg-ink hover:text-white font-bold uppercase tracking-wider text-[10px]">
+                      <Plus className="w-3 h-3 mr-1.5" /> Tambah Makanan
+                    </Button>
+                  </div>
+                )}
+                
+                {meal.items.length > 0 && (
+                  <button className="w-full mt-2 py-3.5 rounded-2xl flex items-center justify-center gap-2 text-[11px] font-bold uppercase tracking-widest text-ink-3 hover:text-ink hover:bg-surface-2 transition-colors">
+                    <Plus className="w-3 h-3" /> Tambah item lain
+                  </button>
+                )}
+              </div>
+            </Card>
           ))}
         </div>
-      </div>
-    )
-  }
 
-  return (
-    <>
-      <Toast
-        message={toast.message}
-        type={toast.type}
-        isVisible={toast.isVisible}
-        onClose={hideToast}
-      />
-
-      <ConfirmDialog
-        isOpen={confirmDialog.isOpen}
-        title="Hapus Rencana Makan?"
-        message="Apakah Anda yakin ingin menghapus rencana makan ini? Tindakan ini tidak dapat dibatalkan."
-        onConfirm={handleConfirmDelete}
-        onCancel={() => setConfirmDialog({ isOpen: false, mealPlanId: '' })}
-        confirmText="Ya, Hapus"
-        cancelText="Batal"
-        type="danger"
-      />
-
-      <ShoppingListModal
-        isOpen={shoppingListModal.isOpen}
-        mealPlanId={shoppingListModal.mealPlanId}
-        onClose={() => setShoppingListModal({ isOpen: false, mealPlanId: '' })}
-      />
-
-      <div className="max-w-4xl mx-auto pb-24 md:pb-8">
-        {/* Header Section */}
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="mb-8"
-        >
-          <div className="flex items-start justify-between">
-            <div>
-              <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white">
-                Rencana Makan
-              </h1>
-              <p className="text-gray-500 dark:text-gray-400 mt-1 text-sm md:text-base">
-                Menu harian yang dipersonalisasi untuk Anda
-              </p>
+        {/* Right Sidebar - Filter/Search */}
+        <div className="hidden lg:block lg:col-span-4">
+          <Card className="p-6 sticky top-24 border-border/50">
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="font-editorial font-bold text-xl text-ink">Eksplorasi Lokal</h3>
+              <SlidersHorizontal className="w-4 h-4 text-ink-3" />
             </div>
-            {mealPlans.length > 0 && (
-              <button
-                onClick={() => setShowForm(!showForm)}
-                className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-semibold text-sm transition-all ${showForm
-                  ? 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300'
-                  : 'bg-primary-action text-white shadow-warm-sm hover:scale-[1.02] active:scale-[0.98]'
-                  }`}
-              >
-                {showForm ? <X className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
-                <span className="hidden sm:inline">{showForm ? 'Tutup' : 'Rencana Baru'}</span>
-              </button>
-            )}
-          </div>
-        </motion.div>
+            
+            <div className="relative mb-8">
+              <Search className="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2 text-ink-3" />
+              <input 
+                type="text" 
+                placeholder="Cari masakan Nusantara..." 
+                className="w-full bg-surface-2 border border-border/50 rounded-2xl pl-11 pr-4 py-3 text-sm font-medium outline-none focus:border-sage focus:ring-1 focus:ring-sage transition-all text-ink placeholder:text-ink-3"
+              />
+            </div>
 
-        {/* Generator Form */}
-        <AnimatePresence>
-          {showForm && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
-              exit={{ opacity: 0, height: 0 }}
-              className="mb-8 overflow-hidden"
-            >
-              <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-6">
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="w-10 h-10 bg-gradient-to-br from-violet-500 to-purple-600 rounded-xl flex items-center justify-center">
-                    <Sparkles className="w-5 h-5 text-white" />
-                  </div>
-                  <div>
-                    <h2 className="font-bold text-gray-900 dark:text-white">Buat Rencana Baru</h2>
-                    <p className="text-xs text-gray-500">AI akan menyesuaikan dengan profil kesehatan Anda</p>
-                  </div>
-                </div>
-
-                {/* Calorie Target */}
-                <div className="mb-6">
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
-                    Target Kalori Harian
-                  </label>
-                  <div className="flex items-center gap-4">
-                    <input
-                      type="range"
-                      min="1200"
-                      max="3500"
-                      step="100"
-                      value={formData.targetCalories}
-                      onChange={(e) => setFormData({ ...formData, targetCalories: parseInt(e.target.value) })}
-                      className="flex-1 h-2 bg-gray-200 dark:bg-gray-700 rounded-full appearance-none cursor-pointer accent-primary-action"
-                    />
-                    <div className="w-24 text-center">
-                      <span className="text-2xl font-bold text-gray-900 dark:text-white">{formData.targetCalories}</span>
-                      <span className="text-xs text-gray-500 block">kkal</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Diet Type */}
-                <div className="mb-6">
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
-                    Jenis Diet
-                  </label>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-                    {dietOptions.map((opt) => (
-                      <button
-                        key={opt.id}
-                        onClick={() => setFormData({ ...formData, dietType: opt.id })}
-                        className={`p-3 rounded-xl border-2 text-left transition-all ${formData.dietType === opt.id
-                          ? 'border-primary-action bg-primary-action-50/50 dark:bg-primary-action-950/20'
-                          : 'border-gray-100 dark:border-gray-700 hover:border-gray-200 dark:hover:border-gray-600'
-                          }`}
-                      >
-                        <p className={`font-semibold text-sm ${formData.dietType === opt.id ? 'text-primary-action dark:text-primary-action-400' : 'text-gray-900 dark:text-white'}`}>
-                          {opt.label}
-                        </p>
-                        <p className="text-[10px] text-gray-500 mt-0.5">{opt.desc}</p>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Options Row */}
-                <div className="flex flex-wrap gap-4 mb-6">
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all ${formData.includeSnacks ? 'bg-primary-action border-primary-action' : 'border-gray-300 dark:border-gray-600'
-                      }`}>
-                      {formData.includeSnacks && <Plus className="w-3 h-3 text-white" />}
-                    </div>
-                    <input
-                      type="checkbox"
-                      checked={formData.includeSnacks}
-                      onChange={(e) => setFormData({ ...formData, includeSnacks: e.target.checked })}
-                      className="hidden"
-                    />
-                    <span className="text-sm text-gray-700 dark:text-gray-300">Sertakan camilan</span>
-                  </label>
-                </div>
-
-                {/* Generate Button */}
-                <button
-                  onClick={generateMealPlan}
-                  disabled={generating}
-                  className="w-full bg-primary-action hover:bg-primary-action/90 text-white py-3.5 rounded-xl font-bold shadow-warm-lg disabled:opacity-70 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
-                >
-                  {generating ? (
-                    <>
-                      <Loader2 className="w-5 h-5 animate-spin" />
-                      AI sedang membuat rencana...
-                    </>
-                  ) : (
-                    <>
-                      <Sparkles className="w-5 h-5" />
-                      Generate dengan AI
-                    </>
-                  )}
-                </button>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        {/* Meal Plans */}
-        <div className="space-y-4">
-          {mealPlans.length === 0 ? (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className="text-center py-16 px-4 bg-surface/40 dark:bg-neutral-900/40 rounded-3xl border border-dashed border-border-warm dark:border-neutral-800/80 max-w-xl mx-auto my-8"
-            >
-              <div className="w-16 h-16 bg-primary-action-50 dark:bg-primary-action-950/20 rounded-2xl flex items-center justify-center mx-auto mb-6 text-primary-action shadow-warm-sm border border-primary-action-100 dark:border-primary-action-900/50">
-                <Utensils className="w-8 h-8" />
-              </div>
-              <h3 className="text-xl font-bold text-gray-900 dark:text-white font-display mb-3">
-                Mulai Hari Ini, Makan Lebih Cerdas
-              </h3>
-              <p className="text-gray-500 dark:text-gray-400 mb-8 max-w-sm mx-auto text-sm font-light leading-relaxed">
-                Rancang jadwal makan mingguan yang lezat, praktis, dan sesuai dengan preferensi serta kondisi gizi Anda menggunakan kecerdasan buatan.
-              </p>
-              <button
-                onClick={() => setShowForm(true)}
-                className="inline-flex items-center gap-2 bg-primary-action hover:bg-primary-action/90 text-white px-6 py-3 rounded-xl font-semibold shadow-warm-md hover:scale-[1.02] active:scale-[0.98] transition-all"
-              >
-                <Plus className="w-5 h-5" />
-                Buat Rencana Pertama
-              </button>
-            </motion.div>
-          ) : (
-            mealPlans.map((plan, index) => (
-              <motion.div
-                key={plan.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.05 }}
-                className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 overflow-hidden"
-              >
-                {/* Plan Header - Minimal */}
-                <button
-                  onClick={() => setExpandedPlan(expandedPlan === plan.id ? null : plan.id)}
-                  className="w-full p-4 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors text-left group"
-                >
-                  <div className="flex items-center gap-4">
-                    {/* Date Badge - Warm Terracotta Theme */}
-                    <div className="w-12 h-12 bg-primary-action-50 dark:bg-primary-action-950/20 rounded-2xl flex flex-col items-center justify-center text-primary-action dark:text-primary-action-400 font-bold flex-shrink-0 group-hover:scale-110 transition-transform">
-                      <span className="text-lg leading-none">{new Date(plan.date).getDate()}</span>
-                      <span className="text-[10px] uppercase">{new Date(plan.date).toLocaleDateString('id-ID', { month: 'short' })}</span>
-                    </div>
-
-                    <div>
-                      <h3 className="font-bold text-gray-900 dark:text-white text-base">
-                        {formatDate(plan.date)}
-                      </h3>
-                      <div className="flex items-center gap-3 mt-1 text-xs text-gray-500">
-                        <span className="flex items-center gap-1">
-                          <Flame className="w-3 h-3 text-primary-action" />
-                          {plan.totalCalories} kkal
-                        </span>
-                        <span className="w-1 h-1 rounded-full bg-gray-300" />
-                        <span>{plan.totalProtein}g protein</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center transition-all ${expandedPlan === plan.id ? 'bg-primary-action text-white rotate-180' : 'bg-gray-100 dark:bg-neutral-800 text-gray-500 dark:text-gray-400 group-hover:bg-primary-action-50 group-hover:text-primary-action'}`}>
-                    <ChevronDown className="w-5 h-5" />
-                  </div>
-                </button>
-
-                {/* Expanded Content */}
-                <AnimatePresence>
-                  {expandedPlan === plan.id && (
-                    <motion.div
-                      initial={{ height: 0, opacity: 0 }}
-                      animate={{ height: 'auto', opacity: 1 }}
-                      exit={{ height: 0, opacity: 0 }}
-                      transition={{ duration: 0.2 }}
-                      className="overflow-hidden"
-                    >
-                      <div className="px-4 pb-6 space-y-6">
-                        {/* Minimalist Macros */}
-                        <div className="grid grid-cols-4 gap-2 py-4 border-t border-gray-100 dark:border-gray-700/50 mt-2">
-                          <MacroItem label="Kalori" value={plan.totalCalories} unit="kkal" />
-                          <MacroItem label="Protein" value={plan.totalProtein} unit="g" />
-                          <MacroItem label="Karbo" value={plan.totalCarbs} unit="g" />
-                          <MacroItem label="Lemak" value={plan.totalFat} unit="g" />
-                        </div>
-
-                        {/* Timeline - Clean List */}
-                        <div className="space-y-0 relative">
-                          {/* Connecting Line */}
-                          <div className="absolute left-[19px] top-6 bottom-6 w-0.5 bg-gray-100 dark:bg-gray-700/50 z-0" />
-
-                          {plan.breakfast && (
-                            <MealItem
-                              type="breakfast"
-                              meal={plan.breakfast}
-                              onSwap={() => handleSwapMeal(plan.id, plan.days?.[0]?.id, 'breakfast', plan.breakfast.id)}
-                            />
-                          )}
-                          {plan.lunch && (
-                            <MealItem
-                              type="lunch"
-                              meal={plan.lunch}
-                              onSwap={() => handleSwapMeal(plan.id, plan.days?.[0]?.id, 'lunch', plan.lunch.id)}
-                            />
-                          )}
-                          {plan.dinner && (
-                            <MealItem
-                              type="dinner"
-                              meal={plan.dinner}
-                              onSwap={() => handleSwapMeal(plan.id, plan.days?.[0]?.id, 'dinner', plan.dinner.id)}
-                            />
-                          )}
-                          {plan.snacks && plan.snacks.length > 0 && plan.snacks.map((snack: any, idx: number) => (
-                            <MealItem
-                              key={idx}
-                              type="snack"
-                              meal={snack}
-                              // Note: Swap logic for snacks might need specific ID targeting if multiple snacks exist
-                              // checking if plan.days[0] exists is needed as it might not be populated in the minimalist interface if not fetched.
-                              // However, checking the controller getMealPlansController, it includes days.
-                              onSwap={() => handleSwapMeal(plan.id, plan.days?.[0]?.id, 'snack', snack.id)}
-                            />
-                          ))}
-                        </div>
-
-                        {/* Actions */}
-                        <div className="flex justify-end pt-2 border-t border-gray-100 dark:border-gray-700/50">
-                          <div className="flex justify-end pt-2 border-t border-gray-100 dark:border-gray-700/50 gap-2">
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation()
-                                setShoppingListModal({ isOpen: true, mealPlanId: plan.id })
-                              }}
-                              className="flex items-center gap-2 px-4 py-2 bg-primary-action-50 dark:bg-primary-action-950/20 text-primary-action dark:text-primary-action-400 hover:bg-primary-action-100 dark:hover:bg-primary-action-900/45 rounded-xl text-sm font-medium transition-colors"
-                            >
-                              <ShoppingCart className="w-4 h-4" />
-                              Shopping List
-                            </button>
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation()
-                                handleDeleteClick(plan.id)
-                              }}
-                              className="flex items-center gap-2 px-4 py-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl text-sm font-medium transition-colors"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                              Hapus Rencana
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </motion.div>
-            ))
-          )}
-        </div>
-      </div>
-    </>
-  )
-}
-
-// Minimalist Macro Item
-function MacroItem({ label, value, unit }: { label: string; value: number; unit: string }) {
-  return (
-    <div className="text-center">
-      <p className="text-[10px] uppercase tracking-wider text-gray-400 font-medium mb-1">{label}</p>
-      <div className="font-bold text-gray-900 dark:text-white text-base">
-        {value} <span className="text-[10px] text-gray-400 font-normal">{unit}</span>
-      </div>
-    </div>
-  )
-}
-
-// Clean Meal List Item
-function MealItem({ type, meal, onSwap }: { type: 'breakfast' | 'lunch' | 'dinner' | 'snack'; meal: { id?: string; name: string; calories: number }; onSwap: () => void }) {
-  const config = {
-    breakfast: { icon: Sunrise, time: '07:00' },
-    lunch: { icon: Sun, time: '12:00' },
-    dinner: { icon: Moon, time: '19:00' },
-    snack: { icon: Cookie, time: '15:00' }
-  }
-  const { icon: Icon, time } = config[type]
-
-  return (
-    <div className="relative z-10 flex gap-4 py-3 group">
-      {/* Icon Node */}
-      <div className="w-10 h-10 rounded-full bg-white dark:bg-gray-800 border-2 border-primary-action-100 dark:border-primary-action-900/30 group-hover:border-primary-action transition-colors flex items-center justify-center flex-shrink-0 shadow-sm">
-        <Icon className="w-4 h-4 text-primary-action" />
-      </div>
-
-      {/* Content */}
-      <div className="flex-1 min-w-0 pt-1 text-left">
-        <div className="flex justify-between items-start mb-1">
-          <span className="text-[10px] font-bold text-primary-action bg-primary-action-50 dark:bg-primary-action-950/20 px-2 py-0.5 rounded-full uppercase tracking-wider">
-            {type === 'snack' ? 'Camilan' : type === 'breakfast' ? 'Sarapan' : type === 'lunch' ? 'Makan Siang' : 'Makan Malam'}
-          </span>
-          <span className="text-[10px] text-gray-400 font-medium">{time}</span>
-        </div>
-        <p className="text-sm font-medium text-gray-900 dark:text-white leading-relaxed">{meal.name}</p>
-        <p className="text-xs text-gray-500 mt-1">{meal.calories} kkal</p>
-      </div>
-
-      <button
-        onClick={(e) => {
-          e.stopPropagation()
-          onSwap()
-        }}
-        className="opacity-0 group-hover:opacity-100 p-2 bg-gray-100 dark:bg-gray-700 hover:bg-primary-action-50 dark:hover:bg-primary-action-900/35 text-gray-500 hover:text-primary-action rounded-lg transition-all"
-        title="Tukar Menu"
-      >
-        <RefreshCw className="w-4 h-4" />
-      </button>
-    </div>
-  )
-}
-
-function ShoppingListModal({ isOpen, mealPlanId, onClose }: { isOpen: boolean, mealPlanId: string, onClose: () => void }) {
-  const [items, setItems] = useState<{ category: string, items: any[] }[]>([])
-  const [loading, setLoading] = useState(false)
-  const [checkedItems, setCheckedItems] = useState<Record<string, boolean>>({})
-
-  const loadList = useCallback(async () => {
-    setLoading(true)
-    try {
-      const data = await mealPlanApi.getShoppingList(mealPlanId)
-      setItems(data || [])
-    } catch (e) {
-      console.error(e)
-    } finally {
-      setLoading(false)
-    }
-  }, [mealPlanId])
-
-  useEffect(() => {
-    if (isOpen && mealPlanId) {
-      loadList()
-    }
-  }, [isOpen, mealPlanId, loadList])
-
-  const toggleCheck = (id: string, name: string) => {
-    const key = `${id}-${name}`
-    setCheckedItems(prev => ({ ...prev, [key]: !prev[key] }))
-  }
-
-  return (
-    <AnimatePresence>
-      {isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={onClose}
-            className="absolute inset-0 bg-black/40 backdrop-blur-sm"
-          />
-          <motion.div
-            initial={{ scale: 0.95, opacity: 0, y: 20 }}
-            animate={{ scale: 1, opacity: 1, y: 0 }}
-            exit={{ scale: 0.95, opacity: 0, y: 20 }}
-            className="relative w-full max-w-lg bg-white dark:bg-gray-800 rounded-3xl shadow-xl overflow-hidden max-h-[85vh] flex flex-col"
-          >
-            {/* Header */}
-            <div className="p-6 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center bg-primary-action text-white">
+            <div className="space-y-6">
               <div>
-                <h3 className="text-xl font-bold font-display">Shopping List</h3>
-                <p className="text-primary-action-100 text-sm font-light">Bahan untuk rencana makan ini</p>
+                <p className="text-[10px] font-bold text-ink-3 uppercase tracking-widest mb-3">Filter Nutrisi</p>
+                <div className="flex flex-wrap gap-2">
+                  <span className="px-4 py-2 rounded-full bg-sage text-white text-xs font-bold uppercase tracking-wider cursor-pointer shadow-sm">Tinggi Protein</span>
+                  <span className="px-4 py-2 rounded-full bg-surface border border-border/50 text-ink-2 text-xs font-bold uppercase tracking-wider cursor-pointer hover:border-ink-3 transition-colors">Rendah Lemak</span>
+                  <span className="px-4 py-2 rounded-full bg-surface border border-border/50 text-ink-2 text-xs font-bold uppercase tracking-wider cursor-pointer hover:border-ink-3 transition-colors">Vegetarian</span>
+                </div>
               </div>
-              <button
-                onClick={onClose}
-                className="p-2 hover:bg-white/20 rounded-xl transition-colors"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            {/* Content */}
-            <div className="flex-1 overflow-y-auto p-6">
-              {loading ? (
-                <div className="flex flex-col items-center justify-center py-12 text-gray-400">
-                  <Loader2 className="w-8 h-8 animate-spin mb-2" />
-                  <p>Menyiapkan daftar belanja...</p>
+              
+              <div>
+                <p className="text-[10px] font-bold text-ink-3 uppercase tracking-widest mb-3">Filter Daerah</p>
+                <div className="flex flex-wrap gap-2">
+                  <span className="px-4 py-2 rounded-full bg-twilight text-white text-xs font-bold uppercase tracking-wider cursor-pointer shadow-sm">Jawa</span>
+                  <span className="px-4 py-2 rounded-full bg-surface border border-border/50 text-ink-2 text-xs font-bold uppercase tracking-wider cursor-pointer hover:border-ink-3 transition-colors">Sumatera</span>
+                  <span className="px-4 py-2 rounded-full bg-surface border border-border/50 text-ink-2 text-xs font-bold uppercase tracking-wider cursor-pointer hover:border-ink-3 transition-colors">Bali & NTT</span>
                 </div>
-              ) : items.length === 0 ? (
-                <div className="text-center py-12 text-gray-400">
-                  <ShoppingCart className="w-12 h-12 mx-auto mb-3 opacity-50" />
-                  <p>Daftar kosong atau data bahan belum tersedia.</p>
-                </div>
-              ) : (
-                <div className="space-y-6">
-                  {items.map((cat, idx) => (
-                    <div key={idx}>
-                      <h4 className="font-bold text-primary-action dark:text-primary-action-400 text-sm uppercase tracking-wider mb-3 px-1">
-                        {cat.category}
-                      </h4>
-                      <div className="bg-gray-50 dark:bg-gray-900/50 rounded-2xl p-2">
-                        {cat.items.map((item, i) => {
-                          const key = `${cat.category}-${item.name}`
-                          const isChecked = checkedItems[key]
-                          return (
-                            <div
-                              key={i}
-                              onClick={() => toggleCheck(cat.category, item.name)}
-                              className={`flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-all ${isChecked
-                                ? 'bg-primary-action-50/50 dark:bg-primary-action-950/20 opacity-60'
-                                : 'hover:bg-white dark:hover:bg-gray-800'
-                                }`}
-                            >
-                              <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center transition-colors ${isChecked
-                                ? 'bg-primary-action border-primary-action'
-                                : 'border-gray-300 dark:border-gray-600'
-                                }`}>
-                                {isChecked && <Check className="w-3 h-3 text-white" />}
-                              </div>
-                              <div className="flex-1 text-left">
-                                <p className={`text-sm font-medium transition-all ${isChecked ? 'text-gray-500 line-through' : 'text-gray-900 dark:text-white'
-                                  }`}>
-                                  {item.name}
-                                </p>
-                              </div>
-                              <div className="text-sm font-bold text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 px-2 py-1 rounded-lg border border-gray-100 dark:border-gray-700 shadow-sm">
-                                {item.quantity} {item.unit}
-                              </div>
-                            </div>
-                          )
-                        })}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
+              </div>
             </div>
-
-            {/* Footer */}
-            <div className="p-4 border-t border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/30 text-center text-xs text-gray-500">
-              Checklist ini tersimpan sementara di perangkat Anda
+            
+            <div className="mt-8 p-4 bg-twilight/5 border border-twilight/20 rounded-2xl">
+              <h4 className="font-editorial font-bold text-ink mb-1">Rekomendasi Cerdas</h4>
+              <p className="text-xs text-ink-2 mb-3 leading-relaxed">AI menyarankan tambahan <strong>Tempe Mendoan</strong> siang ini untuk memenuhi target protein Anda dengan harga terjangkau.</p>
+              <Button size="sm" className="w-full bg-twilight hover:bg-twilight-light text-white font-bold text-[10px] uppercase tracking-widest shadow-sm">
+                Lihat Rekomendasi
+              </Button>
             </div>
-          </motion.div>
+          </Card>
         </div>
-      )}
-    </AnimatePresence>
+      </div>
+
+      {/* Sticky Daily Summary Bar */}
+      <div className="fixed bottom-0 lg:bottom-4 inset-x-0 lg:left-64 lg:right-4 z-40 p-4">
+        <div className="max-w-4xl mx-auto bg-ink text-white rounded-3xl shadow-float p-5 flex flex-col sm:flex-row justify-between items-center gap-6 border border-ink-2/30 relative overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent skew-x-12 animate-shimmer" />
+          
+          <div className="flex gap-6 sm:gap-10 text-sm relative z-10 w-full sm:w-auto justify-between sm:justify-start">
+            <div>
+              <p className="text-ink-3 text-[10px] uppercase tracking-widest font-bold mb-1">Total Kalori</p>
+              <p className="font-bold font-editorial text-2xl">{totals.cal} <span className="text-xs font-body font-medium text-ink-3">kkal</span></p>
+            </div>
+            <div className="w-px h-10 bg-ink-2/50" />
+            <div>
+              <p className="text-ink-3 text-[10px] uppercase tracking-widest font-bold mb-1">Total Protein</p>
+              <p className="font-bold font-editorial text-2xl">{totals.protein} <span className="text-xs font-body font-medium text-ink-3">g</span></p>
+            </div>
+            <div className="w-px h-10 bg-ink-2/50 hidden sm:block" />
+            <div className="hidden sm:block">
+              <p className="text-ink-3 text-[10px] uppercase tracking-widest font-bold mb-1">Estimasi Biaya</p>
+              <p className="font-bold font-editorial text-2xl text-sage">Rp {totals.price.toLocaleString('id-ID')}</p>
+            </div>
+          </div>
+          <Button variant="primary" className="w-full sm:w-auto shadow-none font-bold uppercase tracking-widest text-[10px] h-12 px-8 relative z-10 bg-white text-ink hover:bg-surface-2 border-none">
+            Simpan Rencana
+          </Button>
+        </div>
+      </div>
+    </div>
   )
 }

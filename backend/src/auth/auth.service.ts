@@ -186,7 +186,7 @@ export class AuthService {
     }
 
     const secret = authenticator.generateSecret();
-    const otpauth = authenticator.keyuri(user.email, 'Nutrify', secret);
+    const otpauth = authenticator.keyuri(user.email, 'AI Ate Indonesia', secret);
     const qrCodeUrl = await QRCode.toDataURL(otpauth);
 
     await this.db

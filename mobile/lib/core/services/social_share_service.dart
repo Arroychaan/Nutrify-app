@@ -11,7 +11,7 @@ class SocialShareService {
   Future<void> shareWidget({
     required Widget widget,
     required BuildContext context,
-    String text = 'Check out my progress on Nutrify! 🚀',
+    String text = 'Check out my progress on AI Ate Indonesia! 🚀',
   }) async {
     try {
       // Capture the widget as an image
@@ -26,7 +26,7 @@ class SocialShareService {
       // Get temp directory
       final tempDir = await getTemporaryDirectory();
       final fileName =
-          'nutrify_share_${DateTime.now().millisecondsSinceEpoch}.png';
+          'aiate_share_${DateTime.now().millisecondsSinceEpoch}.png';
       final file = File('${tempDir.path}/$fileName');
 
       // Write bytes to file

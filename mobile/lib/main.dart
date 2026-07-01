@@ -7,7 +7,7 @@ void main() {
   
   runApp(
     const ProviderScope(
-      child: NutrifyApp(),
+      child: AiAteIndonesiaApp(),
     ),
   );
 }

@@ -1,37 +1,58 @@
 import type { Metadata, Viewport } from 'next'
-import { Fraunces, Plus_Jakarta_Sans } from 'next/font/google'
+import { Plus_Jakarta_Sans, Fraunces, Playfair_Display, Caveat } from 'next/font/google'
 import './globals.css'
 import { AppProvider } from '@/lib/AppContext'
+import { ThemeProvider } from '@/components/providers/ThemeProvider'
 import UpdatePrompt from '@/components/UpdatePrompt'
 
 const fraunces = Fraunces({
   subsets: ['latin'],
-  display: 'swap',
-  variable: '--font-fraunces',
-  weight: ['400', '500', '600', '700'],
+  variable: '--font-display',
+  weight: ['300', '400', '500', '600', '700'],
+  style: ['normal', 'italic'],
 })
 
-const jakartaSans = Plus_Jakarta_Sans({
+const plusJakartaSans = Plus_Jakarta_Sans({
   subsets: ['latin'],
-  display: 'swap',
-  variable: '--font-jakarta',
+  variable: '--font-body',
   weight: ['400', '500', '600', '700', '800'],
 })
 
+const playfair = Playfair_Display({
+  subsets: ['latin'],
+  variable: '--font-editorial',
+  weight: ['400', '500', '600', '700', '800'],
+  style: ['normal', 'italic'],
+})
+
+const caveat = Caveat({
+  subsets: ['latin'],
+  variable: '--font-handwritten',
+  weight: ['400', '500', '600', '700'],
+})
+
 export const metadata: Metadata = {
-  title: 'Nutrify — Nutrisi Personal Berbasis Budaya Indonesia',
-  description: 'Rancang pola makan sehat dengan kecerdasan yang memahami bahan lokal, tradisi kuliner, dan kebutuhan gizi unikmu.',
+  title: 'AI Ate Indonesia — Sehat dengan Cita Rasa Nusantara',
+  description: 'Program diet berbasis pangan lokal Indonesia — lebih terjangkau, lebih lezat, lebih sehat. Didukung oleh AI.',
   manifest: '/manifest.json',
   icons: {
     icon: [
-      { url: '/logorevisi.png', type: 'image/png' },
+      { url: '/brand/logogram-32px.ico', sizes: '32x32' },
+      { url: '/brand/logogram192px.png', type: 'image/png', sizes: '192x192' },
     ],
-    apple: '/logorevisi.png',
+    apple: '/brand/logogram192px.png',
   },
 }
 
 export const viewport: Viewport = {
-  themeColor: '#1E1810',
+  themeColor: [
+    { media: '(prefers-color-scheme: light)', color: '#FFFFFF' },
+    { media: '(prefers-color-scheme: dark)', color: '#121212' },
+  ],
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
 }
 
 export default function RootLayout({
@@ -40,41 +61,21 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="id" suppressHydrationWarning className={`${fraunces.variable} ${jakartaSans.variable}`}>
+    <html lang="id" suppressHydrationWarning className={`${fraunces.variable} ${plusJakartaSans.variable} ${playfair.variable} ${caveat.variable}`}>
       <head>
-        <link rel="icon" href="/logorevisi.png" type="image/png" />
+        <link rel="icon" href="/assets/brand/logogram-32px.ico" sizes="any" />
+        <link rel="icon" href="/assets/brand/logogram32px.png" type="image/png" />
+        <link rel="apple-touch-icon" href="/assets/brand/logogram192px.png" />
         <link rel="manifest" href="/manifest.json" />
-        <meta name="theme-color" content="#1E1810" />
         <meta name="mobile-web-app-capable" content="yes" />
-        <script dangerouslySetInnerHTML={{
-          __html: `
-            (function() {
-              var APP_VERSION = '2.0.0';
-              var storedVersion = localStorage.getItem('appVersion');
-              if (storedVersion !== APP_VERSION) {
-                console.log('App updated from', storedVersion, 'to', APP_VERSION);
-                localStorage.removeItem('appSettings');
-                localStorage.setItem('appVersion', APP_VERSION);
-                if ('caches' in window) {
-                  caches.keys().then(function(names) {
-                    names.forEach(function(name) { caches.delete(name); });
-                  });
-                }
-                if ('serviceWorker' in navigator) {
-                  navigator.serviceWorker.getRegistrations().then(function(registrations) {
-                    registrations.forEach(function(registration) { registration.unregister(); });
-                  });
-                }
-              }
-            })();
-          `
-        }} />
       </head>
-      <body className={`${fraunces.variable} ${jakartaSans.variable} font-sans bg-background text-text-primary antialiased`}>
-        <AppProvider>
-          {children}
-          <UpdatePrompt />
-        </AppProvider>
+      <body className={`${fraunces.variable} ${plusJakartaSans.variable} ${playfair.variable} ${caveat.variable} font-body bg-paper-light text-text-primary antialiased`}>
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+          <AppProvider>
+            {children}
+            <UpdatePrompt />
+          </AppProvider>
+        </ThemeProvider>
       </body>
     </html>
   )

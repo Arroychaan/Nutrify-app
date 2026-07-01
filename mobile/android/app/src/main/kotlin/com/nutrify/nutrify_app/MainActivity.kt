@@ -1,4 +1,4 @@
-package com.nutrify.nutrify_app
+package com.aiate.app
 
 import io.flutter.embedding.android.FlutterActivity
 

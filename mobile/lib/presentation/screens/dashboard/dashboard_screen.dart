@@ -137,7 +137,7 @@ class DashboardScreen extends ConsumerWidget {
             border: Border.all(color: AppColors.border),
             image: const DecorationImage(
               image: AssetImage(
-                'assets/images/avatar_placeholder.png',
+                'assets/icons/avatar_placeholder.png',
               ), // Fallback if no asset
               fit: BoxFit.cover,
             ),

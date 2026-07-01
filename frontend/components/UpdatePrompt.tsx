@@ -85,7 +85,7 @@ export default function UpdatePrompt() {
         {/* Content */}
         <div className="p-4">
           <p className="text-gray-600 dark:text-gray-300 text-sm mb-4">
-            Versi baru Nutrify tersedia dengan fitur dan perbaikan terbaru. 
+            Versi baru AI Ate Indonesia tersedia dengan fitur dan perbaikan terbaru. 
             Update sekarang untuk pengalaman terbaik!
           </p>
 

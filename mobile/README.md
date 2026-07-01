@@ -1,4 +1,4 @@
-# nutrify_app
+# ai_ate_app
 
 A new Flutter project.
 
