@@ -45,8 +45,8 @@ export const authApi = {
     email: string
     password: string
     fullName: string
-    heightCm: number
-    currentWeightKg: number
+    heightCm?: number
+    currentWeightKg?: number
   }) => {
     const response = await api.post('/api/v1/auth/register', data)
     // Backend returns { success: true, data: { accessToken, ... } }

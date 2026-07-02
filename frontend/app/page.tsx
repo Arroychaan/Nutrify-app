@@ -1,322 +1,249 @@
 'use client'
 
-import React, { useEffect, useState } from 'react'
-import Link from 'next/link'
+import React, { useState, useEffect } from 'react'
 import Image from 'next/image'
+import Link from 'next/link'
+import { User, KeyRound, ChevronLeft, ChevronRight, Eye, EyeOff } from 'lucide-react'
 
-// Elegant Fade-in component for Editorial style (slower, graceful)
-function FadeIn({ children, delay = 0, className = '' }: { children: React.ReactNode; delay?: number, className?: string }) {
-  const [isVisible, setIsVisible] = useState(false)
-  const ref = React.useRef<HTMLDivElement>(null)
+type AuthMode = 'login' | 'register'
+
+export default function UnifiedAuthPage() {
+  const [mode, setMode] = useState<AuthMode>('login')
+  const [currentSlide, setCurrentSlide] = useState(0)
+  const [showPassword, setShowPassword] = useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+  
+  const slides = [
+    '/assets/login-register/slide1.jpg',
+    '/assets/login-register/slide2.jpg',
+    '/assets/login-register/slide3.jpg',
+    '/assets/login-register/slide4.jpg',
+    '/assets/login-register/slide5.jpg',
+  ]
+
+  const nextSlide = () => setCurrentSlide((prev) => (prev + 1) % slides.length)
+  const prevSlide = () => setCurrentSlide((prev) => (prev - 1 + slides.length) % slides.length)
 
   useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setIsVisible(true)
-          observer.unobserve(entry.target)
-        }
-      },
-      { threshold: 0.1, rootMargin: '0px 0px -50px 0px' }
-    )
-    const currentRef = ref.current
-    if (currentRef) observer.observe(currentRef)
-    return () => {
-      if (currentRef) observer.unobserve(currentRef)
-    }
+    const timer = setInterval(nextSlide, 5000)
+    return () => clearInterval(timer)
   }, [])
 
   return (
-    <div
-      ref={ref}
-      className={`transition-all duration-[1500ms] ease-[cubic-bezier(0.16,1,0.3,1)] transform ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'} ${className}`}
-      style={{ transitionDelay: `${delay}ms` }}
-    >
-      {children}
-    </div>
-  )
-}
-
-export default function LandingPage() {
-  const [scrolled, setScrolled] = useState(false)
-
-  useEffect(() => {
-    const handleScroll = () => setScrolled(window.scrollY > 20)
-    window.addEventListener('scroll', handleScroll)
-    return () => window.removeEventListener('scroll', handleScroll)
-  }, [])
-
-  return (
-    <main className="min-h-screen overflow-hidden bg-surface relative selection:bg-sage/20 selection:text-ink">
+    <div className="flex h-screen w-full overflow-hidden bg-white font-display selection:bg-sage/30">
       
-      {/* Subtle Texture Overlay - gives depth without clutter */}
-      <div className="fixed inset-0 pointer-events-none z-0 mix-blend-multiply opacity-[0.03] bg-[url('/assets/scrapbook/paper-recycled.jpg')] bg-repeat"></div>
-
-      {/* Editorial Navbar - Minimalist */}
-      <nav className={`fixed top-0 inset-x-0 z-50 transition-all duration-700 ${scrolled ? 'bg-surface/90 backdrop-blur-md py-4' : 'bg-transparent py-8'}`}>
-        <div className="max-w-[90rem] mx-auto px-6 sm:px-12 flex justify-between items-center border-b border-ink/10 pb-4">
-          <Link href="/" className="flex items-center gap-3 group">
-            <div className="relative w-8 h-8">
-               <Image src="/assets/brand/Logogram.svg" alt="AI Ate Logo" fill className="object-contain" />
-            </div>
-            <span className="font-editorial text-2xl font-bold text-ink tracking-tight">AI Ate.</span>
-          </Link>
-          
-          <div className="hidden lg:flex items-center gap-12 font-editorial italic text-lg text-ink/70">
-            <Link href="#edisi" className="hover:text-ink transition-colors">Edisi Jurnal</Link>
-            <Link href="#kurasi" className="hover:text-ink transition-colors">Kurasi Nutrisi</Link>
-            <Link href="#langganan" className="hover:text-ink transition-colors">Langganan</Link>
+      {/* LEFT SIDE: Image Showcase with Carousel */}
+      <div className="relative hidden lg:block lg:w-[55%] h-full bg-ink">
+        {slides.map((slide, index) => (
+          <div
+            key={index}
+            className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${
+              index === currentSlide ? 'opacity-100 z-10' : 'opacity-0 z-0'
+            }`}
+          >
+            <Image
+              src={slide}
+              alt={`Slide ${index + 1}`}
+              fill
+              className="object-cover"
+              priority={index === 0}
+            />
           </div>
+        ))}
+        
+        {/* Soft Gradient Overlay for better UI visibility */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent z-10" />
+
+        {/* Carousel Controls */}
+        <div className="absolute bottom-12 inset-x-0 z-20 flex items-center justify-between px-12">
+          <button 
+            onClick={prevSlide}
+            className="p-2 rounded-full bg-white/10 hover:bg-white/20 backdrop-blur-md text-white transition-all transform hover:-translate-x-1"
+          >
+            <ChevronLeft className="w-8 h-8" strokeWidth={1.5} />
+          </button>
           
-          <div className="flex items-center gap-6 font-editorial">
-            <Link href="/auth/login" className="hidden sm:block text-ink/70 hover:text-ink transition-colors text-lg italic">
-              Masuk
-            </Link>
-            <Link href="/auth/register" className="bg-ink text-surface px-6 py-2 rounded-none hover:bg-ink-2 transition-colors border border-ink text-lg uppercase tracking-widest text-sm">
-              Mulai
-            </Link>
+          <div className="flex gap-4">
+            {slides.map((_, index) => (
+              <button
+                key={index}
+                onClick={() => setCurrentSlide(index)}
+                className={`transition-all duration-500 rounded-full ${
+                  index === currentSlide 
+                    ? 'w-8 h-2.5 bg-white' 
+                    : 'w-2.5 h-2.5 bg-white/40 hover:bg-white/70'
+                }`}
+                aria-label={`Go to slide ${index + 1}`}
+              />
+            ))}
           </div>
-        </div>
-      </nav>
 
-      {/* Hero Section - Magazine Cover Style */}
-      <section className="relative min-h-screen pt-32 pb-20 px-6 sm:px-12 flex items-center justify-center">
-        <div className="max-w-[90rem] mx-auto w-full grid grid-cols-1 lg:grid-cols-12 gap-12 items-center relative z-10">
-          
-          {/* Left Column: Huge Typography */}
-          <div className="col-span-1 lg:col-span-7">
-            <FadeIn>
-              <div className="font-editorial italic text-sage text-xl mb-6">Vol. 1 — Inovasi Pangan Lokal</div>
-            </FadeIn>
-            
-            <FadeIn delay={200}>
-              <h1 className="text-[12vw] lg:text-[7.5rem] leading-[0.85] font-editorial text-ink tracking-tighter mb-8">
-                Cita Rasa <br />
-                <span className="italic text-ink-2">Nusantara.</span>
-              </h1>
-            </FadeIn>
-
-            <FadeIn delay={400} className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-2xl mt-12 border-t border-ink/20 pt-8">
-              <div>
-                <p className="font-body text-ink-2 leading-relaxed text-sm uppercase tracking-widest mb-2 font-bold">Visi Kami</p>
-                <p className="font-editorial text-lg text-ink leading-snug">Menghadirkan kecerdasan buatan ke meja makan Anda, dengan kearifan resep lokal.</p>
-              </div>
-              <div>
-                <p className="font-body text-ink-2 leading-relaxed text-sm uppercase tracking-widest mb-2 font-bold">Pendekatan</p>
-                <p className="font-editorial text-lg text-ink leading-snug">Gizi yang dipersonalisasi secara presisi, ramah kantong, dan divalidasi secara medis.</p>
-              </div>
-            </FadeIn>
-          </div>
-          
-          {/* Right Column: Hero Art Piece */}
-          <div className="col-span-1 lg:col-span-5 relative flex justify-center lg:justify-end">
-            <FadeIn delay={600} className="relative w-full max-w-[500px] aspect-[3/4]">
-              {/* Frame */}
-              <div className="absolute inset-0 border border-ink/10 bg-surface-2 p-4">
-                <div className="relative w-full h-full border border-ink/5 bg-surface overflow-hidden group">
-                  {/* Subtle Stamp Watermark */}
-                  <div className="absolute top-4 right-4 z-10 opacity-30 mix-blend-multiply w-20 h-20 rotate-12">
-                     <Image src="/assets/scrapbook/stamp-gold.png" alt="Stamp" fill className="object-contain" />
-                  </div>
-                  
-                  {/* Hero 3D Asset */}
-                  <div className="absolute inset-0 flex items-center justify-center p-8">
-                    <div className="relative w-full h-full transform group-hover:scale-105 transition-transform duration-[2000ms] ease-out">
-                      <Image src="/assets/3d-foods/Nasi-padang.png" alt="Nasi Padang" fill className="object-contain drop-shadow-2xl" priority />
-                    </div>
-                  </div>
-
-                  {/* Caption */}
-                  <div className="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-surface to-transparent">
-                    <p className="font-editorial italic text-2xl text-ink">Nasi Padang Sehat</p>
-                    <div className="w-12 h-[1px] bg-ink mt-2 mb-2"></div>
-                    <p className="font-body text-xs text-ink-2 uppercase tracking-widest">450 Kkal • Tinggi Protein</p>
-                  </div>
-                </div>
-              </div>
-            </FadeIn>
-          </div>
-        </div>
-      </section>
-
-      {/* Marquee or Separator */}
-      <div className="border-y border-ink/10 py-6 overflow-hidden flex items-center bg-surface-2">
-        <div className="font-editorial italic text-2xl text-ink/60 whitespace-nowrap px-4 tracking-wider flex gap-12">
-          <span>Keakuratan Medis</span>
-          <span className="text-sage">•</span>
-          <span>100% Pangan Lokal</span>
-          <span className="text-sage">•</span>
-          <span>Kecerdasan Buatan Terdepan</span>
-          <span className="text-sage">•</span>
-          <span>Personalisasi Sempurna</span>
-          <span className="text-sage">•</span>
-          <span>Keakuratan Medis</span>
+          <button 
+            onClick={nextSlide}
+            className="p-2 rounded-full bg-white/10 hover:bg-white/20 backdrop-blur-md text-white transition-all transform hover:translate-x-1"
+          >
+            <ChevronRight className="w-8 h-8" strokeWidth={1.5} />
+          </button>
         </div>
       </div>
 
-      {/* Editorial Features - 3 Columns Layout */}
-      <section id="kurasi" className="py-32 px-6 sm:px-12 bg-surface relative z-10">
-        <div className="max-w-[90rem] mx-auto">
-          <FadeIn>
-            <div className="mb-20">
-              <h2 className="text-5xl lg:text-7xl font-editorial text-ink tracking-tight mb-6">Kurasi <br/><span className="italic text-ink-2">Masa Depan.</span></h2>
-              <div className="w-24 h-[1px] bg-ink"></div>
+      {/* RIGHT SIDE: Auth Form */}
+      <div className="w-full lg:w-[45%] h-full relative flex flex-col justify-between bg-[#FAFAFA]">
+        
+        {/* Pattern Background */}
+        <div 
+          className="absolute inset-0 opacity-[0.04] z-0 pointer-events-none mix-blend-multiply"
+          style={{
+            backgroundImage: "url('/assets/login-register/pattern-background.svg')",
+            backgroundSize: '400px',
+            backgroundRepeat: 'repeat'
+          }}
+        />
+
+        <div className="flex-1 flex flex-col items-center justify-center px-8 sm:px-16 xl:px-24 relative z-10 w-full max-w-2xl mx-auto">
+          
+          {/* Top Pill Toggle (Login / Register) */}
+          <div className="mb-12">
+            <div className="bg-[#FFD25B]/20 rounded-full p-1.5 flex items-center justify-center relative overflow-hidden border border-[#FFD25B]/30 shadow-sm">
+               <div 
+                  className={`absolute inset-y-1.5 w-[calc(50%-6px)] bg-[#FFD25B] rounded-full transition-transform duration-500 ease-spring shadow-sm ${
+                    mode === 'login' ? 'left-1.5' : 'translate-x-full left-[4.5px]'
+                  }`}
+               />
+               <button 
+                 onClick={() => setMode('login')}
+                 className={`relative z-10 w-32 py-2.5 text-sm font-bold uppercase tracking-wider transition-colors duration-300 ${
+                   mode === 'login' ? 'text-ink' : 'text-ink/50 hover:text-ink/80'
+                 }`}
+               >
+                 Login
+               </button>
+               <button 
+                 onClick={() => setMode('register')}
+                 className={`relative z-10 w-32 py-2.5 text-sm font-bold uppercase tracking-wider transition-colors duration-300 ${
+                   mode === 'register' ? 'text-ink' : 'text-ink/50 hover:text-ink/80'
+                 }`}
+               >
+                 Register
+               </button>
             </div>
-          </FadeIn>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-12 lg:gap-24">
-            
-            {/* Feature 1 */}
-            <FadeIn delay={100}>
-              <div className="border-t border-ink/20 pt-6">
-                <span className="block font-editorial text-5xl text-ink/20 mb-6 italic">01</span>
-                <h3 className="text-3xl font-editorial font-bold text-ink mb-4">Pustaka Nusantara</h3>
-                <p className="text-ink-2 font-body leading-relaxed mb-8">Dari tempe mendoan hingga cakalang fufu. Kami telah mengkurasi dan menghitung nilai gizi dari 1.200+ resep otentik Indonesia secara akurat.</p>
-                <div className="relative w-full aspect-square bg-surface-2 border border-ink/10 p-8 flex items-center justify-center">
-                  <Image src="/assets/3d-foods/sate-ayam.png" alt="Sate Ayam" fill className="object-contain p-8 hover:scale-110 transition-transform duration-[1500ms]" />
-                </div>
-              </div>
-            </FadeIn>
-
-            {/* Feature 2 */}
-            <FadeIn delay={200}>
-              <div className="border-t border-ink/20 pt-6">
-                <span className="block font-editorial text-5xl text-ink/20 mb-6 italic">02</span>
-                <h3 className="text-3xl font-editorial font-bold text-ink mb-4">Asisten Cerdas</h3>
-                <p className="text-ink-2 font-body leading-relaxed mb-8">Bukan sekadar pencatat kalori. AI kami menganalisis kondisi medis, anggaran, dan preferensi lidah Anda untuk menyusun menu ideal.</p>
-                <div className="relative w-full aspect-square bg-surface-2 border border-ink/10 p-8 flex items-center justify-center overflow-hidden">
-                  <div className="absolute inset-0 opacity-10 bg-[url('/assets/brand/Pattern-Brand.svg')] bg-cover mix-blend-multiply"></div>
-                  <Image src="/assets/illustrations/ai-bingung.png" alt="AI Assistant" fill className="object-contain p-12 hover:-rotate-3 transition-transform duration-[1500ms]" />
-                </div>
-              </div>
-            </FadeIn>
-
-            {/* Feature 3 */}
-            <FadeIn delay={300}>
-              <div className="border-t border-ink/20 pt-6">
-                <span className="block font-editorial text-5xl text-ink/20 mb-6 italic">03</span>
-                <h3 className="text-3xl font-editorial font-bold text-ink mb-4">Pantauan Medis</h3>
-                <p className="text-ink-2 font-body leading-relaxed mb-8">Dilengkapi dengan validasi ahli gizi, sistem kami akan memperingatkan jika sebuah menu berpotensi memicu masalah kesehatan Anda.</p>
-                <div className="relative w-full aspect-square bg-surface-2 border border-ink/10 p-8 flex items-center justify-center">
-                   <div className="relative w-32 h-32">
-                     <Image src="/assets/badges/medali-kalori-streak.png" alt="Medical Badge" fill className="object-contain drop-shadow-xl" />
-                   </div>
-                </div>
-              </div>
-            </FadeIn>
-
-          </div>
-        </div>
-      </section>
-
-      {/* Pricing - Minimalist Table/Block */}
-      <section id="langganan" className="py-32 px-6 sm:px-12 bg-surface-2 border-y border-ink/10">
-        <div className="max-w-[90rem] mx-auto grid grid-cols-1 lg:grid-cols-2 gap-20">
-          
-          <div className="flex flex-col justify-center">
-            <FadeIn>
-              <h2 className="text-5xl lg:text-7xl font-editorial text-ink tracking-tight mb-8">Berlangganan <br/><span className="italic text-ink-2">Edisi Jurnal.</span></h2>
-              <p className="text-xl font-editorial text-ink-2 max-w-md leading-relaxed mb-12">
-                Pilih edisi yang sesuai dengan kedalaman perjalanan diet dan gaya hidup Anda.
-              </p>
-              <div className="hidden lg:block">
-                 <Image src="/assets/brand/Wordmark.svg" alt="Wordmark" width={180} height={40} className="opacity-50" />
-              </div>
-            </FadeIn>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
-            <FadeIn delay={100} className="bg-surface border border-ink/20 p-10 flex flex-col justify-between">
-              <div>
-                <h3 className="text-2xl font-editorial font-bold text-ink mb-2">Edisi Standar</h3>
-                <div className="w-8 h-[1px] bg-ink mb-6"></div>
-                <div className="text-4xl font-editorial text-ink mb-8">Gratis</div>
-                <ul className="space-y-4 font-body text-sm text-ink-2 mb-12">
-                  <li className="flex items-start gap-4">
-                    <span className="block mt-1 w-1 h-1 bg-ink rounded-full"></span> 
-                    Akses 500+ resep dasar Nusantara
-                  </li>
-                  <li className="flex items-start gap-4">
-                    <span className="block mt-1 w-1 h-1 bg-ink rounded-full"></span> 
-                    Pencatatan kalori manual harian
-                  </li>
-                </ul>
-              </div>
-              <Link href="/auth/register" className="block text-center border border-ink py-4 uppercase tracking-widest text-xs font-bold hover:bg-ink hover:text-surface transition-colors">
-                Mulai Membaca
-              </Link>
-            </FadeIn>
+          {/* Form Area */}
+          <div className="w-full animate-in fade-in slide-in-from-bottom-4 duration-700 fill-mode-both" key={mode}>
+            <form className="space-y-6 w-full" onSubmit={(e) => e.preventDefault()}>
+              
+              {/* Name/Email Input */}
 
-            <FadeIn delay={200} className="bg-ink text-surface border border-ink p-10 flex flex-col justify-between relative">
-              <div className="absolute top-0 right-0 p-4">
-                 <Image src="/assets/scrapbook/stamp-gold.png" alt="Premium" width={60} height={60} className="opacity-80 rotate-[15deg]" />
+              <div className="relative group">
+                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                  <User className="w-6 h-6 text-ink/40 group-focus-within:text-sage transition-colors" />
+                </div>
+                <input
+                  type="text"
+                  placeholder={mode === 'login' ? 'Email atau Username' : 'Nama Lengkap'}
+                  className="w-full h-14 pl-14 pr-4 bg-white border-2 border-surface-2 rounded-2xl outline-none focus:border-sage focus:ring-4 focus:ring-sage/10 transition-all text-ink font-medium placeholder:text-ink/40 placeholder:font-normal shadow-sm"
+                />
               </div>
-              <div>
-                <h3 className="text-2xl font-editorial font-bold text-surface mb-2">Edisi Premium</h3>
-                <div className="w-8 h-[1px] bg-surface mb-6"></div>
-                <div className="text-4xl font-editorial text-surface mb-8">Rp 49rb<span className="text-lg italic text-surface/60">/bln</span></div>
-                <ul className="space-y-4 font-body text-sm text-surface-2 mb-12">
-                  <li className="flex items-start gap-4">
-                    <span className="block mt-1 w-1 h-1 bg-sage-light rounded-full"></span> 
-                    Analisis AI Nutrisi Personal 24/7
-                  </li>
-                  <li className="flex items-start gap-4">
-                    <span className="block mt-1 w-1 h-1 bg-sage-light rounded-full"></span> 
-                    Rencana Menu 30 Hari Otomatis
-                  </li>
-                  <li className="flex items-start gap-4">
-                    <span className="block mt-1 w-1 h-1 bg-sage-light rounded-full"></span> 
-                    Kesesuaian Data Rekam Medis
-                  </li>
-                </ul>
+
+              {/* Password Input */}
+              <div className="relative group">
+                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                  <KeyRound className="w-6 h-6 text-ink/40 group-focus-within:text-sage transition-colors" />
+                </div>
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  placeholder="Masukkan Password Disini"
+                  className="w-full h-14 pl-14 pr-12 bg-white border-2 border-surface-2 rounded-2xl outline-none focus:border-sage focus:ring-4 focus:ring-sage/10 transition-all text-ink font-medium placeholder:text-ink/40 placeholder:font-normal shadow-sm"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute inset-y-0 right-0 pr-4 flex items-center text-ink/40 hover:text-ink transition-colors"
+                >
+                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                </button>
               </div>
-              <Link href="/auth/register" className="block text-center bg-surface text-ink border border-surface py-4 uppercase tracking-widest text-xs font-bold hover:bg-surface-2 transition-colors">
-                Berlangganan
-              </Link>
-            </FadeIn>
-          </div>
 
-        </div>
-      </section>
+              {/* Confirm Password (Only Register) */}
+              {mode === 'register' && (
+                <div className="relative group animate-in fade-in slide-in-from-top-2 duration-500">
+                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                    <KeyRound className="w-6 h-6 text-ink/40 group-focus-within:text-sage transition-colors" />
+                  </div>
+                  <input
+                    type={showConfirmPassword ? 'text' : 'password'}
+                    placeholder="Masukkan Password yang Sama"
+                    className="w-full h-14 pl-14 pr-12 bg-white border-2 border-surface-2 rounded-2xl outline-none focus:border-sage focus:ring-4 focus:ring-sage/10 transition-all text-ink font-medium placeholder:text-ink/40 placeholder:font-normal shadow-sm"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    className="absolute inset-y-0 right-0 pr-4 flex items-center text-ink/40 hover:text-ink transition-colors"
+                  >
+                    {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                  </button>
+                </div>
+              )}
 
-      {/* Footer - Editorial Colophon */}
-      <footer className="bg-surface pt-24 pb-12 px-6 sm:px-12 border-t-[8px] border-ink">
-        <div className="max-w-[90rem] mx-auto grid grid-cols-1 md:grid-cols-4 gap-16 mb-20">
-          
-          <div className="md:col-span-2">
-            <h2 className="font-editorial text-4xl text-ink tracking-tight mb-6">AI Ate<span className="italic">.</span></h2>
-            <p className="text-ink-2 font-editorial italic text-xl max-w-md leading-relaxed">
-              Sebuah terbitan kesehatan digital yang memadukan keindahan resep warisan leluhur dengan kecerdasan teknologi komputasi presisi.
+              {/* Submit Button */}
+              <button 
+                type="submit"
+                className={`w-full h-14 mt-4 rounded-2xl text-white font-bold text-lg tracking-wide shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300 ${
+                  mode === 'login' 
+                    ? 'bg-gradient-to-r from-[#4A7C82] to-[#3D696E] hover:from-[#3D696E] hover:to-[#31565A]' // Refined Teal
+                    : 'bg-gradient-to-r from-[#F26C2A] to-[#E55B19] hover:from-[#E55B19] hover:to-[#D44A08]' // Refined Orange
+                }`}
+              >
+                {mode === 'login' ? 'Masuk' : 'Daftar'}
+              </button>
+            </form>
+
+            {/* Switch Mode Link */}
+            <p className="text-center mt-8 text-ink-2 font-medium">
+              {mode === 'login' ? (
+                <>
+                  Pengguna Baru? <button onClick={() => setMode('register')} className="text-[#4A7C82] font-bold hover:underline">Klik Untuk Daftar</button>
+                </>
+              ) : (
+                <>
+                  Sudah Punya Akun? <button onClick={() => setMode('login')} className="text-[#F26C2A] font-bold hover:underline">Masuk</button>
+                </>
+              )}
             </p>
           </div>
-          
-          <div>
-            <h4 className="font-body text-xs font-bold uppercase tracking-widest text-ink mb-8">Indeks</h4>
-            <ul className="space-y-3 font-editorial text-lg text-ink-2">
-              <li><Link href="#kurasi" className="hover:text-ink hover:italic transition-all">Kurasi & Fitur</Link></li>
-              <li><Link href="#langganan" className="hover:text-ink hover:italic transition-all">Berlangganan</Link></li>
-              <li><Link href="/auth/login" className="hover:text-ink hover:italic transition-all">Masuk Akun</Link></li>
-            </ul>
+        </div>
+
+        {/* Footer */}
+        <div className="relative z-10 w-full px-8 pb-8 pt-4 flex flex-col md:flex-row items-center justify-between gap-6 border-t border-surface-2 bg-white/50 backdrop-blur-md">
+          {/* Brand Logo & Tagline */}
+          <div className="flex flex-col items-center md:items-start">
+             <Image 
+               src="/assets/login-register/ai-ate-logo-login-register.svg" 
+               alt="AI Ate Indonesia - Diet Lokal Bergizi" 
+               width={220} 
+               height={60} 
+               className="object-contain" 
+             />
           </div>
-          
-          <div>
-            <h4 className="font-body text-xs font-bold uppercase tracking-widest text-ink mb-8">Redaksi</h4>
-            <ul className="space-y-3 font-editorial text-lg text-ink-2">
-              <li>halo@aiate.id</li>
-              <li>@aiate.indonesia</li>
-              <li>Jakarta, Indonesia</li>
-            </ul>
+
+          {/* Footer Links */}
+          <div className="flex flex-wrap justify-center md:justify-end gap-x-3 gap-y-1 text-[11px] font-bold text-ink hover:[&>a]:text-sage hover:[&>a]:underline transition-colors">
+            <Link href="/about">Tentang</Link>
+            <span className="text-surface-2">|</span>
+            <Link href="/services">Layanan</Link>
+            <span className="text-surface-2">|</span>
+            <Link href="/pricing">Harga</Link>
+            <span className="text-surface-2">|</span>
+            <Link href="/faq">Faq</Link>
+            <span className="text-surface-2">|</span>
+            <Link href="/terms">Kebijakan Layanan</Link>
+            <span className="text-surface-2">|</span>
+            <Link href="/privacy">Privasi Pengguna</Link>
           </div>
         </div>
 
-        <div className="max-w-[90rem] mx-auto border-t border-ink/20 pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-xs font-body text-ink-3 uppercase tracking-widest">
-          <p>© {new Date().getFullYear()} AI Ate Indonesia. Hak cipta dilindungi.</p>
-          <div className="flex gap-8">
-            <Link href="#" className="hover:text-ink transition-colors">Privasi</Link>
-            <Link href="#" className="hover:text-ink transition-colors">Ketentuan</Link>
-          </div>
-        </div>
-      </footer>
-    </main>
+      </div>
+    </div>
   )
 }

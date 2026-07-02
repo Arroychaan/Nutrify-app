@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { motion } from 'framer-motion'
 import {
@@ -33,7 +33,7 @@ const popularFoods = [
 
 type PortionUnit = 'piring' | 'mangkok' | 'potong' | 'gelas' | 'gram' | 'ml' | 'buah' | 'sdm';
 
-export default function AddFoodLogPage() {
+function AddFoodLogPageContent() {
     const router = useRouter()
     const searchParams = useSearchParams()
     const mealParam = searchParams.get('meal')
@@ -577,5 +577,13 @@ export default function AddFoodLogPage() {
                 </div>
             </div>
         </>
+    )
+}
+
+export default function AddFoodLogPage() {
+    return (
+        <Suspense fallback={<div className="flex h-screen items-center justify-center text-stone-500 font-mono text-sm">Memuat Pencarian Makanan...</div>}>
+            <AddFoodLogPageContent />
+        </Suspense>
     )
 }

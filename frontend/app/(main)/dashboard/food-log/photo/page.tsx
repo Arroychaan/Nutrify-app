@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { motion } from 'framer-motion'
 import {
@@ -23,7 +23,7 @@ import Image from 'next/image'
 import { foodLogApi, api } from '@/lib/api'
 import Toast from '@/components/Toast'
 
-export default function PhotoFoodPage() {
+function PhotoFoodPageContent() {
     const router = useRouter()
     const searchParams = useSearchParams()
     const mealParam = searchParams.get('meal')
@@ -433,5 +433,13 @@ export default function PhotoFoodPage() {
                 )}
             </div>
         </>
+    )
+}
+
+export default function PhotoFoodPage() {
+    return (
+        <Suspense fallback={<div className="flex h-screen items-center justify-center text-stone-500 font-mono text-sm">Memuat Kamera...</div>}>
+            <PhotoFoodPageContent />
+        </Suspense>
     )
 }
