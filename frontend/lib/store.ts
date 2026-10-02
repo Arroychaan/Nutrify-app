@@ -68,9 +68,13 @@ export const useAppStore = create<UserState>()(
 
         let fullName = get().fullName;
         let streakDays = 0;
-        if (meRes?.data) {
-          fullName = meRes.data.fullName || fullName;
-          streakDays = meRes.data.streakDays || 0;
+
+        // Bug #3 Fix: authApi.me() returns { success, data: {...} }
+        // response.data is already unwrapped by axios → meRes = { success, data: { id, fullName, ... } }
+        const userData = meRes?.data ?? meRes;
+        if (userData?.fullName) {
+          fullName = userData.fullName;
+          streakDays = userData.streakDays || 0;
         }
 
         let dailyCalorieTarget = 1800;
@@ -84,41 +88,39 @@ export const useAppStore = create<UserState>()(
         const meals = { breakfast: [], lunch: [], dinner: [], snacks: [] } as UserState['meals'];
         let caloriesConsumed = 0;
         
-        if (todayFoodRes && Array.isArray(todayFoodRes)) {
-          todayFoodRes.forEach((log: any) => {
-            const mealType = log.mealType.toLowerCase();
-            if (meals[mealType as keyof typeof meals]) {
-              meals[mealType as keyof typeof meals].push({
-                id: log.id,
-                name: log.foodName,
-                cal: Number(log.calories || 0),
-                protein: Number(log.proteinG || 0),
-                carbs: Number(log.carbsG || 0),
-                fat: Number(log.fatG || 0),
-                price: 0, // Not directly stored in foodLogs
-                image: log.imageUrl || '',
-                category: ''
-              });
-              caloriesConsumed += Number(log.calories || 0);
-            }
-          });
-        }
+        const foodLogs = Array.isArray(todayFoodRes) ? todayFoodRes : (todayFoodRes?.logs ?? []);
+        foodLogs.forEach((log: any) => {
+          const mealType = log.mealType?.toLowerCase();
+          if (mealType && meals[mealType as keyof typeof meals]) {
+            meals[mealType as keyof typeof meals].push({
+              id: log.id,
+              name: log.foodName,
+              cal: Number(log.calories || 0),
+              protein: Number(log.proteinG || 0),
+              carbs: Number(log.carbsG || 0),
+              fat: Number(log.fatG || 0),
+              price: 0,
+              image: log.imageUrl || '',
+              category: ''
+            });
+            caloriesConsumed += Number(log.calories || 0);
+          }
+        });
 
         // Parse transactions
         let budgetSpent = 0;
         const transactions: UserState['transactions'] = [];
-        if (todayTxRes && Array.isArray(todayTxRes)) {
-          todayTxRes.forEach((tx: any) => {
-            transactions.push({
-              id: tx.id,
-              date: new Date(tx.transactionDate).toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' }),
-              name: tx.name,
-              amount: Number(tx.amount),
-              category: tx.category,
-            });
-            budgetSpent += Number(tx.amount);
+        const txList = Array.isArray(todayTxRes) ? todayTxRes : (todayTxRes?.transactions ?? []);
+        txList.forEach((tx: any) => {
+          transactions.push({
+            id: tx.id,
+            date: new Date(tx.transactionDate).toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' }),
+            name: tx.name,
+            amount: Number(tx.amount),
+            category: tx.category,
           });
-        }
+          budgetSpent += Number(tx.amount);
+        });
 
         set({
           fullName,
@@ -136,54 +138,86 @@ export const useAppStore = create<UserState>()(
       }
     },
 
+    // Bug #11 Fix: Added error handling + optimistic UI rollback
     addFoodToMeal: async (mealType, food) => {
-      // Pessimistic update: Call API first
-      const res = await foodLogApi.create({
-        mealType: mealType,
-        foodName: food.name,
-        calories: food.cal,
-        proteinG: food.protein,
-        carbsG: food.carbs,
-        fatG: food.fat,
-      });
-
-      // Update ID to the real DB id if available
-      const realId = res?.id || food.id;
-      const updatedFood = { ...food, id: realId };
-
-      // Then update local state
+      // Optimistic update first for snappy UX
+      const optimisticFood = { ...food, id: food.id || `temp-${Date.now()}` };
       set((state) => ({
         meals: {
           ...state.meals,
-          [mealType]: [...state.meals[mealType], updatedFood],
+          [mealType]: [...state.meals[mealType], optimisticFood],
         },
-        caloriesConsumed: state.caloriesConsumed + updatedFood.cal,
-        budgetSpent: state.budgetSpent + updatedFood.price,
+        caloriesConsumed: state.caloriesConsumed + optimisticFood.cal,
+        budgetSpent: state.budgetSpent + optimisticFood.price,
       }));
+
+      try {
+        const res = await foodLogApi.create({
+          mealType: mealType,
+          foodName: food.name,
+          calories: food.cal,
+          proteinG: food.protein,
+          carbsG: food.carbs,
+          fatG: food.fat,
+        });
+
+        // Update temp id to real DB id
+        const realId = res?.id || optimisticFood.id;
+        set((state) => ({
+          meals: {
+            ...state.meals,
+            [mealType]: state.meals[mealType].map((f) =>
+              f.id === optimisticFood.id ? { ...f, id: realId } : f
+            ),
+          },
+        }));
+      } catch (error) {
+        console.error('Failed to save food log:', error);
+        // Rollback optimistic update on failure
+        set((state) => ({
+          meals: {
+            ...state.meals,
+            [mealType]: state.meals[mealType].filter((f) => f.id !== optimisticFood.id),
+          },
+          caloriesConsumed: Math.max(0, state.caloriesConsumed - optimisticFood.cal),
+          budgetSpent: Math.max(0, state.budgetSpent - optimisticFood.price),
+        }));
+        throw error;
+      }
     },
 
     removeFoodFromMeal: async (mealType, foodId) => {
-      // API call first
-      await foodLogApi.delete(foodId);
-      
-      set((state) => {
-        const mealList = state.meals[mealType];
-        const foodToRemove = mealList.find(f => f.id === foodId);
-        if (!foodToRemove) return state;
+      // Optimistic removal
+      const currentMeal = get().meals[mealType];
+      const foodToRemove = currentMeal.find(f => f.id === foodId);
+      if (!foodToRemove) return;
 
-        return {
+      set((state) => ({
+        meals: {
+          ...state.meals,
+          [mealType]: state.meals[mealType].filter(f => f.id !== foodId),
+        },
+        caloriesConsumed: Math.max(0, state.caloriesConsumed - foodToRemove.cal),
+        budgetSpent: Math.max(0, state.budgetSpent - foodToRemove.price),
+      }));
+
+      try {
+        await foodLogApi.delete(foodId);
+      } catch (error) {
+        console.error('Failed to delete food log:', error);
+        // Rollback on failure
+        set((state) => ({
           meals: {
             ...state.meals,
-            [mealType]: mealList.filter(f => f.id !== foodId),
+            [mealType]: [...state.meals[mealType], foodToRemove],
           },
-          caloriesConsumed: Math.max(0, state.caloriesConsumed - foodToRemove.cal),
-          budgetSpent: Math.max(0, state.budgetSpent - foodToRemove.price),
-        }
-      })
+          caloriesConsumed: state.caloriesConsumed + foodToRemove.cal,
+          budgetSpent: state.budgetSpent + foodToRemove.price,
+        }));
+      }
     },
 
     addTransaction: async (name, amount, category) => {
-      // API call first
       const tx = await transactionsApi.create({ name, amount, category });
       
       set((state) => {

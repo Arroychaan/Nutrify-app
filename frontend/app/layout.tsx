@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from 'next'
-import { Plus_Jakarta_Sans, Fraunces, Playfair_Display, Caveat } from 'next/font/google'
+import { Poppins, Fraunces } from 'next/font/google'
+import '../styles/design-tokens.css'
 import './globals.css'
 import { AppProvider } from '@/lib/AppContext'
 import { ThemeProvider } from '@/components/providers/ThemeProvider'
@@ -12,23 +13,10 @@ const fraunces = Fraunces({
   style: ['normal', 'italic'],
 })
 
-const plusJakartaSans = Plus_Jakarta_Sans({
+const poppins = Poppins({
   subsets: ['latin'],
   variable: '--font-body',
-  weight: ['400', '500', '600', '700', '800'],
-})
-
-const playfair = Playfair_Display({
-  subsets: ['latin'],
-  variable: '--font-editorial',
-  weight: ['400', '500', '600', '700', '800'],
-  style: ['normal', 'italic'],
-})
-
-const caveat = Caveat({
-  subsets: ['latin'],
-  variable: '--font-handwritten',
-  weight: ['400', '500', '600', '700'],
+  weight: ['300', '400', '500', '600', '700', '800'],
 })
 
 export const metadata: Metadata = {
@@ -37,10 +25,10 @@ export const metadata: Metadata = {
   manifest: '/manifest.json',
   icons: {
     icon: [
-      { url: '/brand/logogram-32px.ico', sizes: '32x32' },
-      { url: '/brand/logogram192px.png', type: 'image/png', sizes: '192x192' },
+      { url: '/assets/brand/logogram-32px.ico', sizes: '32x32' },
+      { url: '/assets/brand/logogram192px.png', type: 'image/png', sizes: '192x192' },
     ],
-    apple: '/brand/logogram192px.png',
+    apple: '/assets/brand/logogram192px.png',
   },
 }
 
@@ -61,15 +49,15 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="id" suppressHydrationWarning className={`${fraunces.variable} ${plusJakartaSans.variable} ${playfair.variable} ${caveat.variable}`}>
+    <html lang="id" suppressHydrationWarning className={`${fraunces.variable} ${poppins.variable}`}>
       <head>
         <link rel="icon" href="/assets/brand/logogram-32px.ico" sizes="any" />
-        <link rel="icon" href="/assets/brand/logogram32px.png" type="image/png" />
+        <link rel="icon" href="/assets/brand/logogram192px.png" type="image/png" sizes="192x192" />
         <link rel="apple-touch-icon" href="/assets/brand/logogram192px.png" />
         <link rel="manifest" href="/manifest.json" />
         <meta name="mobile-web-app-capable" content="yes" />
       </head>
-      <body className={`${fraunces.variable} ${plusJakartaSans.variable} ${playfair.variable} ${caveat.variable} font-body bg-paper-light text-text-primary antialiased`}>
+      <body className={`${fraunces.variable} ${poppins.variable} font-body bg-paper-light text-text-primary antialiased`}>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           <AppProvider>
             {children}

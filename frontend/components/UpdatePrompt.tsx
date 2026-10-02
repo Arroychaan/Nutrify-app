@@ -7,7 +7,8 @@ export default function UpdatePrompt() {
   const [waitingWorker, setWaitingWorker] = useState<ServiceWorker | null>(null);
 
   useEffect(() => {
-    if ('serviceWorker' in navigator) {
+    // Only register service worker in production to avoid caching bugs during development
+    if ('serviceWorker' in navigator && process.env.NODE_ENV !== 'development') {
       // Register service worker and listen for updates
       navigator.serviceWorker.register('/sw.js').then((registration) => {
         console.log('[App] ServiceWorker registered');

@@ -9,8 +9,7 @@ export const api = axios.create({
   },
 })
 
-// Add token to requests if exists
-// Add token to requests if exists
+// Add token to requests if it exists in localStorage
 api.interceptors.request.use((config) => {
   if (typeof window !== 'undefined') {
     const token = localStorage.getItem('token')
@@ -28,10 +27,10 @@ api.interceptors.response.use(
     // If 401 Unauthorized, clear token and redirect to login
     if (error.response?.status === 401) {
       if (typeof window !== 'undefined') {
-        // Prevent infinite loops if already on auth pages
-        if (!window.location.pathname.startsWith('/auth/')) {
+        // Prevent infinite loops if already on root page
+        if (window.location.pathname !== '/') {
           localStorage.removeItem('token')
-          window.location.href = '/auth/login'
+          window.location.href = '/'
         }
       }
     }
@@ -39,15 +38,26 @@ api.interceptors.response.use(
   }
 )
 
-// Auth API
+// ─── Types ────────────────────────────────────────────────────────────────────
+
+export interface LoginPayload {
+  email: string
+  password: string
+  totpCode?: string
+}
+
+export interface RegisterPayload {
+  email: string
+  password: string
+  fullName: string
+  heightCm?: number
+  currentWeightKg?: number
+}
+
+// ─── Auth API ─────────────────────────────────────────────────────────────────
+
 export const authApi = {
-  register: async (data: {
-    email: string
-    password: string
-    fullName: string
-    heightCm?: number
-    currentWeightKg?: number
-  }) => {
+  register: async (data: RegisterPayload) => {
     const response = await api.post('/api/v1/auth/register', data)
     // Backend returns { success: true, data: { accessToken, ... } }
     const token = response.data.data?.accessToken || response.data.accessToken || response.data.token
@@ -57,7 +67,7 @@ export const authApi = {
     return response.data
   },
 
-  login: async (data: any) => {
+  login: async (data: LoginPayload) => {
     const response = await api.post('/api/v1/auth/login', data)
     // Backend returns { success: true, data: { accessToken, ... } }
     const token = response.data.data?.accessToken || response.data.accessToken || response.data.token
@@ -95,12 +105,22 @@ export const authApi = {
     localStorage.removeItem('token')
   },
 
+  // Returns { success: true, data: { id, email, fullName, ... } }
   me: async () => {
     const response = await api.get('/api/v1/auth/me')
     return response.data
   },
 
-  updateProfile: async (data: any) => {
+  updateProfile: async (data: {
+    heightCm?: number
+    currentWeightKg?: number
+    dateOfBirth?: string
+    religion?: string
+    dietaryRestrictions?: string[]
+    fullName?: string
+    gender?: string
+    phoneNumber?: string
+  }) => {
     const response = await api.put('/api/v1/auth/profile', data)
     return response.data
   },
@@ -131,11 +151,11 @@ export const authApi = {
   },
 }
 
-// Meal Plan API
+// ─── Meal Plan API ────────────────────────────────────────────────────────────
+
 export const mealPlanApi = {
   list: async () => {
     const response = await api.get('/api/v1/meal-plans')
-    // Backend typically returns { success, data: [...] }
     return response.data?.data ?? response.data
   },
 
@@ -145,7 +165,8 @@ export const mealPlanApi = {
   },
 }
 
-// Chat API
+// ─── Chat API ─────────────────────────────────────────────────────────────────
+
 export const chatApi = {
   sendMessage: async (payload: { conversationId?: string; message: string }) => {
     const response = await api.post('/api/v1/chat/messages', payload)
@@ -168,9 +189,9 @@ export const chatApi = {
   },
 }
 
-// Food Log API
+// ─── Food Log API ─────────────────────────────────────────────────────────────
+
 export const foodLogApi = {
-  // Create new food log
   create: async (data: {
     mealType: string
     foodName: string
@@ -185,48 +206,33 @@ export const foodLogApi = {
     return response.data?.data ?? response.data
   },
 
-  // Get food logs by date
   getByDate: async (date?: string) => {
     const response = await api.get('/api/v1/food-logs', { params: { date } })
     return response.data?.data ?? response.data
   },
 
-  // Get today's summary
+  // Bug #10 Fix: Use the correct endpoint for today's logs
   getTodaySummary: async () => {
-    const now = new Date()
-    const start = new Date(now)
-    start.setHours(0, 0, 0, 0)
-    const end = new Date(now)
-    end.setHours(23, 59, 59, 999)
-
-    const response = await api.get('/api/v1/food-logs/today', {
-      params: {
-        startDate: start.toISOString(),
-        endDate: end.toISOString()
-      }
-    })
+    const today = new Date().toISOString().split('T')[0] // YYYY-MM-DD
+    const response = await api.get('/api/v1/food-logs', { params: { date: today } })
     return response.data?.data ?? response.data
   },
 
-  // Get summary for date range
   getSummary: async (startDate?: string, endDate?: string) => {
     const response = await api.get('/api/v1/food-logs/summary', { params: { startDate, endDate } })
     return response.data?.data ?? response.data
   },
 
-  // Update food log
-  update: async (id: string, data: any) => {
+  update: async (id: string, data: Record<string, unknown>) => {
     const response = await api.put(`/api/v1/food-logs/${id}`, data)
     return response.data?.data ?? response.data
   },
 
-  // Delete food log
   delete: async (id: string) => {
     const response = await api.delete(`/api/v1/food-logs/${id}`)
     return response.data
   },
 
-  // Water Tracking
   updateWater: async (count: number, date?: string) => {
     const response = await api.put('/api/v1/food-logs/water', { count, date })
     return response.data?.data ?? response.data
@@ -238,15 +244,14 @@ export const foodLogApi = {
   },
 }
 
-// Notification API
+// ─── Notification API ─────────────────────────────────────────────────────────
+
 export const notificationApi = {
-  // Get VAPID public key
   getVapidKey: async () => {
     const response = await api.get('/api/v1/notifications/vapid-key')
     return response.data?.data ?? response.data
   },
 
-  // Subscribe to push notifications
   subscribe: async (subscription: {
     endpoint: string
     keys: { p256dh: string; auth: string }
@@ -257,19 +262,16 @@ export const notificationApi = {
     return response.data?.data ?? response.data
   },
 
-  // Unsubscribe from push notifications
   unsubscribe: async (endpoint: string) => {
     const response = await api.delete('/api/v1/notifications/subscribe', { data: { endpoint } })
     return response.data?.data ?? response.data
   },
 
-  // Get notification settings
   getSettings: async () => {
     const response = await api.get('/api/v1/notifications/settings')
     return response.data?.data ?? response.data
   },
 
-  // Update notification settings
   updateSettings: async (settings: {
     mealReminders?: boolean
     streakReminders?: boolean
@@ -284,19 +286,16 @@ export const notificationApi = {
     return response.data?.data ?? response.data
   },
 
-  // Get notification history
   getHistory: async (limit?: number, offset?: number) => {
     const response = await api.get('/api/v1/notifications/history', { params: { limit, offset } })
     return response.data?.data ?? response.data
   },
 
-  // Send test notification
   sendTest: async () => {
     const response = await api.post('/api/v1/notifications/test')
     return response.data?.data ?? response.data
   },
 
-  // In-App Notifications
   getAll: async (params?: { limit?: number; unreadOnly?: boolean }) => {
     const response = await api.get('/api/v1/notifications', { params })
     return response.data?.data ?? response.data
@@ -313,10 +312,10 @@ export const notificationApi = {
   },
 }
 
-// Biomarker API
+// ─── Biomarker API ────────────────────────────────────────────────────────────
+
 export const biomarkerApi = {
   getWeightHistory: async () => {
-    // Returns { success: true, data: [{id, weightKg, recordedAt}, ...] }
     const response = await api.get('/api/v1/biomarkers/weight/history')
     return response.data?.data ?? response.data
   },
@@ -327,7 +326,8 @@ export const biomarkerApi = {
   },
 }
 
-// Food Database API
+// ─── Food Database API ────────────────────────────────────────────────────────
+
 export const foodApi = {
   search: async (params: { q?: string; category?: string; limit?: number; offset?: number }) => {
     const response = await api.get('/api/v1/foods/search', { params })
@@ -340,7 +340,8 @@ export const foodApi = {
   },
 }
 
-// User Targets API
+// ─── User Targets API ─────────────────────────────────────────────────────────
+
 export const userTargetsApi = {
   get: async () => {
     const response = await api.get('/api/v1/user-targets')
@@ -353,7 +354,8 @@ export const userTargetsApi = {
   },
 }
 
-// Transactions API
+// ─── Transactions API ─────────────────────────────────────────────────────────
+
 export const transactionsApi = {
   getAll: async () => {
     const response = await api.get('/api/v1/transactions')

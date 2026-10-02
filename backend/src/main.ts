@@ -1,6 +1,15 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 
+// Prevent uncaught exceptions (like Redis connection/DNS lookup errors during startup) from crashing the server
+process.on('uncaughtException', (err) => {
+  console.warn('[Process] Uncaught Exception caught safely:', err.message || err);
+});
+
+process.on('unhandledRejection', (reason) => {
+  console.warn('[Process] Unhandled Rejection caught safely:', reason);
+});
+
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 

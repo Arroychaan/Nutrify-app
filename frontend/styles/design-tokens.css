@@ -53,12 +53,21 @@
   --color-warning:      #E8A838;
   --color-danger:       #C0392B;
 
-  /* Base Mappings */
+}
+
+/* Light mode specific overrides */
+:root {
   --color-text-primary: var(--color-ink);
-  --color-border:       rgba(250, 240, 224, 0.1);
-  
-  /* System specific */
-  --glass-bg:           rgba(42, 36, 29, 0.7);
-  --glass-border:       rgba(250, 240, 224, 0.1);
+  --color-border:       rgba(30, 24, 16, 0.12);
+  --glass-bg:           rgba(253, 251, 247, 0.8);
+  --glass-border:       rgba(30, 24, 16, 0.1);
+}
+
+/* Dark mode specific overrides */
+.dark {
+  --color-text-primary: var(--color-ink);
+  --color-border:       rgba(250, 240, 224, 0.15);
+  --glass-bg:           rgba(42, 36, 29, 0.85);
+  --glass-border:       rgba(250, 240, 224, 0.12);
 }
 

@@ -9,9 +9,13 @@ import {
   UseGuards,
   Req,
 } from '@nestjs/common';
+import { Throttle, ThrottlerGuard } from '@nestjs/throttler';
 import { AuthService } from './auth.service.js';
 import { JwtAuthGuard } from './jwt-auth.guard.js';
 import { CurrentUser, UserPayload } from './current-user.decorator.js';
+
+// Rate-limit sensitive auth routes: max 5 attempts per 60 seconds
+const AUTH_THROTTLE = Throttle({ medium: { limit: 5, ttl: 60000 } });
 
 @Controller('auth')
 export class AuthController {
@@ -26,6 +30,8 @@ export class AuthController {
     };
   }
 
+  @UseGuards(ThrottlerGuard)
+  @AUTH_THROTTLE
   @Post('login')
   async login(@Body() body: any) {
     const result = await this.authService.login(body);
@@ -53,6 +59,8 @@ export class AuthController {
     };
   }
 
+  @UseGuards(ThrottlerGuard)
+  @AUTH_THROTTLE
   @Post('forgot-password')
   async forgotPassword(@Body() body: any) {
     const result = await this.authService.forgotPassword(body);

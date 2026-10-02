@@ -74,8 +74,19 @@ export class NotificationService implements OnModuleInit {
         'Initializing notification queues and repeatable jobs...',
       );
 
-      // Clean up old repeatable jobs to avoid duplicates on restarts
-      const repeatableJobs = await this.notificationQueue.getRepeatableJobs();
+      const timeoutPromise = new Promise<never>((_, reject) =>
+        setTimeout(
+          () => reject(new Error('Redis connection timeout')),
+          2500,
+        ),
+      );
+
+      // Clean up old repeatable jobs to avoid duplicates on restarts (with timeout to prevent freezing if Redis is offline)
+      const repeatableJobs = (await Promise.race([
+        this.notificationQueue.getRepeatableJobs(),
+        timeoutPromise,
+      ])) as any[];
+
       for (const job of repeatableJobs) {
         await this.notificationQueue.removeRepeatableByKey(job.key);
       }

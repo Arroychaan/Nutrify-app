@@ -44,10 +44,10 @@ module.exports = {
         },
       },
       fontFamily: {
-        display: ['"Fraunces"', 'serif'],
-        body: ['"Plus Jakarta Sans"', 'sans-serif'],
-        editorial: ['"Playfair Display"', 'serif'],
-        handwritten: ['"Caveat"', 'cursive'],
+        display: ['var(--font-display)', 'serif'],
+        body: ['var(--font-body)', 'sans-serif'],
+        editorial: ['var(--font-display)', 'serif'],
+        handwritten: ['var(--font-body)', 'sans-serif'],
       },
       fontSize: {
         'display-xl': ['64px', { lineHeight: '1', letterSpacing: '-0.02em', fontWeight: '400' }],
